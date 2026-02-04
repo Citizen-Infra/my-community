@@ -41,7 +41,7 @@ No linting or test framework configured.
 | Feed | Source | Auth required |
 |------|--------|--------------|
 | Bluesky Network | ATproto API (getTimeline / getFeed) | Yes (app password) |
-| Community Digest | scenius-digest API (GET /api/links) | No |
+| Community Digest | scenius-digest API (GET /api/links), includes OG metadata | No |
 | Participation | Supabase sessions + Luma API | No |
 
 ### State management
@@ -66,7 +66,7 @@ Signals-based stores in `src/store/`:
 - `TopBar.jsx` -- branding + settings gear
 - `TabBar.jsx` -- horizontal tab navigation
 - `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline
-- `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links
+- `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
 - `SessionsPanel.jsx` -- participation opportunities (sessions + Luma)
 - `SettingsModal.jsx` -- communities, Bluesky account, tab toggles, theme
 
@@ -78,6 +78,7 @@ Signals-based stores in `src/store/`:
 - All localStorage keys prefixed with `mc_`
 - Communities fetched from scenius-digest API at https://scenius-digest.vercel.app/api/groups
 - Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL
+- DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available
 
 ## Related Projects
 
