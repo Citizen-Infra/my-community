@@ -4,20 +4,26 @@ Chrome extension that replaces the new tab page with a community dashboard. Thre
 
 ## Feeds
 
-- **Bluesky Network** — Popular posts from people you follow, sorted by engagement. Connect with an app password.
-- **Community Digest** — Curated links from your communities, sourced from [scenius-digest](https://github.com/sensemaking-scenius/scenius-digest). Rich previews with OG thumbnails.
+- **Community Digest** — Curated links from your communities with rich previews (OG thumbnails, descriptions), sourced from [scenius-digest](https://github.com/sensemaking-scenius/scenius-digest).
+- **Bluesky Network** — Popular posts from people you follow, sorted by likes. Connect with an app password. Configurable time window (24h/7d/30d), reposts toggle, and weighted engagement sort.
 - **Participation** — Upcoming sessions (Harmonica, Polis) and Luma events from your communities.
 
 All tabs are toggleable in settings. The extension works without Bluesky — digest and participation feeds require no authentication.
 
 ## Install
 
-1. Clone and build:
-   ```bash
-   cd extension && npm install && npm run build
-   ```
-2. Open `chrome://extensions`, enable Developer mode
-3. Click "Load unpacked" and select the `extension/dist/` folder
+Download the latest release zip from [Releases](https://github.com/Citizen-Infra/my-community/releases), extract it, then:
+
+1. Open `chrome://extensions`, enable Developer mode
+2. Click "Load unpacked" and select the extracted folder
+
+### Build from source
+
+```bash
+cd extension && npm install && npm run build
+```
+
+Then load `extension/dist/` as an unpacked extension.
 
 ### Environment
 
