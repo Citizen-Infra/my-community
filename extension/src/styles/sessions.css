@@ -69,7 +69,7 @@
 .session-card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-xs);
   margin-bottom: var(--space-sm);
 }
 
@@ -101,9 +101,29 @@
   color: var(--color-session-completed);
 }
 
+.session-source-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.session-source-badge.source-luma {
+  background: #fff0e6;
+  color: #e06b20;
+}
+
+[data-theme="dark"] .session-source-badge.source-luma {
+  background: #2d1a0a;
+  color: #f0a060;
+}
+
 .session-time {
   font-size: 12px;
   color: var(--color-text-muted);
+  margin-left: auto;
 }
 
 .session-title {

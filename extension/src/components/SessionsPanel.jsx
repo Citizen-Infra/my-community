@@ -64,10 +64,14 @@ function SessionCard({ session, status }) {
       })
     : '';
 
+  const href = session.source === 'luma'
+    ? session.url
+    : `https://harmonica.chat/session/${session.harmonica_session_id}`;
+
   return (
     <a
       class={`session-card status-${status}`}
-      href={`https://harmonica.chat/session/${session.harmonica_session_id}`}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -75,6 +79,9 @@ function SessionCard({ session, status }) {
         <span class={`session-status-badge status-${status}`}>
           {status === 'active' ? 'Live' : status === 'upcoming' ? 'Upcoming' : 'Done'}
         </span>
+        {session.source === 'luma' && (
+          <span class="session-source-badge source-luma">Luma</span>
+        )}
         {timeStr && <span class="session-time">{timeStr}</span>}
       </div>
       <h4 class="session-title">{session.title}</h4>

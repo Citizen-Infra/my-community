@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
-import { loadCommunities, communitiesConfigured, selectedCommunityIds } from './store/communities';
+import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
+import { loadSessions } from './store/sessions';
 import { activeTab } from './store/tabs';
 import { TopBar } from './components/TopBar';
 import { TabBar } from './components/TabBar';
 import { DigestFeed } from './components/DigestFeed';
+import { SessionsPanel } from './components/SessionsPanel';
 import './styles/layout.css';
 
 export function App() {
@@ -24,6 +26,7 @@ export function App() {
     const ids = selectedCommunityIds.value;
     if (ids.length > 0) {
       loadDigest(ids);
+      loadSessions(selectedCommunities.value);
     }
   }, [ready, selectedCommunityIds.value]);
 
@@ -39,9 +42,7 @@ export function App() {
           <TabBar />
           <main class="dashboard">
             {activeTab.value === 'digest' && <DigestFeed />}
-            {activeTab.value === 'participation' && (
-              <div class="feed-empty">Participation — coming soon</div>
-            )}
+            {activeTab.value === 'participation' && <SessionsPanel />}
             {activeTab.value === 'network' && (
               <div class="feed-empty">Bluesky — coming soon</div>
             )}
