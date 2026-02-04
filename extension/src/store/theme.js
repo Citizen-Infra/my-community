@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 
-export const theme = signal(localStorage.getItem('dn_theme') || 'system');
+export const theme = signal(localStorage.getItem('mc_theme') || 'system');
 
 const mql = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -15,7 +15,7 @@ function applyTheme() {
 
 export function setTheme(val) {
   theme.value = val;
-  localStorage.setItem('dn_theme', val);
+  localStorage.setItem('mc_theme', val);
   applyTheme();
 }
 

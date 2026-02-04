@@ -1,59 +1,18 @@
-import { useState, useEffect } from 'preact/hooks';
-import { activeNeighborhood, neighborhoods, selectedCityId, selectedCountryId } from '../store/neighborhoods';
-import { activeTopicIds, allTopicsActive } from '../store/topics';
-import { showAuthModal } from '../store/auth';
-import { t } from '../lib/i18n';
+import { useState } from 'preact/hooks';
 import { SettingsModal } from './SettingsModal';
-import { EnvBadges } from './EnvBadges';
 import '../styles/topbar.css';
 
 export function TopBar() {
   const [showSettings, setShowSettings] = useState(false);
 
-  // Bridge: when showAuthModal fires (e.g. from LinksFeed vote/share), open settings instead
-  useEffect(() => {
-    if (showAuthModal.value) {
-      setShowSettings(true);
-      showAuthModal.value = false;
-    }
-  }, [showAuthModal.value]);
-
-  const neighborhood = activeNeighborhood.value;
-  const topicCount = activeTopicIds.value.length;
-
-  // Build breadcrumb from hierarchy
-  let neighborhoodLabel = t('topbar.chooseLocation');
-  if (neighborhood) {
-    const all = neighborhoods.value;
-    if (neighborhood.type === 'neighborhood') {
-      const city = all.find((n) => n.id === neighborhood.parent_id);
-      neighborhoodLabel = city ? `${city.name} / ${neighborhood.name}` : neighborhood.name;
-    } else if (neighborhood.type === 'city') {
-      const country = all.find((n) => n.id === neighborhood.parent_id);
-      neighborhoodLabel = country ? `${country.name} / ${neighborhood.name}` : neighborhood.name;
-    } else {
-      neighborhoodLabel = neighborhood.name;
-    }
-  }
-  const topicLabel = allTopicsActive.value
-    ? t('topbar.allTopics')
-    : t('topbar.topicCount', { count: topicCount, s: topicCount !== 1 ? 's' : '' });
-
   return (
     <header class="topbar">
       <div class="topbar-inner">
         <div class="topbar-brand">
-          <h1 class="topbar-title">{t('topbar.title')}</h1>
+          <h1 class="topbar-title">My Community</h1>
         </div>
 
-        <button class="topbar-filter-summary" onClick={() => setShowSettings(true)}>
-          {neighborhoodLabel}
-          <span class="topbar-filter-dot" />
-          {topicLabel}
-        </button>
-
         <div class="topbar-actions">
-          <EnvBadges />
           <button
             class="topbar-gear"
             onClick={() => setShowSettings(true)}
