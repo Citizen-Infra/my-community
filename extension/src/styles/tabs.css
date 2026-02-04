@@ -6,7 +6,7 @@
   z-index: 99;
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-light);
   padding: 0 var(--space-lg);
@@ -17,16 +17,16 @@
 
 .tab-item {
   position: relative;
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md) var(--space-md) calc(var(--space-md) - 2px);
   font-size: 13px;
   font-weight: 500;
-  font-family: inherit;
+  letter-spacing: 0.02em;
   color: var(--color-text-muted);
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
   white-space: nowrap;
 }
 
@@ -37,4 +37,5 @@
 .tab-item.active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+  font-weight: 600;
 }

@@ -1,30 +1,29 @@
 .sessions-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  position: sticky;
-  top: calc(var(--topbar-height) + var(--space-lg));
+  gap: var(--space-lg);
 }
 
 .sessions-empty {
   padding: var(--space-xl);
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .session-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
 .session-group-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding-bottom: var(--space-xs);
+  letter-spacing: 0.8px;
+  padding-bottom: var(--space-sm);
   border-bottom: 2px solid;
 }
 
@@ -46,54 +45,62 @@
 .session-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
 .session-card {
   display: block;
-  padding: var(--space-md);
+  padding: var(--space-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.2s ease;
+  animation: card-enter 0.4s var(--ease-out) both;
 }
 
 .session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
   border-color: var(--color-border);
-  box-shadow: var(--shadow-sm);
   text-decoration: none;
+}
+
+/* Active card — subtle left accent */
+.session-card.status-active {
+  border-left: 3px solid var(--color-session-active);
 }
 
 .session-card-header {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   margin-bottom: var(--space-sm);
 }
 
 .session-status-badge {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding: 2px 8px;
-  border-radius: 100px;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
 }
 
 .session-status-badge.status-active {
-  background: var(--color-primary-light);
+  background: var(--color-primary-subtle);
   color: var(--color-session-active);
 }
 
 .session-status-badge.status-upcoming {
-  background: #e3edf3;
+  background: rgba(69, 123, 157, 0.08);
   color: var(--color-session-upcoming);
 }
 
 [data-theme="dark"] .session-status-badge.status-upcoming {
-  background: #1a2a3d;
+  background: rgba(125, 211, 252, 0.08);
 }
 
 .session-status-badge.status-completed {
@@ -102,42 +109,43 @@
 }
 
 .session-source-badge {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding: 2px 8px;
-  border-radius: 100px;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
 }
 
 .session-source-badge.source-luma {
-  background: #fff0e6;
-  color: #e06b20;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
 }
 
 [data-theme="dark"] .session-source-badge.source-luma {
-  background: #2d1a0a;
-  color: #f0a060;
+  color: var(--color-accent);
 }
 
 .session-time {
   font-size: 12px;
   color: var(--color-text-muted);
   margin-left: auto;
+  font-weight: 500;
 }
 
 .session-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.4;
   color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 .session-description {
   font-size: 13px;
   color: var(--color-text-secondary);
-  margin-top: var(--space-xs);
-  line-height: 1.4;
+  margin-top: var(--space-sm);
+  line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -146,14 +154,15 @@
 
 .session-tags {
   display: flex;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
 }
 
 .session-tag {
-  padding: 1px 8px;
+  padding: 2px 10px;
   background: var(--color-border-light);
-  border-radius: 100px;
+  border-radius: var(--radius-full);
   font-size: 11px;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }

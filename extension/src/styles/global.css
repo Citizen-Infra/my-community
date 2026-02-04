@@ -8,9 +8,11 @@ html, body {
   height: 100%;
   font-family: var(--font-body);
   font-size: 14px;
+  line-height: 1.6;
   color: var(--color-text);
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
@@ -22,9 +24,11 @@ html, body {
 a {
   color: var(--color-primary);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 a:hover {
+  color: var(--color-primary-hover);
   text-decoration: underline;
 }
 
@@ -40,4 +44,16 @@ button {
 input, select, textarea {
   font-family: var(--font-body);
   font-size: inherit;
+}
+
+/* Stagger animation for feed cards */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

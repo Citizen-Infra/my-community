@@ -4,6 +4,8 @@
   justify-content: center;
   min-height: 100vh;
   color: var(--color-text-muted);
+  font-size: 15px;
+  letter-spacing: 0.3px;
 }
 
 .app {
@@ -13,26 +15,11 @@
 }
 
 .dashboard {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: var(--space-lg);
   max-width: var(--max-width);
   width: 100%;
   margin: 0 auto;
   padding: var(--space-lg);
-  padding-top: calc(var(--topbar-height) + 40px + var(--space-lg));
-}
-
-.dashboard-links {
-  min-width: 0;
-}
-
-.dashboard-sessions {
-  min-width: 0;
-}
-
-.dashboard--full {
-  grid-template-columns: 1fr;
+  padding-top: calc(var(--topbar-height) + 52px + var(--space-lg));
 }
 
 .welcome-prompt {
@@ -42,24 +29,23 @@
 }
 
 .welcome-prompt h2 {
-  font-size: 20px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 400;
   color: var(--color-text);
   margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
 }
 
 .welcome-prompt p {
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .welcome-prompt .welcome-hint {
   font-size: 13px;
   color: var(--color-text-muted);
-  margin-top: var(--space-sm);
-}
-
-@media (max-width: 1024px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
+  margin-top: var(--space-md);
 }

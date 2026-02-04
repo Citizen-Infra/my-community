@@ -1,54 +1,66 @@
 .bluesky-feed {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
 /* Time window controls */
 .bsky-controls {
   display: flex;
-  gap: var(--space-xs);
-  padding-bottom: var(--space-sm);
+  gap: var(--space-sm);
+  padding-bottom: var(--space-md);
 }
 
 .bsky-window-btn {
-  padding: 4px 14px;
+  padding: 6px 16px;
   font-size: 12px;
   font-weight: 500;
+  letter-spacing: 0.02em;
   border: 1px solid var(--color-border);
-  border-radius: 100px;
+  border-radius: var(--radius-full);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s var(--ease-out);
 }
 
 .bsky-window-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+  background: var(--color-primary-subtle);
 }
 
 .bsky-window-btn.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
 }
 
 /* Post card */
 .bsky-card {
   display: block;
-  padding: var(--space-md);
+  padding: var(--space-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.2s ease;
+  animation: card-enter 0.4s var(--ease-out) both;
 }
 
+.bsky-card:nth-child(2) { animation-delay: 0s; }
+.bsky-card:nth-child(3) { animation-delay: 0.04s; }
+.bsky-card:nth-child(4) { animation-delay: 0.08s; }
+.bsky-card:nth-child(5) { animation-delay: 0.12s; }
+.bsky-card:nth-child(6) { animation-delay: 0.16s; }
+
 .bsky-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
   border-color: var(--color-border);
-  box-shadow: var(--shadow-sm);
   text-decoration: none;
 }
 
@@ -57,24 +69,25 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
 .bsky-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .bsky-avatar-placeholder {
-  background: var(--color-border);
+  background: var(--color-border-light);
 }
 
 .bsky-author {
   display: flex;
   flex-direction: column;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -104,10 +117,10 @@
 
 /* Post text */
 .bsky-text {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--color-text-secondary);
-  margin: 0 0 var(--space-sm) 0;
+  margin: 0 0 var(--space-md) 0;
   display: -webkit-box;
   -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
@@ -120,13 +133,13 @@
 .bsky-images {
   display: flex;
   gap: var(--space-xs);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .bsky-image {
-  max-height: 200px;
+  max-height: 220px;
   flex: 1;
   object-fit: cover;
   border-radius: var(--radius-sm);
@@ -135,12 +148,15 @@
 /* Stats row */
 .bsky-stats {
   display: flex;
-  gap: var(--space-md);
+  gap: var(--space-lg);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
 }
 
 .bsky-stat {
   font-size: 12px;
   color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 /* Connect prompt (when not connected) */
@@ -155,8 +171,9 @@
 
 .bsky-connect-prompt p {
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 15px;
   margin: 0;
+  line-height: 1.6;
 }
 
 .bsky-connect-prompt .bsky-connect-hint {
