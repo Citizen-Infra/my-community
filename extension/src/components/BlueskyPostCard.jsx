@@ -6,8 +6,13 @@ export function BlueskyPostCard({ post }) {
   // Relative time
   const timeAgo = getRelativeTime(post.createdAt);
 
+  const repostedBy = post.reason?.by?.displayName || post.reason?.by?.handle;
+
   return (
     <a class="bsky-card" href={postUrl} target="_blank" rel="noopener noreferrer">
+      {repostedBy && (
+        <div class="bsky-repost-label">Reposted by {repostedBy}</div>
+      )}
       <div class="bsky-card-header">
         {post.author.avatar ? (
           <img class="bsky-avatar" src={post.author.avatar} alt="" />

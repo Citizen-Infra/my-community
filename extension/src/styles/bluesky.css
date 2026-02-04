@@ -64,6 +64,14 @@
   text-decoration: none;
 }
 
+/* Repost label */
+.bsky-repost-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+  font-style: italic;
+}
+
 /* Card header: avatar + author + time */
 .bsky-card-header {
   display: flex;

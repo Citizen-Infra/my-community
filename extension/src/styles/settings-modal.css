@@ -239,6 +239,11 @@
   margin-top: 8px;
 }
 
+.settings-toggle-sub {
+  padding-left: calc(var(--space-md) + 12px);
+  font-size: 13px;
+}
+
 .settings-toggle-switch {
   position: relative;
   display: inline-block;

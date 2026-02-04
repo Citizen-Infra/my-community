@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/communities';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
+import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed } from '../store/bluesky';
 import { visibleTabs, setTabVisible } from '../store/tabs';
 import '../styles/settings-modal.css';
 import '../styles/auth-modal.css';
@@ -111,17 +112,51 @@ export function SettingsModal({ onClose }) {
           ].map(({ key, label }) => {
             if (key === 'network' && !isConnected.value) return null;
             return (
-              <label key={key} class="settings-toggle-row">
-                <span class="settings-toggle-label">{label}</span>
-                <label class="settings-toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={visibleTabs.value[key]}
-                    onChange={(e) => setTabVisible(key, e.target.checked)}
-                  />
-                  <span class="settings-toggle-track" />
+              <>
+                <label key={key} class="settings-toggle-row">
+                  <span class="settings-toggle-label">{label}</span>
+                  <label class="settings-toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={visibleTabs.value[key]}
+                      onChange={(e) => setTabVisible(key, e.target.checked)}
+                    />
+                    <span class="settings-toggle-track" />
+                  </label>
                 </label>
-              </label>
+                {key === 'network' && visibleTabs.value[key] && (
+                  <>
+                    <label class="settings-toggle-row settings-toggle-sub">
+                      <span class="settings-toggle-label">Show reposts</span>
+                      <label class="settings-toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={blueskyShowReposts.value}
+                          onChange={(e) => {
+                            setBlueskyShowReposts(e.target.checked);
+                            loadBlueskyFeed();
+                          }}
+                        />
+                        <span class="settings-toggle-track" />
+                      </label>
+                    </label>
+                    <label class="settings-toggle-row settings-toggle-sub">
+                      <span class="settings-toggle-label">Weighted engagement sort</span>
+                      <label class="settings-toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={blueskyWeightedSort.value}
+                          onChange={(e) => {
+                            setBlueskyWeightedSort(e.target.checked);
+                            loadBlueskyFeed();
+                          }}
+                        />
+                        <span class="settings-toggle-track" />
+                      </label>
+                    </label>
+                  </>
+                )}
+              </>
             );
           })}
         </section>
