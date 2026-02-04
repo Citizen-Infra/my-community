@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
+import { initAuth } from './store/auth';
 import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
@@ -16,7 +17,10 @@ export function App() {
   useEffect(() => {
     initTheme();
     (async () => {
-      await loadCommunities();
+      await Promise.all([
+        loadCommunities(),
+        initAuth(),
+      ]);
       setReady(true);
     })();
   }, []);
