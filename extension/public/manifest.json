@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "My Community",
+  "version": "0.1.0",
+  "description": "A community dashboard with curated digests, Bluesky network feed, and participation opportunities.",
+  "permissions": ["tabs", "storage"],
+  "host_permissions": [
+    "https://eeidclmhfkndimghdyuq.supabase.co/*",
+    "https://scenius-digest.vercel.app/*",
+    "https://api.lu.ma/*",
+    "https://*.bsky.network/*",
+    "https://bsky.social/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "chrome_url_overrides": {
+    "newtab": "src/newtab.html"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
