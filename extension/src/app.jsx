@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
+import { loadCommunities, communitiesConfigured } from './store/communities';
 import { TopBar } from './components/TopBar';
 import './styles/layout.css';
 
@@ -8,7 +9,10 @@ export function App() {
 
   useEffect(() => {
     initTheme();
-    setReady(true);
+    (async () => {
+      await loadCommunities();
+      setReady(true);
+    })();
   }, []);
 
   if (!ready) {
@@ -19,7 +23,14 @@ export function App() {
     <div class="app">
       <TopBar />
       <main class="dashboard">
-        <p style="padding: 2rem; opacity: 0.5;">My Community — coming soon</p>
+        {!communitiesConfigured.value ? (
+          <div class="welcome-prompt">
+            <h2>Welcome to My Community</h2>
+            <p>Open settings to pick your communities.</p>
+          </div>
+        ) : (
+          <p style="padding: 2rem; opacity: 0.5;">Feeds coming next...</p>
+        )}
       </main>
     </div>
   );

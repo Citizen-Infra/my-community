@@ -1,3 +1,4 @@
+import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/communities';
 import { theme, setTheme } from '../store/theme';
 import '../styles/settings-modal.css';
 
@@ -11,6 +12,24 @@ export function SettingsModal({ onClose }) {
             &times;
           </button>
         </div>
+
+        <section class="settings-section">
+          <h4 class="settings-section-title">Communities</h4>
+          <div class="topic-grid">
+            {allCommunities.value.map((c) => (
+              <button
+                key={c.id}
+                class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
+                onClick={() => toggleCommunity(c.id)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+          {allCommunities.value.length === 0 && (
+            <p class="settings-hint">Loading communities...</p>
+          )}
+        </section>
 
         <section class="settings-section">
           <h4 class="settings-section-title">Theme</h4>
