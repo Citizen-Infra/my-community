@@ -74,7 +74,8 @@ export function App() {
         <main class="dashboard">
           <div class="welcome-prompt">
             <h2>Welcome to My Community</h2>
-            <p>Open settings to pick your communities.</p>
+            <p>Select your communities to start seeing digest links, sessions, and events.</p>
+            <p class="welcome-hint">Click the gear icon above to get started.</p>
           </div>
         </main>
       )}

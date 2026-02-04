@@ -28,7 +28,7 @@ export function BlueskyFeed() {
         </div>
       )}
       {blueskyPosts.value.length === 0 ? (
-        <div class="feed-empty">No posts to show.</div>
+        <div class="feed-empty">No posts found in this time window. Try a longer range.</div>
       ) : (
         blueskyPosts.value.map((post) => (
           <BlueskyPostCard key={post.uri} post={post} />

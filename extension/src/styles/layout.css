@@ -52,6 +52,12 @@
   font-size: 14px;
 }
 
+.welcome-prompt .welcome-hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-sm);
+}
+
 @media (max-width: 1024px) {
   .dashboard {
     grid-template-columns: 1fr;

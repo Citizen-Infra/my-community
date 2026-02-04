@@ -22,7 +22,7 @@ export function SessionsPanel() {
 
       {!hasAny ? (
         <div class="sessions-empty">
-          No sessions available.
+          No sessions or events right now. Check back soon.
         </div>
       ) : (
         <>
