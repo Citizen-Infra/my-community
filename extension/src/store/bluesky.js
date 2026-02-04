@@ -45,7 +45,15 @@ export async function loadBlueskyFeed() {
       );
       if (res && res.ok) {
         const data = await res.json();
-        posts = (data.feed || []).map((item) => ({
+
+        // Filter to only posts from followed users or reposts by followed users
+        const feedItems = (data.feed || []).filter((item) => {
+          const isFollowed = !!item.post.author.viewer?.following;
+          const isRepost = !!item.reason;
+          return isFollowed || isRepost;
+        });
+
+        posts = feedItems.map((item) => ({
           uri: item.post.uri,
           cid: item.post.cid,
           author: {

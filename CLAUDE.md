@@ -70,15 +70,34 @@ Signals-based stores in `src/store/`:
 - `SessionsPanel.jsx` -- participation opportunities (sessions + Luma)
 - `SettingsModal.jsx` -- communities, Bluesky account, tab toggles, theme
 
-## Key Constraints
+### Design system
+
+- **Typography**: `--font-display: 'Instrument Serif'` (headings, brand), `--font-body: 'DM Sans'` (body text). Loaded via Google Fonts in `newtab.html`.
+- **Palette**: Warm editorial -- cream background (`#f8f6f1`), stone text colors, amber primary (`#c4841d`). Dark mode uses warm near-black (`#151311`).
+- **Cards**: `card-enter` stagger animation on load, hover lift with shadow transition.
+
+### localStorage keys
+
+All keys prefixed with `mc_`:
+
+| Key | Store | Description |
+|-----|-------|-------------|
+| `mc_bluesky_session` | `lib/atproto.js` | ATproto session (DID, handle, tokens) |
+| `mc_bluesky_feed` | `store/bluesky.js` | Selected feed URI (default: `timeline`) |
+| `mc_bluesky_window` | `store/bluesky.js` | Time window filter (default: `24h`) |
+| `mc_communities` | `store/communities.js` | Selected community slugs (JSON array) |
+| `mc_visible_tabs` | `store/tabs.js` | Tab visibility toggles (JSON object) |
+| `mc_active_tab` | `store/tabs.js` | Currently active tab (default: `digest`) |
+| `mc_theme` | `store/theme.js` | Theme preference: `light`, `dark`, or `system` |
+
+### Key constraints
 
 - `base: ''` in vite.config.js -- Chrome extensions need relative paths
 - Supabase env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set at build time
-- ATproto app passwords stored in localStorage under `mc_bluesky_session`
-- All localStorage keys prefixed with `mc_`
 - Communities fetched from scenius-digest API at https://scenius-digest.vercel.app/api/groups
 - Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL
 - DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available
+- All feeds degrade gracefully -- Bluesky requires auth but digest and participation work without it; broken OG images are hidden via `onError` handler
 
 ## Related Projects
 
