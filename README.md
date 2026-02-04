@@ -42,6 +42,19 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 - [Supabase](https://supabase.com/) — sessions data
 - [Luma API](https://lu.ma/) — community events
 
+## Changelog
+
+### [0.1.0] - 2026-02-04
+- Community dashboard replacing Chrome new tab page
+- Community Digest feed with OG metadata thumbnails (title, description, image)
+- Bluesky Network feed — follow-only filter, paginated time windows (24h/7d/30d), sort by likes or weighted engagement
+- Participation feed — sensemaking sessions, deliberations, community events
+- Multi-community selection from scenius-digest groups
+- Bluesky app password authentication
+- Show reposts and weighted engagement sort toggles
+- Light/dark/system theme
+- All tabs toggleable in settings
+
 ## Related
 
 - [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) — parent project (neighborhood dashboard)
