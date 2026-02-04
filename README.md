@@ -6,7 +6,7 @@ Chrome extension that replaces the new tab page with a community dashboard. Thre
 
 - **Community Digest** — Curated links from your communities with rich previews (OG thumbnails, descriptions), sourced from [scenius-digest](https://github.com/sensemaking-scenius/scenius-digest).
 - **Bluesky Network** — Popular posts from people you follow, sorted by likes. Connect with an app password. Configurable time window (24h/7d/30d), reposts toggle, and weighted engagement sort.
-- **Participation** — Upcoming sessions (Harmonica, Polis) and Luma events from your communities.
+- **Participation** — Upcoming opportunities to participate: sensemaking sessions, deliberations, voting, community events.
 
 All tabs are toggleable in settings. The extension works without Bluesky — digest and participation feeds require no authentication.
 
@@ -46,6 +46,5 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 - [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) — parent project (neighborhood dashboard)
 - [Scenius Digest](https://github.com/sensemaking-scenius/scenius-digest) — digest data source
-- [Harmonica](https://harmonica.chat/) — structured deliberation sessions
 
 Part of the [Citizen Infrastructure](https://github.com/Citizen-Infra) ecosystem.
