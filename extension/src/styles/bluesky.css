@@ -1,0 +1,165 @@
+.bluesky-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Time window controls */
+.bsky-controls {
+  display: flex;
+  gap: var(--space-xs);
+  padding-bottom: var(--space-sm);
+}
+
+.bsky-window-btn {
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bsky-window-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.bsky-window-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Post card */
+.bsky-card {
+  display: block;
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bsky-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+}
+
+/* Card header: avatar + author + time */
+.bsky-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.bsky-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.bsky-avatar-placeholder {
+  background: var(--color-border);
+}
+
+.bsky-author {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bsky-display-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bsky-handle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bsky-time {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Post text */
+.bsky-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-sm) 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Images */
+.bsky-images {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.bsky-image {
+  max-height: 200px;
+  flex: 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* Stats row */
+.bsky-stats {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.bsky-stat {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Connect prompt (when not connected) */
+.bsky-connect-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+}
+
+.bsky-connect-prompt p {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.bsky-connect-prompt .bsky-connect-hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

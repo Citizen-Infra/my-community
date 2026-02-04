@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
-import { initAuth } from './store/auth';
+import { initAuth, isConnected } from './store/auth';
 import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
+import { loadBlueskyFeed } from './store/bluesky';
 import { activeTab } from './store/tabs';
 import { TopBar } from './components/TopBar';
 import { TabBar } from './components/TabBar';
 import { DigestFeed } from './components/DigestFeed';
 import { SessionsPanel } from './components/SessionsPanel';
+import { BlueskyFeed } from './components/BlueskyFeed';
 import './styles/layout.css';
 
 export function App() {
@@ -32,7 +34,16 @@ export function App() {
       loadDigest(ids);
       loadSessions(selectedCommunities.value);
     }
+    if (isConnected.value) {
+      loadBlueskyFeed();
+    }
   }, [ready, selectedCommunityIds.value]);
+
+  useEffect(() => {
+    if (ready && isConnected.value) {
+      loadBlueskyFeed();
+    }
+  }, [ready, isConnected.value]);
 
   if (!ready) {
     return <div class="loading-screen"><p>Loading...</p></div>;
@@ -48,7 +59,14 @@ export function App() {
             {activeTab.value === 'digest' && <DigestFeed />}
             {activeTab.value === 'participation' && <SessionsPanel />}
             {activeTab.value === 'network' && (
-              <div class="feed-empty">Bluesky — coming soon</div>
+              isConnected.value ? (
+                <BlueskyFeed />
+              ) : (
+                <div class="bsky-connect-prompt">
+                  <p>Connect your Bluesky account to see your network feed.</p>
+                  <p class="bsky-connect-hint">Open Settings to connect with an app password.</p>
+                </div>
+              )
             )}
           </main>
         </>
