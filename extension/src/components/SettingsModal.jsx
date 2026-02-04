@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/communities';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
+import { visibleTabs, setTabVisible } from '../store/tabs';
 import '../styles/settings-modal.css';
 import '../styles/auth-modal.css';
 
@@ -99,6 +100,30 @@ export function SettingsModal({ onClose }) {
           {allCommunities.value.length === 0 && (
             <p class="settings-hint">Loading communities...</p>
           )}
+        </section>
+
+        <section class="settings-section">
+          <h4 class="settings-section-title">Visible Tabs</h4>
+          {[
+            { key: 'digest', label: 'Digest' },
+            { key: 'participation', label: 'Participation' },
+            { key: 'network', label: 'Bluesky' },
+          ].map(({ key, label }) => {
+            if (key === 'network' && !isConnected.value) return null;
+            return (
+              <label key={key} class="settings-toggle-row">
+                <span class="settings-toggle-label">{label}</span>
+                <label class="settings-toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={visibleTabs.value[key]}
+                    onChange={(e) => setTabVisible(key, e.target.checked)}
+                  />
+                  <span class="settings-toggle-track" />
+                </label>
+              </label>
+            );
+          })}
         </section>
 
         <section class="settings-section">
