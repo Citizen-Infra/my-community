@@ -48,7 +48,7 @@ No linting or test framework configured.
 
 Signals-based stores in `src/store/`:
 - `auth.js` -- Bluesky app password auth (createSession), session persistence
-- `bluesky.js` -- timeline fetching, feed selection, engagement sorting
+- `bluesky.js` -- timeline fetching with pagination, follow-only filter, reposts toggle, sort by likes or weighted engagement
 - `communities.js` -- community selection from scenius-digest /api/groups
 - `digest.js` -- digest links from scenius-digest API, cached
 - `sessions.js` -- Supabase sessions + Luma events, merged
@@ -85,6 +85,8 @@ All keys prefixed with `mc_`:
 | `mc_bluesky_session` | `lib/atproto.js` | ATproto session (DID, handle, tokens) |
 | `mc_bluesky_feed` | `store/bluesky.js` | Selected feed URI (default: `timeline`) |
 | `mc_bluesky_window` | `store/bluesky.js` | Time window filter (default: `24h`) |
+| `mc_bluesky_reposts` | `store/bluesky.js` | Show reposts toggle (default: `true`) |
+| `mc_bluesky_weighted` | `store/bluesky.js` | Weighted engagement sort (default: `false`) |
 | `mc_communities` | `store/communities.js` | Selected community slugs (JSON array) |
 | `mc_visible_tabs` | `store/tabs.js` | Tab visibility toggles (JSON object) |
 | `mc_active_tab` | `store/tabs.js` | Currently active tab (default: `digest`) |
@@ -95,7 +97,9 @@ All keys prefixed with `mc_`:
 - `base: ''` in vite.config.js -- Chrome extensions need relative paths
 - Supabase env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set at build time
 - Communities fetched from scenius-digest API at https://scenius-digest.vercel.app/api/groups
-- Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL
+- Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL (cache key includes feed URI, time window, reposts, and sort settings)
+- Bluesky timeline filtered to followed users only (`author.viewer.following`); reposts kept or hidden based on user setting
+- Bluesky pagination: 2 pages for 24h, 6 for 7d, 10 for 30d — stops early when posts fall outside window
 - DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available
 - All feeds degrade gracefully -- Bluesky requires auth but digest and participation work without it; broken OG images are hidden via `onError` handler
 
