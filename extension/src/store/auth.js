@@ -1,5 +1,6 @@
 import { signal, computed } from '@preact/signals';
 import { createSession, getValidSession, clearSession } from '../lib/atproto';
+import { clearBlueskyState } from './bluesky';
 
 export const blueskyUser = signal(null); // { did, handle }
 export const blueskySession = signal(null); // Full session with tokens
@@ -27,4 +28,5 @@ export function disconnectBluesky() {
   clearSession();
   blueskyUser.value = null;
   blueskySession.value = null;
+  clearBlueskyState();
 }

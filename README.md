@@ -44,6 +44,13 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 ## Changelog
 
+### [0.1.1] - 2026-02-05
+- Bluesky saved feeds selection — choose from your pinned feeds in Settings
+- Time window filtering and sorting now applies to all feeds (not just Following)
+- Community origin indicators on Digest cards — color-coded badges and left accent bar
+- Share to Bluesky button on Digest cards — opens Bluesky compose with pre-filled text
+- Reorganized Settings modal — Bluesky, Digest, and Participation sections with inline visibility toggles
+
 ### [0.1.0] - 2026-02-04
 - Community dashboard replacing Chrome new tab page
 - Community Digest feed with OG metadata thumbnails (title, description, image)

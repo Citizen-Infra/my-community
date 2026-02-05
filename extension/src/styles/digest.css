@@ -7,7 +7,9 @@
 /* Base card */
 .digest-card {
   display: block;
+  position: relative;
   padding: var(--space-lg);
+  padding-left: calc(var(--space-lg) + 4px);
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
@@ -16,6 +18,22 @@
   box-shadow: var(--shadow-card);
   transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.2s ease;
   animation: card-enter 0.4s var(--ease-out) both;
+  overflow: hidden;
+}
+
+/* Left accent bar for community color */
+.digest-card-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--community-border, var(--color-primary));
+  transition: width 0.2s var(--ease-out);
+}
+
+.digest-card:hover .digest-card-accent {
+  width: 5px;
 }
 
 .digest-card:nth-child(1) { animation-delay: 0s; }
@@ -70,24 +88,52 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-sm);
   margin-bottom: var(--space-sm);
 }
 
-.digest-card-topic {
+.digest-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.digest-card-community {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 3px 10px;
   border-radius: var(--radius-full);
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  background: var(--community-bg, var(--color-surface-hover));
+  color: var(--community-text, var(--color-text-secondary));
+  border: 1px solid var(--community-border, var(--color-border));
+  transition: all 0.2s var(--ease-out);
+}
+
+.digest-card:hover .digest-card-community {
+  background: var(--community-border, var(--color-primary));
+  color: #fff;
+  border-color: var(--community-border, var(--color-primary));
+}
+
+.digest-card-topic {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-light);
 }
 
 .digest-card-sharer {
   font-size: 12px;
   color: var(--color-text-muted);
   font-style: italic;
+  flex-shrink: 0;
 }
 
 /* Title */
@@ -132,6 +178,64 @@
 .digest-card-domain {
   color: var(--color-text-muted);
   font-weight: 500;
+}
+
+.digest-card-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Share to Bluesky — editorial inline treatment */
+.digest-card-share {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: all 0.25s var(--ease-out);
+}
+
+.digest-card-share .share-icon {
+  transition: transform 0.3s var(--ease-out);
+}
+
+.digest-card-share .share-label {
+  transition: opacity 0.2s ease;
+}
+
+.digest-card:hover .digest-card-share {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.digest-card-share:hover {
+  background: rgba(17, 133, 254, 0.08);
+  border-color: rgba(17, 133, 254, 0.2);
+  color: #1185fe;
+}
+
+.digest-card-share:hover .share-icon {
+  transform: scale(1.15) rotate(-8deg);
+}
+
+.digest-card-share:active {
+  transform: scale(0.96);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .digest-card-share:hover {
+  background: rgba(17, 133, 254, 0.15);
+  border-color: rgba(17, 133, 254, 0.3);
 }
 
 /* Empty state */

@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/communities';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
-import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed } from '../store/bluesky';
+import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
 import { visibleTabs, setTabVisible } from '../store/tabs';
 import '../styles/settings-modal.css';
 import '../styles/auth-modal.css';
@@ -22,6 +22,7 @@ export function SettingsModal({ onClose }) {
       await connectBluesky(handle.trim(), appPassword.trim());
       setHandle('');
       setAppPassword('');
+      await loadSavedFeeds();
     } catch (err) {
       setAuthError(err.message);
     }
@@ -38,23 +39,91 @@ export function SettingsModal({ onClose }) {
           </button>
         </div>
 
+        {/* Bluesky Section */}
         <section class="settings-section">
-          <h4 class="settings-section-title">Bluesky Account</h4>
+          <div class="settings-section-header">
+            <h4 class="settings-section-title">Bluesky</h4>
+            {isConnected.value && (
+              <label class="settings-toggle-inline">
+                <input
+                  type="checkbox"
+                  checked={visibleTabs.value.network}
+                  onChange={(e) => setTabVisible('network', e.target.checked)}
+                />
+                <span class="settings-toggle-track-sm" />
+              </label>
+            )}
+          </div>
+
           {isConnected.value ? (
-            <div class="auth-inline">
-              <p class="auth-inline-status">
-                Connected as <strong>@{blueskyUser.value.handle}</strong>
-              </p>
-              <button class="auth-inline-signout" onClick={disconnectBluesky}>
-                Disconnect
-              </button>
+            <div class="settings-card">
+              <div class="settings-card-header">
+                <span class="settings-card-status">
+                  <span class="status-dot" />
+                  @{blueskyUser.value.handle}
+                </span>
+                <button class="settings-link-btn" onClick={disconnectBluesky}>
+                  Disconnect
+                </button>
+              </div>
+
+              {blueskyAvailableFeeds.value.length > 1 && (
+                <div class="settings-field">
+                  <label class="settings-label">Feed</label>
+                  <select
+                    class="location-select"
+                    value={blueskyFeedUri.value}
+                    onChange={(e) => {
+                      setBlueskyFeedUri(e.target.value);
+                      loadBlueskyFeed();
+                    }}
+                  >
+                    {blueskyAvailableFeeds.value.map((feed) => (
+                      <option key={feed.uri} value={feed.uri}>
+                        {feed.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div class="settings-toggles">
+                <label class="settings-toggle-compact">
+                  <span>Show reposts</span>
+                  <label class="settings-toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={blueskyShowReposts.value}
+                      onChange={(e) => {
+                        setBlueskyShowReposts(e.target.checked);
+                        loadBlueskyFeed();
+                      }}
+                    />
+                    <span class="settings-toggle-track" />
+                  </label>
+                </label>
+                <label class="settings-toggle-compact">
+                  <span>Weighted engagement</span>
+                  <label class="settings-toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={blueskyWeightedSort.value}
+                      onChange={(e) => {
+                        setBlueskyWeightedSort(e.target.checked);
+                        loadBlueskyFeed();
+                      }}
+                    />
+                    <span class="settings-toggle-track" />
+                  </label>
+                </label>
+              </div>
             </div>
           ) : (
-            <div class="auth-inline">
-              <p class="settings-hint" style="margin-top: 0;">
-                Connect your Bluesky account to see popular posts from your network.
+            <div class="settings-card settings-card-empty">
+              <p class="settings-card-desc">
+                Connect to see popular posts from your network.
               </p>
-              <form onSubmit={handleConnect}>
+              <form onSubmit={handleConnect} class="auth-form-compact">
                 <input
                   type="text"
                   class="auth-input"
@@ -73,96 +142,72 @@ export function SettingsModal({ onClose }) {
                 />
                 {authError && <p class="auth-error">{authError}</p>}
                 <button type="submit" class="auth-submit" disabled={connecting}>
-                  {connecting ? 'Connecting...' : 'Connect Bluesky'}
+                  {connecting ? 'Connecting...' : 'Connect'}
                 </button>
-                <p class="settings-hint" style="margin-top: 0.5rem;">
-                  <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noopener">
-                    Create an app password
-                  </a> at bsky.app
-                </p>
               </form>
+              <p class="settings-hint">
+                <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noopener">
+                  Create an app password
+                </a> at bsky.app
+              </p>
             </div>
           )}
         </section>
 
+        {/* Digest Section */}
         <section class="settings-section">
-          <h4 class="settings-section-title">Communities</h4>
-          <div class="topic-grid">
-            {allCommunities.value.map((c) => (
-              <button
-                key={c.id}
-                class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
-                onClick={() => toggleCommunity(c.id)}
-              >
-                {c.name}
-              </button>
-            ))}
+          <div class="settings-section-header">
+            <h4 class="settings-section-title">Digest</h4>
+            <label class="settings-toggle-inline">
+              <input
+                type="checkbox"
+                checked={visibleTabs.value.digest}
+                onChange={(e) => setTabVisible('digest', e.target.checked)}
+              />
+              <span class="settings-toggle-track-sm" />
+            </label>
           </div>
-          {allCommunities.value.length === 0 && (
-            <p class="settings-hint">Loading communities...</p>
-          )}
+
+          <div class="settings-card">
+            <label class="settings-label" style="margin-top: 0;">Communities</label>
+            <div class="topic-grid">
+              {allCommunities.value.map((c) => (
+                <button
+                  key={c.id}
+                  class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
+                  onClick={() => toggleCommunity(c.id)}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+            {allCommunities.value.length === 0 && (
+              <p class="settings-hint" style="margin-top: 0;">Loading communities...</p>
+            )}
+          </div>
         </section>
 
+        {/* Participation Section */}
         <section class="settings-section">
-          <h4 class="settings-section-title">Visible Tabs</h4>
-          {[
-            { key: 'digest', label: 'Digest' },
-            { key: 'participation', label: 'Participation' },
-            { key: 'network', label: 'Bluesky' },
-          ].map(({ key, label }) => {
-            if (key === 'network' && !isConnected.value) return null;
-            return (
-              <>
-                <label key={key} class="settings-toggle-row">
-                  <span class="settings-toggle-label">{label}</span>
-                  <label class="settings-toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={visibleTabs.value[key]}
-                      onChange={(e) => setTabVisible(key, e.target.checked)}
-                    />
-                    <span class="settings-toggle-track" />
-                  </label>
-                </label>
-                {key === 'network' && visibleTabs.value[key] && (
-                  <>
-                    <label class="settings-toggle-row settings-toggle-sub">
-                      <span class="settings-toggle-label">Show reposts</span>
-                      <label class="settings-toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={blueskyShowReposts.value}
-                          onChange={(e) => {
-                            setBlueskyShowReposts(e.target.checked);
-                            loadBlueskyFeed();
-                          }}
-                        />
-                        <span class="settings-toggle-track" />
-                      </label>
-                    </label>
-                    <label class="settings-toggle-row settings-toggle-sub">
-                      <span class="settings-toggle-label">Weighted engagement sort</span>
-                      <label class="settings-toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={blueskyWeightedSort.value}
-                          onChange={(e) => {
-                            setBlueskyWeightedSort(e.target.checked);
-                            loadBlueskyFeed();
-                          }}
-                        />
-                        <span class="settings-toggle-track" />
-                      </label>
-                    </label>
-                  </>
-                )}
-              </>
-            );
-          })}
+          <div class="settings-section-header">
+            <h4 class="settings-section-title">Participation</h4>
+            <label class="settings-toggle-inline">
+              <input
+                type="checkbox"
+                checked={visibleTabs.value.participation}
+                onChange={(e) => setTabVisible('participation', e.target.checked)}
+              />
+              <span class="settings-toggle-track-sm" />
+            </label>
+          </div>
+          <p class="settings-hint" style="margin-top: 0;">
+            Shows sessions and events from your selected communities.
+          </p>
         </section>
 
+        {/* Appearance Section */}
         <section class="settings-section">
-          <h4 class="settings-section-title">Theme</h4>
+          <h4 class="settings-section-title">Appearance</h4>
           <div class="theme-picker">
             {['light', 'dark', 'system'].map((val) => (
               <button

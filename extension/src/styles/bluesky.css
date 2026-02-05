@@ -7,8 +7,16 @@
 /* Time window controls */
 .bsky-controls {
   display: flex;
-  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
   padding-bottom: var(--space-md);
+}
+
+.bsky-window-btns {
+  display: flex;
+  gap: var(--space-sm);
+  margin-left: auto;
 }
 
 .bsky-window-btn {
@@ -35,6 +43,13 @@
   border-color: var(--color-primary);
   color: #fff;
   box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
+}
+
+.bsky-feed-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: 6px 0;
 }
 
 /* Post card */

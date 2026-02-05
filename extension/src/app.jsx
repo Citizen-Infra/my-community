@@ -4,7 +4,7 @@ import { initAuth, isConnected } from './store/auth';
 import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
-import { loadBlueskyFeed } from './store/bluesky';
+import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
 import { activeTab } from './store/tabs';
 import { TopBar } from './components/TopBar';
 import { TabBar } from './components/TabBar';
@@ -41,6 +41,7 @@ export function App() {
 
   useEffect(() => {
     if (ready && isConnected.value) {
+      loadSavedFeeds();
       loadBlueskyFeed();
     }
   }, [ready, isConnected.value]);

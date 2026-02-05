@@ -8,6 +8,7 @@ export const blueskyFeedUri = signal(localStorage.getItem('mc_bluesky_feed') || 
 export const blueskyTimeWindow = signal(localStorage.getItem('mc_bluesky_window') || '24h');
 export const blueskyShowReposts = signal(localStorage.getItem('mc_bluesky_reposts') !== 'false');
 export const blueskyWeightedSort = signal(localStorage.getItem('mc_bluesky_weighted') === 'true');
+export const blueskyAvailableFeeds = signal([]);
 
 const CACHE_KEY = 'mc_bluesky_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -100,30 +101,61 @@ export async function loadBlueskyFeed() {
         posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
       }
     } else {
-      // Fetch custom feed generator
-      const res = await bskyFetch(
-        `https://bsky.social/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50`,
-        session
-      );
-      if (res && res.ok) {
+      // Fetch custom feed generator with pagination for time window
+      const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
+      const maxPages = MAX_PAGES[blueskyTimeWindow.value] || 2;
+      let cursor = undefined;
+
+      for (let page = 0; page < maxPages; page++) {
+        const url = `https://bsky.social/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`;
+        const res = await bskyFetch(url, session);
+        if (!res || !res.ok) break;
+
         const data = await res.json();
-        posts = (data.feed || []).map((item) => ({
-          uri: item.post.uri,
-          cid: item.post.cid,
-          author: {
-            did: item.post.author.did,
-            handle: item.post.author.handle,
-            displayName: item.post.author.displayName || item.post.author.handle,
-            avatar: item.post.author.avatar || null,
-          },
-          text: item.post.record?.text || '',
-          createdAt: item.post.record?.createdAt || item.post.indexedAt,
-          likeCount: item.post.likeCount || 0,
-          repostCount: item.post.repostCount || 0,
-          replyCount: item.post.replyCount || 0,
-          embed: item.post.embed || null,
-          reason: item.reason || null,
-        }));
+        const items = data.feed || [];
+        if (items.length === 0) break;
+
+        // Check if we've gone past the time window
+        const lastItem = items[items.length - 1];
+        const lastTime = new Date(lastItem.post.record?.createdAt || lastItem.post.indexedAt).getTime();
+
+        for (const item of items) {
+          const isRepost = !!item.reason;
+          if (isRepost && !blueskyShowReposts.value) continue;
+
+          const createdAt = item.post.record?.createdAt || item.post.indexedAt;
+          if (new Date(createdAt).getTime() < cutoff) continue;
+
+          posts.push({
+            uri: item.post.uri,
+            cid: item.post.cid,
+            author: {
+              did: item.post.author.did,
+              handle: item.post.author.handle,
+              displayName: item.post.author.displayName || item.post.author.handle,
+              avatar: item.post.author.avatar || null,
+            },
+            text: item.post.record?.text || '',
+            createdAt,
+            likeCount: item.post.likeCount || 0,
+            repostCount: item.post.repostCount || 0,
+            replyCount: item.post.replyCount || 0,
+            embed: item.post.embed || null,
+            reason: item.reason || null,
+          });
+        }
+
+        // Stop if oldest post on this page is before the cutoff
+        if (lastTime < cutoff) break;
+        cursor = data.cursor;
+        if (!cursor) break;
+      }
+
+      // Sort by likes or weighted engagement
+      if (blueskyWeightedSort.value) {
+        posts.sort((a, b) => engagementScore(b) - engagementScore(a));
+      } else {
+        posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
       }
     }
 
@@ -163,4 +195,76 @@ export function setBlueskyShowReposts(show) {
 export function setBlueskyWeightedSort(on) {
   blueskyWeightedSort.value = on;
   localStorage.setItem('mc_bluesky_weighted', on ? 'true' : 'false');
+}
+
+export async function loadSavedFeeds() {
+  const session = blueskySession.value;
+  if (!session) return;
+
+  try {
+    // Get user's saved feed preferences
+    const prefsRes = await bskyFetch('https://bsky.social/xrpc/app.bsky.actor.getPreferences', session);
+    if (!prefsRes || !prefsRes.ok) return;
+
+    const prefsData = await prefsRes.json();
+    const prefs = prefsData.preferences || [];
+
+    // Find savedFeedsPrefV2 (newer format) or fall back to savedFeedsPref
+    const savedFeedsPrefV2 = prefs.find(p => p.$type === 'app.bsky.actor.defs#savedFeedsPrefV2');
+    const savedFeedsPref = prefs.find(p => p.$type === 'app.bsky.actor.defs#savedFeedsPref');
+
+    let feedUris = [];
+
+    if (savedFeedsPrefV2 && savedFeedsPrefV2.items) {
+      // V2 format: array of { type: 'feed' | 'list' | 'timeline', value: uri, pinned: bool }
+      feedUris = savedFeedsPrefV2.items
+        .filter(item => item.type === 'feed')
+        .map(item => item.value);
+    } else if (savedFeedsPref && savedFeedsPref.saved) {
+      // V1 format: just an array of URIs
+      feedUris = savedFeedsPref.saved.filter(uri => uri.includes('app.bsky.feed.generator'));
+    }
+
+    // Build base list with Following timeline
+    const feeds = [{ uri: 'timeline', name: 'Following', type: 'timeline' }];
+
+    if (feedUris.length > 0) {
+      // Get feed generator details for display names
+      const feedsParam = feedUris.map(uri => `feeds=${encodeURIComponent(uri)}`).join('&');
+      const feedsRes = await bskyFetch(
+        `https://bsky.social/xrpc/app.bsky.feed.getFeedGenerators?${feedsParam}`,
+        session
+      );
+
+      if (feedsRes && feedsRes.ok) {
+        const feedsData = await feedsRes.json();
+        for (const feed of feedsData.feeds || []) {
+          feeds.push({
+            uri: feed.uri,
+            name: feed.displayName || feed.uri.split('/').pop(),
+            type: 'feed',
+          });
+        }
+      }
+    }
+
+    blueskyAvailableFeeds.value = feeds;
+
+    // Validate current selection still exists
+    const currentUri = blueskyFeedUri.value;
+    if (currentUri !== 'timeline' && !feeds.some(f => f.uri === currentUri)) {
+      setBlueskyFeedUri('timeline');
+    }
+  } catch (err) {
+    console.error('Failed to load saved feeds:', err);
+    // Set default on error
+    blueskyAvailableFeeds.value = [{ uri: 'timeline', name: 'Following', type: 'timeline' }];
+  }
+}
+
+export function clearBlueskyState() {
+  blueskyPosts.value = [];
+  blueskyAvailableFeeds.value = [];
+  blueskyFeedUri.value = 'timeline';
+  localStorage.setItem('mc_bluesky_feed', 'timeline');
 }
