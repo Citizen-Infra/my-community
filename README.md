@@ -25,7 +25,7 @@ Toggle any feed on or off. Choose light, dark, or system theme. The extension wo
 
 Click the gear icon to:
 - Select your communities
-- Connect your Bluesky account (optional)
+- Connect your Bluesky account with an [app password](https://bsky.app/settings/app-passwords) (optional — enables Bluesky feed)
 - Toggle which feeds to show
 
 ## Changelog
