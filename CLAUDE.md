@@ -23,6 +23,16 @@ After building, reload at `chrome://extensions` (Developer mode, Load unpacked -
 
 No linting or test framework configured.
 
+### Releasing
+
+Bump version in `extension/package.json`, update changelog in `README.md`, commit, tag `v*`, push tag. GitHub Actions (`package.yml`) builds a `.zip` and attaches it to the GitHub Release.
+
+```bash
+git tag v0.1.2 && git push origin v0.1.2   # Triggers release workflow
+./scripts/package-zip.sh                    # Local: build + create .zip
+./scripts/package-zip.sh --skip-build       # Use existing dist/
+```
+
 ## Architecture
 
 ### Stack
