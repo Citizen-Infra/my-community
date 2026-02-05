@@ -46,3 +46,5 @@ Click the gear icon to:
 ---
 
 Part of [Citizen Infrastructure](https://github.com/Citizen-Infra) — tools for community participation.
+
+See also: [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) (neighborhood dashboard) · [Scenius Digest](https://github.com/sensemaking-scenius/scenius-digest) (digest data source)
