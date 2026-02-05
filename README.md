@@ -48,7 +48,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 - Community dashboard replacing Chrome new tab page
 - Community Digest feed with OG metadata thumbnails (title, description, image)
 - Bluesky Network feed — follow-only filter, paginated time windows (24h/7d/30d), sort by likes or weighted engagement
-- Multi-community selection from scenius-digest groups
+- Multi-community selection from telegram groups that have scenius-digest bot installed
 - Bluesky app password authentication
 - Show reposts and weighted engagement sort toggles
 - Light/dark/system theme
