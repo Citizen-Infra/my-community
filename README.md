@@ -28,13 +28,20 @@ Click the gear icon to:
 - Connect your Bluesky account (optional)
 - Toggle which feeds to show
 
-## What's new
+## Changelog
 
-**February 2026**
+### 0.1.1 — February 2026
 - Choose from your saved Bluesky feeds
-- See which community each link comes from (color-coded)
+- See which community each link comes from (color-coded badges)
 - Share links to Bluesky with one click
 - Cleaner settings organized by feed
+
+### 0.1.0 — February 2026
+- Community dashboard replacing Chrome new tab
+- Community Digest with thumbnails and descriptions
+- Bluesky feed with time windows (24h/7d/30d) and engagement sorting
+- Participation feed with sessions and events
+- Light/dark/system theme
 
 ---
 
