@@ -182,6 +182,34 @@
   font-weight: 500;
 }
 
+/* Like button */
+.bsky-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.bsky-like-btn:hover {
+  color: #e0245e;
+}
+
+.bsky-like-btn.liked {
+  color: #e0245e;
+}
+
+.bsky-like-btn svg {
+  flex-shrink: 0;
+}
+
 /* Connect prompt (when not connected) */
 .bsky-connect-prompt {
   display: flex;

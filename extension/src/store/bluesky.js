@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { blueskySession } from './auth';
-import { bskyFetch } from '../lib/atproto';
+import { bskyFetch, bskyPost } from '../lib/atproto';
 
 export const blueskyPosts = signal([]);
 export const blueskyLoading = signal(false);
@@ -85,6 +85,7 @@ export async function loadBlueskyFeed() {
             replyCount: item.post.replyCount || 0,
             embed: item.post.embed || null,
             reason: item.reason || null,
+            viewer: item.post.viewer || null,
           });
         }
 
@@ -145,6 +146,7 @@ export async function loadBlueskyFeed() {
             replyCount: item.post.replyCount || 0,
             embed: item.post.embed || null,
             reason: item.reason || null,
+            viewer: item.post.viewer || null,
           });
         }
 
@@ -285,6 +287,72 @@ export async function loadSavedFeeds() {
     console.error('Failed to load saved feeds:', err);
     // Set default on error
     blueskyAvailableFeeds.value = [{ uri: 'timeline', name: 'Following', type: 'timeline' }];
+  }
+}
+
+export async function toggleLike(post) {
+  const session = blueskySession.value;
+  if (!session) return;
+
+  const isLiked = !!post.viewer?.like;
+  const postIndex = blueskyPosts.value.findIndex(p => p.uri === post.uri);
+  if (postIndex === -1) return;
+
+  // Optimistic update
+  const prev = blueskyPosts.value[postIndex];
+  const updated = {
+    ...prev,
+    likeCount: prev.likeCount + (isLiked ? -1 : 1),
+    viewer: isLiked ? { ...prev.viewer, like: undefined } : { ...prev.viewer, like: 'pending' },
+  };
+  const newPosts = [...blueskyPosts.value];
+  newPosts[postIndex] = updated;
+  blueskyPosts.value = newPosts;
+
+  try {
+    if (isLiked) {
+      // Delete the like record
+      const rkey = post.viewer.like.split('/').pop();
+      const res = await bskyPost(
+        `${session.pdsUrl}/xrpc/com.atproto.repo.deleteRecord`,
+        { repo: session.did, collection: 'app.bsky.feed.like', rkey },
+        session,
+      );
+      if (!res || !res.ok) throw new Error('Failed to unlike');
+    } else {
+      // Create a like record
+      const res = await bskyPost(
+        `${session.pdsUrl}/xrpc/com.atproto.repo.createRecord`,
+        {
+          repo: session.did,
+          collection: 'app.bsky.feed.like',
+          record: {
+            $type: 'app.bsky.feed.like',
+            subject: { uri: post.uri, cid: post.cid },
+            createdAt: new Date().toISOString(),
+          },
+        },
+        session,
+      );
+      if (!res || !res.ok) throw new Error('Failed to like');
+      const data = await res.json();
+      // Update with the real like URI
+      const finalPosts = [...blueskyPosts.value];
+      const idx = finalPosts.findIndex(p => p.uri === post.uri);
+      if (idx !== -1) {
+        finalPosts[idx] = { ...finalPosts[idx], viewer: { ...finalPosts[idx].viewer, like: data.uri } };
+        blueskyPosts.value = finalPosts;
+      }
+    }
+  } catch (err) {
+    console.error('toggleLike failed, reverting:', err);
+    // Revert optimistic update
+    const revertPosts = [...blueskyPosts.value];
+    const idx = revertPosts.findIndex(p => p.uri === post.uri);
+    if (idx !== -1) {
+      revertPosts[idx] = prev;
+      blueskyPosts.value = revertPosts;
+    }
   }
 }
 

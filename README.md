@@ -30,6 +30,10 @@ Click the gear icon to:
 
 ## Changelog
 
+### 0.1.2 — February 2026
+- Like and unlike Bluesky posts directly from the feed
+- Digest links now stay visible for 7 days (previously disappeared after Telegram digest was posted)
+
 ### 0.1.1 — February 2026
 - Choose from your saved Bluesky feeds
 - See which community each link comes from (color-coded badges)

@@ -97,3 +97,30 @@ export async function bskyFetch(url, session) {
 
   return res;
 }
+
+// Authenticated POST helper (for createRecord / deleteRecord)
+export async function bskyPost(url, body, session) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.accessJwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (res.status === 401) {
+    const refreshed = await refreshSession(session);
+    if (!refreshed) return null;
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${refreshed.accessJwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  return res;
+}

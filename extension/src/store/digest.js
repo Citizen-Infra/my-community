@@ -41,7 +41,7 @@ export async function loadDigest(communityIds) {
     const allLinks = [];
     await Promise.all(
       communityIds.map(async (id) => {
-        const res = await fetch(`${LINKS_API}?group=${id}&days=14`);
+        const res = await fetch(`${LINKS_API}?group=${id}&days=7&all=true`);
         const data = await res.json();
         const links = (data.links || []).map((l) => ({ ...l, community_id: id }));
         allLinks.push(...links);

@@ -1,3 +1,5 @@
+import { toggleLike } from '../store/bluesky';
+
 export function BlueskyPostCard({ post }) {
   // Build link to bsky.app
   const rkey = post.uri.split('/').pop();
@@ -7,9 +9,19 @@ export function BlueskyPostCard({ post }) {
   const timeAgo = getRelativeTime(post.createdAt);
 
   const repostedBy = post.reason?.by?.displayName || post.reason?.by?.handle;
+  const isLiked = !!post.viewer?.like;
+
+  const handleCardClick = () => {
+    window.open(postUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    toggleLike(post);
+  };
 
   return (
-    <a class="bsky-card" href={postUrl} target="_blank" rel="noopener noreferrer">
+    <div class="bsky-card" onClick={handleCardClick} role="link" style="cursor: pointer;">
       {repostedBy && (
         <div class="bsky-repost-label">Reposted by {repostedBy}</div>
       )}
@@ -39,9 +51,14 @@ export function BlueskyPostCard({ post }) {
       <div class="bsky-stats">
         <span class="bsky-stat">{post.replyCount} replies</span>
         <span class="bsky-stat">{post.repostCount} reposts</span>
-        <span class="bsky-stat">{post.likeCount} likes</span>
+        <button class={`bsky-like-btn${isLiked ? ' liked' : ''}`} onClick={handleLike} title={isLiked ? 'Unlike' : 'Like'}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          {post.likeCount}
+        </button>
       </div>
-    </a>
+    </div>
   );
 }
 
