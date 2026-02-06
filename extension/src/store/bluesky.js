@@ -101,13 +101,16 @@ export async function loadBlueskyFeed() {
         posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
       }
     } else {
-      // Fetch custom feed generator with pagination for time window
+      // Determine API endpoint: list feeds use getListFeed, feed generators use getFeed
+      const isList = blueskyFeedUri.value.includes('app.bsky.graph.list');
       const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
       const maxPages = MAX_PAGES[blueskyTimeWindow.value] || 2;
       let cursor = undefined;
 
       for (let page = 0; page < maxPages; page++) {
-        const url = `https://bsky.social/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`;
+        const url = isList
+          ? `https://bsky.social/xrpc/app.bsky.feed.getListFeed?list=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`
+          : `https://bsky.social/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`;
         const res = await bskyFetch(url, session);
         if (!res || !res.ok) break;
 
@@ -214,15 +217,20 @@ export async function loadSavedFeeds() {
     const savedFeedsPref = prefs.find(p => p.$type === 'app.bsky.actor.defs#savedFeedsPref');
 
     let feedUris = [];
+    let listUris = [];
 
     if (savedFeedsPrefV2 && savedFeedsPrefV2.items) {
       // V2 format: array of { type: 'feed' | 'list' | 'timeline', value: uri, pinned: bool }
       feedUris = savedFeedsPrefV2.items
         .filter(item => item.type === 'feed')
         .map(item => item.value);
+      listUris = savedFeedsPrefV2.items
+        .filter(item => item.type === 'list')
+        .map(item => item.value);
     } else if (savedFeedsPref && savedFeedsPref.saved) {
       // V1 format: just an array of URIs
       feedUris = savedFeedsPref.saved.filter(uri => uri.includes('app.bsky.feed.generator'));
+      listUris = savedFeedsPref.saved.filter(uri => uri.includes('app.bsky.graph.list'));
     }
 
     // Build base list with Following timeline
@@ -246,6 +254,24 @@ export async function loadSavedFeeds() {
           });
         }
       }
+    }
+
+    // Fetch list metadata for display names
+    for (const listUri of listUris) {
+      try {
+        const listRes = await bskyFetch(
+          `https://bsky.social/xrpc/app.bsky.graph.getList?list=${encodeURIComponent(listUri)}&limit=1`,
+          session
+        );
+        if (listRes && listRes.ok) {
+          const listData = await listRes.json();
+          feeds.push({
+            uri: listUri,
+            name: listData.list?.name || listUri.split('/').pop(),
+            type: 'list',
+          });
+        }
+      } catch {}
     }
 
     blueskyAvailableFeeds.value = feeds;

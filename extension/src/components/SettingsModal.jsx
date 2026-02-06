@@ -80,7 +80,7 @@ export function SettingsModal({ onClose }) {
                   >
                     {blueskyAvailableFeeds.value.map((feed) => (
                       <option key={feed.uri} value={feed.uri}>
-                        {feed.name}
+                        {feed.type === 'list' ? `List: ${feed.name}` : feed.name}
                       </option>
                     ))}
                   </select>
