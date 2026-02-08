@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**My Community** -- Chrome extension that replaces the new tab page with a community dashboard. Three toggleable feeds: Bluesky Network (popular posts from people you follow), Community Digest (curated links from scenius-digest), and Participation (sessions + Luma events). Part of the Citizen Infrastructure ecosystem.
+**My Community** -- Chrome extension that replaces the new tab page with a community dashboard. Three toggleable feeds: Bluesky Network (popular posts from people you follow), Community Digest (curated links from scenius-digest), and Participation (events from scenius-digest unified events API). Part of the Citizen Infrastructure ecosystem.
 
 Forked from dear-neighbors, replacing location-based content with community-scoped feeds.
 
@@ -52,23 +52,22 @@ git tag v0.1.2 && git push origin v0.1.2   # Triggers release workflow
 |------|--------|--------------|
 | Bluesky Network | ATproto API (getTimeline / getFeed) | Yes (app password) |
 | Community Digest | scenius-digest API (GET /api/links), includes OG metadata | No |
-| Participation | Supabase sessions + Luma API | No |
+| Participation | scenius-digest API (GET /api/events?community=X) + Supabase sessions | No |
 
 ### State management
 
 Signals-based stores in `src/store/`:
 - `auth.js` -- Bluesky app password auth (createSession), session persistence
 - `bluesky.js` -- timeline fetching with pagination, follow-only filter, reposts toggle, sort by likes or weighted engagement
-- `communities.js` -- community selection from scenius-digest /api/groups
+- `communities.js` -- community selection from scenius-digest /api/groups (includes city, event_topics, event_apis)
 - `digest.js` -- digest links from scenius-digest API, cached
-- `sessions.js` -- Supabase sessions + Luma events, merged
+- `sessions.js` -- events from scenius-digest /api/events per selected community + Supabase sessions, merged and deduped
 - `tabs.js` -- tab visibility and active tab state
 - `theme.js` -- light/dark/system theme
 
 ### Libraries
 
 - `lib/atproto.js` -- ATproto session management, authenticated fetch
-- `lib/luma.js` -- Luma calendar event fetching
 - `lib/supabase.js` -- Supabase client
 
 ### Components
@@ -77,7 +76,7 @@ Signals-based stores in `src/store/`:
 - `TabBar.jsx` -- horizontal tab navigation
 - `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline
 - `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
-- `SessionsPanel.jsx` -- participation opportunities (sessions + Luma)
+- `SessionsPanel.jsx` -- participation opportunities (events from /api/events + Supabase sessions, with source badges)
 - `SettingsModal.jsx` -- communities, Bluesky account, tab toggles, theme
 
 ### Design system
