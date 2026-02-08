@@ -30,6 +30,12 @@ Click the gear icon to:
 
 ## Changelog
 
+### 0.1.3 — February 2026
+- Participation feed now aggregates events from all selected communities (Telegram event links, external APIs)
+- Events color-coded by community — accent bars and badges match digest feed colors
+- Source badges (Luma, Telegram) and location display on event cards
+- "Communities" renamed to "Telegram groups" in settings
+
 ### 0.1.2 — February 2026
 - Like and unlike Bluesky posts directly from the feed
 - Digest links now stay visible for 7 days (previously disappeared after Telegram digest was posted)
