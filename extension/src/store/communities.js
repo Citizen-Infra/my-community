@@ -25,7 +25,9 @@ export async function loadCommunities() {
       id: key,
       name: val.name,
       topics: val.topics ? (Array.isArray(val.topics) ? val.topics : Object.keys(val.topics)) : [],
-      luma_url: val.luma_url || null,
+      city: val.city || null,
+      event_topics: val.event_topics || [],
+      event_apis: val.event_apis || [],
     }));
     allCommunities.value = groups;
   } catch (err) {

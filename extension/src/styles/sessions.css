@@ -126,6 +126,29 @@
   color: var(--color-accent);
 }
 
+.session-source-badge.source-telegram {
+  background: rgba(42, 171, 238, 0.08);
+  color: #2aabee;
+}
+
+.session-community-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+
+.session-location {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-sm);
+  line-height: 1.4;
+}
+
 .session-time {
   font-size: 12px;
   color: var(--color-text-muted);
