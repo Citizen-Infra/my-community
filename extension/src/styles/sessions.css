@@ -50,7 +50,9 @@
 
 .session-card {
   display: block;
+  position: relative;
   padding: var(--space-lg);
+  padding-left: calc(var(--space-lg) + 3px);
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
@@ -74,9 +76,24 @@
   text-decoration: none;
 }
 
-/* Active card — subtle left accent */
-.session-card.status-active {
-  border-left: 3px solid var(--color-session-active);
+/* Left accent bar for community color — mirrors DigestCard */
+.session-card-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--community-border, var(--color-session-upcoming));
+  transition: width 0.2s var(--ease-out);
+}
+
+.session-card:hover .session-card-accent {
+  width: 4px;
+}
+
+/* Active card override — green accent takes priority */
+.session-card.status-active .session-card-accent {
+  background: var(--color-session-active);
 }
 
 .session-card-header {
@@ -153,9 +170,12 @@
   letter-spacing: 0.3px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  background: var(--color-bg);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid;
+  transition: all 0.2s var(--ease-out);
+}
+
+.session-card:hover .session-community-badge {
+  filter: saturate(1.2);
 }
 
 .session-location {

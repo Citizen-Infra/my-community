@@ -1,4 +1,5 @@
 import { activeSessions, upcomingSessions, completedSessions, sessionsLoading } from '../store/sessions';
+import { getCommunityColors } from '../lib/community-colors';
 import '../styles/sessions.css';
 
 export function SessionsPanel() {
@@ -75,6 +76,7 @@ function SessionCard({ session, status }) {
     : session.url;
 
   const sourceLabel = SOURCE_LABELS[session.source] || session.source;
+  const colors = session.community ? getCommunityColors(session.community) : null;
 
   return (
     <a
@@ -82,7 +84,9 @@ function SessionCard({ session, status }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      style={colors ? { '--community-border': colors.border, '--community-bg': colors.bg, '--community-text': colors.text } : undefined}
     >
+      {colors && <div class="session-card-accent" />}
       <div class="session-card-header">
         <div class="session-card-meta">
           <span class={`session-status-badge status-${status}`}>
@@ -92,7 +96,7 @@ function SessionCard({ session, status }) {
             <span class={`session-source-badge source-${session.source}`}>{sourceLabel}</span>
           )}
           {session.community && (
-            <span class="session-community-badge">{session.community}</span>
+            <span class="session-community-badge" style={{ background: colors?.bg, color: colors?.text, borderColor: colors?.border }}>{session.community}</span>
           )}
         </div>
         {timeStr && <span class="session-time">{timeStr}</span>}
