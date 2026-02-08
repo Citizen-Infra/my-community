@@ -84,15 +84,17 @@ function SessionCard({ session, status }) {
       rel="noopener noreferrer"
     >
       <div class="session-card-header">
-        <span class={`session-status-badge status-${status}`}>
-          {status === 'active' ? 'Live' : status === 'upcoming' ? 'Upcoming' : 'Done'}
-        </span>
-        {session.source && session.source !== 'session' && (
-          <span class={`session-source-badge source-${session.source}`}>{sourceLabel}</span>
-        )}
-        {session.community && (
-          <span class="session-community-badge">{session.community}</span>
-        )}
+        <div class="session-card-meta">
+          <span class={`session-status-badge status-${status}`}>
+            {status === 'active' ? 'Live' : status === 'upcoming' ? 'Upcoming' : 'Done'}
+          </span>
+          {session.source && session.source !== 'session' && (
+            <span class={`session-source-badge source-${session.source}`}>{sourceLabel}</span>
+          )}
+          {session.community && (
+            <span class="session-community-badge">{session.community}</span>
+          )}
+        </div>
         {timeStr && <span class="session-time">{timeStr}</span>}
       </div>
       <h4 class="session-title">{session.title}</h4>

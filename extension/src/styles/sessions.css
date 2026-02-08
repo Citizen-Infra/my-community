@@ -59,7 +59,13 @@
   box-shadow: var(--shadow-card);
   transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.2s ease;
   animation: card-enter 0.4s var(--ease-out) both;
+  overflow: hidden;
 }
+
+.session-card:nth-child(1) { animation-delay: 0s; }
+.session-card:nth-child(2) { animation-delay: 0.04s; }
+.session-card:nth-child(3) { animation-delay: 0.06s; }
+.session-card:nth-child(4) { animation-delay: 0.08s; }
 
 .session-card:hover {
   transform: translateY(-2px);
@@ -76,8 +82,16 @@
 .session-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
+}
+
+.session-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .session-status-badge {
@@ -110,43 +124,55 @@
 
 .session-source-badge {
   font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 3px 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
   border-radius: var(--radius-full);
+  border: 1px solid transparent;
 }
 
 .session-source-badge.source-luma {
   background: var(--color-accent-subtle);
   color: var(--color-accent);
+  border-color: rgba(217, 119, 6, 0.15);
 }
 
 [data-theme="dark"] .session-source-badge.source-luma {
-  color: var(--color-accent);
+  border-color: rgba(251, 191, 36, 0.15);
 }
 
 .session-source-badge.source-telegram {
-  background: rgba(42, 171, 238, 0.08);
+  background: rgba(42, 171, 238, 0.06);
   color: #2aabee;
+  border-color: rgba(42, 171, 238, 0.12);
 }
 
 .session-community-badge {
   font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 3px 10px;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
   border-radius: var(--radius-full);
-  background: var(--color-border-light);
-  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-light);
 }
 
 .session-location {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
   font-size: 12px;
   color: var(--color-text-muted);
   margin-top: var(--space-sm);
   line-height: 1.4;
+}
+
+.session-location::before {
+  content: '↗';
+  font-size: 10px;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .session-time {

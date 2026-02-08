@@ -169,7 +169,7 @@ export function SettingsModal({ onClose }) {
           </div>
 
           <div class="settings-card">
-            <label class="settings-label" style="margin-top: 0;">Communities</label>
+            <label class="settings-label" style="margin-top: 0;">Telegram groups</label>
             <div class="topic-grid">
               {allCommunities.value.map((c) => (
                 <button
