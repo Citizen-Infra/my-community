@@ -4,6 +4,7 @@ import { initAuth, isConnected } from './store/auth';
 import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
+import { startJamPolling, stopJamPolling } from './store/jam';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
 import { activeTab } from './store/tabs';
 import { TopBar } from './components/TopBar';
@@ -33,10 +34,14 @@ export function App() {
     if (ids.length > 0) {
       loadDigest(ids);
       loadSessions(selectedCommunities.value);
+      startJamPolling(ids);
+    } else {
+      stopJamPolling();
     }
     if (isConnected.value) {
       loadBlueskyFeed();
     }
+    return () => stopJamPolling();
   }, [ready, selectedCommunityIds.value]);
 
   useEffect(() => {

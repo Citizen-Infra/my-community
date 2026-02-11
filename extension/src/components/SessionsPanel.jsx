@@ -1,5 +1,7 @@
 import { activeSessions, upcomingSessions, completedSessions, sessionsLoading } from '../store/sessions';
+import { jamRooms } from '../store/jam';
 import { getCommunityColors } from '../lib/community-colors';
+import { JamBanner } from './JamBanner';
 import '../styles/sessions.css';
 
 export function SessionsPanel() {
@@ -20,8 +22,9 @@ export function SessionsPanel() {
   return (
     <div class="sessions-panel">
       <h2 class="section-title">Participation</h2>
+      <JamBanner />
 
-      {!hasAny ? (
+      {!hasAny && jamRooms.value.length === 0 ? (
         <div class="sessions-empty">
           No sessions or events right now. Check back soon.
         </div>
