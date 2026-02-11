@@ -1,0 +1,146 @@
+/* Jam Banner — NJ retro portal in MC's warm editorial context */
+
+@keyframes jam-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+@keyframes jam-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.jam-banner-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.jam-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #0a0a2e;
+  border-left: 3px solid #000080;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #e8e6f0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 40, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  animation: jam-slide-in 0.3s var(--ease-out, ease-out) both;
+}
+
+.jam-banner:hover {
+  transform: translateY(-1px);
+  background: #10103a;
+  box-shadow: 0 4px 14px rgba(0, 0, 40, 0.25);
+}
+
+.jam-banner-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.jam-banner-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: jam-pulse 2s ease-in-out infinite;
+}
+
+.jam-banner-icon {
+  font-size: 16px;
+  color: #4a7fff;
+  line-height: 1;
+}
+
+.jam-banner-label {
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  color: #8888cc;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.jam-banner-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #c8c6d0;
+}
+
+.jam-banner-text strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.jam-banner-text em {
+  font-style: normal;
+  color: #a0a0d0;
+}
+
+.jam-banner-community {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+.jam-banner-join {
+  flex-shrink: 0;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  color: #4a7fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border: 1px solid rgba(74, 127, 255, 0.3);
+  border-radius: 3px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.jam-banner:hover .jam-banner-join {
+  background: rgba(74, 127, 255, 0.15);
+  border-color: rgba(74, 127, 255, 0.5);
+}
+
+/* Dark mode — already dark, so just a subtle shift */
+[data-theme="dark"] .jam-banner {
+  background: #0d0d1a;
+  border-left-color: #1084d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .jam-banner:hover {
+  background: #141428;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .jam-banner-icon {
+  color: #6699ff;
+}
+
+[data-theme="dark"] .jam-banner-join {
+  color: #6699ff;
+  border-color: rgba(102, 153, 255, 0.3);
+}
+
+[data-theme="dark"] .jam-banner:hover .jam-banner-join {
+  background: rgba(102, 153, 255, 0.15);
+  border-color: rgba(102, 153, 255, 0.5);
+}
