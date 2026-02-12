@@ -30,11 +30,15 @@ Click the gear icon to:
 
 ## Changelog
 
+### 0.1.4 — February 2026
+- Live jam rooms from [Navidrome Jam](https://github.com/zhiganov/navidrome-jam) appear in the participation feed with animated equalizer bars
+- Community selection moved to its own settings section — events-only communities (Newspeak House, Civic Tech Toronto, Metagov) no longer shown under "Telegram groups"
+- Metagov added as a community (Luma events)
+
 ### 0.1.3 — February 2026
 - Participation feed now aggregates events from all selected communities (Telegram event links, external APIs)
 - Events color-coded by community — accent bars and badges match digest feed colors
 - Source badges (Luma, Telegram) and location display on event cards
-- "Communities" renamed to "Telegram groups" in settings
 
 ### 0.1.2 — February 2026
 - Like and unlike Bluesky posts directly from the feed

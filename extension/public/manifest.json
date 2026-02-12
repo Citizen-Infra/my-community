@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "My Community",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "A community dashboard with curated digests, Bluesky network feed, and participation opportunities.",
   "permissions": ["tabs", "storage"],
   "host_permissions": [
@@ -9,7 +9,8 @@
     "https://scenius-digest.vercel.app/*",
     "https://api.lu.ma/*",
     "https://*.bsky.network/*",
-    "https://bsky.social/*"
+    "https://bsky.social/*",
+    "https://navidrome-jam-production.up.railway.app/*"
   ],
   "background": {
     "service_worker": "background.js"
