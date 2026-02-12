@@ -27,12 +27,16 @@ export function JamBanner() {
           >
             <div class="jam-banner-live">
               <span class="jam-banner-pulse" />
-              <span class="jam-banner-icon">{'\u266B'}</span>
+              <div class="jam-banner-eq">
+                <span class="jam-banner-eq-bar" />
+                <span class="jam-banner-eq-bar" />
+                <span class="jam-banner-eq-bar" />
+              </div>
             </div>
-            <span class="jam-banner-label">Jam</span>
+            <span class="jam-banner-label">Now listening</span>
             <span class="jam-banner-text">
               <strong>{room.hostName}</strong>
-              {trackText ? <> is listening to <em>{trackText}</em></> : ' has a room open'}
+              {trackText ? <>{' \u2014 '}<em>{trackText}</em></> : ' has a room open'}
             </span>
             {showCommunity && room.community && (
               <span

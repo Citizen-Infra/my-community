@@ -154,22 +154,10 @@ export function SettingsModal({ onClose }) {
           )}
         </section>
 
-        {/* Digest Section */}
+        {/* Communities Section */}
         <section class="settings-section">
-          <div class="settings-section-header">
-            <h4 class="settings-section-title">Digest</h4>
-            <label class="settings-toggle-inline">
-              <input
-                type="checkbox"
-                checked={visibleTabs.value.digest}
-                onChange={(e) => setTabVisible('digest', e.target.checked)}
-              />
-              <span class="settings-toggle-track-sm" />
-            </label>
-          </div>
-
+          <h4 class="settings-section-title">Communities</h4>
           <div class="settings-card">
-            <label class="settings-label" style="margin-top: 0;">Telegram groups</label>
             <div class="topic-grid">
               {allCommunities.value.map((c) => (
                 <button
@@ -187,6 +175,24 @@ export function SettingsModal({ onClose }) {
           </div>
         </section>
 
+        {/* Digest Section */}
+        <section class="settings-section">
+          <div class="settings-section-header">
+            <h4 class="settings-section-title">Digest</h4>
+            <label class="settings-toggle-inline">
+              <input
+                type="checkbox"
+                checked={visibleTabs.value.digest}
+                onChange={(e) => setTabVisible('digest', e.target.checked)}
+              />
+              <span class="settings-toggle-track-sm" />
+            </label>
+          </div>
+          <p class="settings-hint" style="margin-top: 0;">
+            Curated links from community Telegram groups.
+          </p>
+        </section>
+
         {/* Participation Section */}
         <section class="settings-section">
           <div class="settings-section-header">
@@ -201,7 +207,7 @@ export function SettingsModal({ onClose }) {
             </label>
           </div>
           <p class="settings-hint" style="margin-top: 0;">
-            Shows sessions and events from your selected communities.
+            Sessions and events from your selected communities.
           </p>
         </section>
 

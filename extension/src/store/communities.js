@@ -28,6 +28,8 @@ export async function loadCommunities() {
       city: val.city || null,
       event_topics: val.event_topics || [],
       event_apis: val.event_apis || [],
+      hasDigest: !!(val.group_id && val.topics && (Array.isArray(val.topics) ? val.topics.length > 0 : Object.keys(val.topics).length > 0)),
+      hasEvents: !!(val.event_apis && val.event_apis.length > 0) || !!(val.event_topics && val.event_topics.length > 0),
     }));
     allCommunities.value = groups;
   } catch (err) {
