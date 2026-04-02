@@ -1,0 +1,133 @@
+/* Avails Banner — warm editorial "add availability" card */
+
+@keyframes avails-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes avails-cal-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.avails-banner-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--space-lg, 24px);
+}
+
+.avails-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-left: 3px solid var(--color-primary, #c4841d);
+  border-radius: var(--radius-md, 12px);
+  text-decoration: none;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-out, ease-out),
+              box-shadow 0.25s var(--ease-out, ease-out),
+              border-color 0.2s ease;
+  animation: avails-slide-in 0.35s var(--ease-out, ease-out) both;
+  cursor: pointer;
+}
+
+.avails-banner:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+/* Calendar icon indicator */
+.avails-banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  animation: avails-cal-pulse 3s ease-in-out infinite;
+}
+
+.avails-banner-icon-svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary, #c4841d);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* "Poll open" label */
+.avails-banner-label {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Main text: poll title + response count */
+.avails-banner-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.avails-banner-text strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.avails-banner-text .avails-banner-responses {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+/* CTA button */
+.avails-banner-cta {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary, #c4841d);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-full, 100px);
+  opacity: 0.7;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.avails-banner:hover .avails-banner-cta {
+  opacity: 1;
+  background: var(--color-primary-subtle);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .avails-banner {
+  border-left-color: var(--color-primary, #c4841d);
+}
+
+[data-theme="dark"] .avails-banner-icon-svg {
+  color: var(--color-primary, #c4841d);
+}
+
+[data-theme="dark"] .avails-banner:hover .avails-banner-cta {
+  background: rgba(196, 132, 29, 0.1);
+}

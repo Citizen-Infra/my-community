@@ -10,7 +10,8 @@
     "https://api.lu.ma/*",
     "https://*.bsky.network/*",
     "https://bsky.social/*",
-    "https://navidrome-jam-production.up.railway.app/*"
+    "https://navidrome-jam-production.up.railway.app/*",
+    "https://avails.zhgnv.com/*"
   ],
   "background": {
     "service_worker": "background.js"

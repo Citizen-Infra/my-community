@@ -2,6 +2,7 @@ import { activeSessions, upcomingSessions, completedSessions, sessionsLoading } 
 import { jamRooms } from '../store/jam';
 import { getCommunityColors } from '../lib/community-colors';
 import { JamBanner } from './JamBanner';
+import { AvailsBanner } from './AvailsBanner';
 import '../styles/sessions.css';
 
 export function SessionsPanel() {
@@ -23,6 +24,7 @@ export function SessionsPanel() {
     <div class="sessions-panel">
       <h2 class="section-title">Participation</h2>
       <JamBanner />
+      <AvailsBanner />
 
       {!hasAny && jamRooms.value.length === 0 ? (
         <div class="sessions-empty">

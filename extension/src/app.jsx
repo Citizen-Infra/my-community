@@ -5,6 +5,7 @@ import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedC
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
 import { startJamPolling, stopJamPolling } from './store/jam';
+import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
 import { activeTab } from './store/tabs';
 import { TopBar } from './components/TopBar';
@@ -35,13 +36,15 @@ export function App() {
       loadDigest(ids);
       loadSessions(selectedCommunities.value);
       startJamPolling(ids);
+      startAvailsPolling(ids);
     } else {
       stopJamPolling();
+      stopAvailsPolling();
     }
     if (isConnected.value) {
       loadBlueskyFeed();
     }
-    return () => stopJamPolling();
+    return () => { stopJamPolling(); stopAvailsPolling(); };
   }, [ready, selectedCommunityIds.value]);
 
   useEffect(() => {
