@@ -57,8 +57,20 @@ Click the gear icon to:
 - Participation feed with sessions and events
 - Light/dark/system theme
 
+## Roadmap: ATProto as shared identity
+
+My Community currently uses Bluesky app passwords for the Bluesky feed. As the Citizen Infrastructure ecosystem adopts ATProto OAuth as a shared identity layer, the dashboard becomes a unified hub:
+
+- **One login for all tools.** Sign in with your Bluesky handle once — your identity works across avails (scheduling), navidrome-jam (music), community-admin, and any future Citizen Infra tool. No separate accounts.
+- **Zero-friction scheduling.** When you click an [avails](https://github.com/Citizen-Infra/avails) poll banner, your identity is already known — go straight to marking availability instead of entering your name.
+- **Create polls from the dashboard.** Embed avails poll creation directly in the participation feed. Your OAuth session writes to your PDS without leaving the new tab.
+- **Richer participation feed.** Show personalized status on poll banners ("You haven't responded yet" vs "You responded — 3 slots") by matching your DID against poll responses.
+- **Activity tracking.** Polls you created or responded to, jam sessions you joined, community events you RSVP'd to — all visible in one place, powered by ATProto records.
+
+ATProto identity turns a collection of independent tools into a coherent ecosystem where your data and identity flow between apps on an open protocol.
+
 ---
 
 Part of [Citizen Infrastructure](https://github.com/Citizen-Infra) — tools that teach collective action through use.
 
-See also: [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) (neighborhood dashboard) · [Scenius Digest](https://github.com/sensemaking-scenius/scenius-digest) (digest data source)
+See also: [Dear Neighbors](https://github.com/Citizen-Infra/dear-neighbors) (neighborhood dashboard) · [Avails](https://github.com/Citizen-Infra/avails) (group scheduling) · [Scenius Digest](https://github.com/sensemaking-scenius/scenius-digest) (digest data source)
