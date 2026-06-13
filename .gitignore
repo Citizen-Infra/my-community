@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env.local
+
+# local-only per-session process log (not for the repo)
+docs/process-notes.md
