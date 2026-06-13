@@ -53,6 +53,7 @@ git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
 | Bluesky Network | ATproto API (getTimeline / getFeed) | Yes (app password) |
 | Community Digest | scenius-digest API (GET /api/links), includes OG metadata | No |
 | Participation | scenius-digest API (GET /api/events?community=X) + Supabase sessions | No |
+| Jam Rooms | navidrome-jam API (GET /api/rooms?community=X), 2-min polling | No |
 
 ### State management
 
@@ -62,6 +63,7 @@ Signals-based stores in `src/store/`:
 - `communities.js` -- community selection from scenius-digest /api/groups (includes city, event_topics, event_apis)
 - `digest.js` -- digest links from scenius-digest API, cached
 - `sessions.js` -- events from scenius-digest /api/events per selected community + Supabase sessions, merged and deduped
+- `jam.js` -- active jam rooms from navidrome-jam API, 2-min polling per selected communities
 - `tabs.js` -- tab visibility and active tab state
 - `theme.js` -- light/dark/system theme
 
@@ -76,6 +78,7 @@ Signals-based stores in `src/store/`:
 - `TabBar.jsx` -- horizontal tab navigation
 - `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline
 - `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
+- `JamBanner.jsx` + `jam.css` -- live jam room banners with animated equalizer bars, shown atop SessionsPanel
 - `SessionsPanel.jsx` -- participation opportunities (events from /api/events + Supabase sessions, with source badges)
 - `SettingsModal.jsx` -- communities, Bluesky account, tab toggles, theme
 
@@ -118,4 +121,5 @@ All keys prefixed with `mc_`:
 - **Scenius Digest** (`../scenius-digest/`) -- digest data source
 - **Harmonica** (`../harmonica-web-app/`) -- session source
 - **Community Admin** (`../community-admin/`) -- shared admin platform for community organizers (Citizen-Infra)
+- **Navidrome Jam** (`../navidrome-jam/`) -- live jam rooms shown as banners in participation feed
 - **NSRT** (`../nsrt/`) -- parent ecosystem
