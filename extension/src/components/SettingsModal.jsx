@@ -3,7 +3,7 @@ import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
 import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
-import { visibleTabs, setTabVisible } from '../store/tabs';
+import { visibleTabs, setTabVisible } from '../store/panels';
 import '../styles/settings-modal.css';
 import '../styles/auth-modal.css';
 

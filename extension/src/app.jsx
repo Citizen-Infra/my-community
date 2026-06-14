@@ -7,7 +7,7 @@ import { loadSessions } from './store/sessions';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
-import { activeTab } from './store/tabs';
+import { activeTab } from './store/panels';
 import { TopBar } from './components/TopBar';
 import { TabBar } from './components/TabBar';
 import { DigestFeed } from './components/DigestFeed';
