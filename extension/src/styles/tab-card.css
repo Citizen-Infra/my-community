@@ -82,7 +82,7 @@
 }
 
 .tab-action-btn:hover {
-  background: rgba(196, 93, 62, 0.1);
+  background: var(--color-primary-subtle);
   color: var(--accent);
 }
 

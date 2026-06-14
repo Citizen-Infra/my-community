@@ -67,12 +67,12 @@
 }
 
 .modal-btn.danger {
-  background: #c44040;
-  color: #fff;
+  background: var(--color-danger);
+  color: var(--text-inverse);
 }
 
 .modal-btn.danger:hover {
-  background: #a83535;
+  background: var(--color-danger-hover);
 }
 
 .import-dropzone {
@@ -102,11 +102,11 @@
 }
 
 .import-status.error {
-  color: #c44040;
+  color: var(--color-danger);
 }
 
 .import-status.success {
-  color: #3d8c40;
+  color: var(--color-primary);
 }
 
 .bookmark-folder-list {

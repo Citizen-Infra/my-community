@@ -167,7 +167,7 @@
 }
 
 .clear-all-btn:hover {
-  background: rgba(196, 93, 62, 0.08);
-  color: var(--accent);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
   opacity: 1;
 }
