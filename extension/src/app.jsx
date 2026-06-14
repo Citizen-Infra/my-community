@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
 import { initAuth, isConnected } from './store/auth';
-import { loadCommunities, communitiesConfigured, selectedCommunityIds, selectedCommunities } from './store/communities';
+import { loadCommunities, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
-import { activeTab } from './store/panels';
 import { TopBar } from './components/TopBar';
-import { TabBar } from './components/TabBar';
-import { DigestFeed } from './components/DigestFeed';
-import { SessionsPanel } from './components/SessionsPanel';
-import { BlueskyFeed } from './components/BlueskyFeed';
+import { Dashboard } from './components/Dashboard';
 import './styles/layout.css';
 
 export function App() {
@@ -61,33 +57,7 @@ export function App() {
   return (
     <div class="app">
       <TopBar />
-      {communitiesConfigured.value ? (
-        <>
-          <TabBar />
-          <main class="dashboard">
-            {activeTab.value === 'digest' && <DigestFeed />}
-            {activeTab.value === 'participation' && <SessionsPanel />}
-            {activeTab.value === 'network' && (
-              isConnected.value ? (
-                <BlueskyFeed />
-              ) : (
-                <div class="bsky-connect-prompt">
-                  <p>Connect your Bluesky account to see your network feed.</p>
-                  <p class="bsky-connect-hint">Open Settings to connect with an app password.</p>
-                </div>
-              )
-            )}
-          </main>
-        </>
-      ) : (
-        <main class="dashboard">
-          <div class="welcome-prompt">
-            <h2>Welcome to My Community</h2>
-            <p>Select your communities to start seeing digest links, sessions, and events.</p>
-            <p class="welcome-hint">Click the gear icon above to get started.</p>
-          </div>
-        </main>
-      )}
+      <Dashboard />
     </div>
   );
 }
