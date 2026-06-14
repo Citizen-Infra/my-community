@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/communities';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
@@ -12,6 +12,36 @@ export function SettingsModal({ onClose }) {
   const [appPassword, setAppPassword] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [authError, setAuthError] = useState(null);
+
+  // Tab-manager save behavior (persisted in chrome.storage.local, read by the worker)
+  const [toolbarTarget, setToolbarTarget] = useState('saved-tabs');
+  const [shortcutTarget, setShortcutTarget] = useState('most-recent');
+  const [dailyBackup, setDailyBackup] = useState(true);
+
+  useEffect(() => {
+    chrome.storage?.local?.get([
+      'tab-hoarder-toolbar-target',
+      'tab-hoarder-shortcut-target',
+      'tab-hoarder-daily-backup',
+    ], (result) => {
+      if (result['tab-hoarder-toolbar-target']) setToolbarTarget(result['tab-hoarder-toolbar-target']);
+      if (result['tab-hoarder-shortcut-target']) setShortcutTarget(result['tab-hoarder-shortcut-target']);
+      if (result['tab-hoarder-daily-backup'] !== undefined) setDailyBackup(result['tab-hoarder-daily-backup'] !== false);
+    });
+  }, []);
+
+  const updateToolbarTarget = (val) => {
+    setToolbarTarget(val);
+    chrome.storage?.local?.set({ 'tab-hoarder-toolbar-target': val });
+  };
+  const updateShortcutTarget = (val) => {
+    setShortcutTarget(val);
+    chrome.storage?.local?.set({ 'tab-hoarder-shortcut-target': val });
+  };
+  const updateDailyBackup = (val) => {
+    setDailyBackup(val);
+    chrome.storage?.local?.set({ 'tab-hoarder-daily-backup': val });
+  };
 
   async function handleConnect(e) {
     e.preventDefault();
@@ -225,6 +255,68 @@ export function SettingsModal({ onClose }) {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Save Behavior Section (tab manager) */}
+        <section class="settings-section">
+          <h4 class="settings-section-title">Save Behavior</h4>
+          <div class="settings-card">
+            <div class="settings-field">
+              <label class="settings-label">Toolbar icon saves to</label>
+              <div class="theme-picker">
+                {[['saved-tabs', 'Saved Tabs'], ['most-recent', 'Most recent']].map(([val, label]) => (
+                  <button
+                    key={val}
+                    class={`topic-grid-chip ${toolbarTarget === val ? 'active' : ''}`}
+                    onClick={() => updateToolbarTarget(val)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div class="settings-field" style="margin-top: var(--space-md);">
+              <label class="settings-label">Alt+S shortcut saves to</label>
+              <div class="theme-picker">
+                {[['most-recent', 'Most recent'], ['saved-tabs', 'Saved Tabs']].map(([val, label]) => (
+                  <button
+                    key={val}
+                    class={`topic-grid-chip ${shortcutTarget === val ? 'active' : ''}`}
+                    onClick={() => updateShortcutTarget(val)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p class="settings-hint">
+              Set the keyboard shortcut at{' '}
+              <button
+                class="settings-link-btn"
+                onClick={() => chrome.tabs?.create({ url: 'chrome://extensions/shortcuts' })}
+              >
+                chrome://extensions/shortcuts
+              </button>.
+            </p>
+          </div>
+        </section>
+
+        {/* Backups Section */}
+        <section class="settings-section">
+          <div class="settings-section-header">
+            <h4 class="settings-section-title">Backups</h4>
+            <label class="settings-toggle-inline">
+              <input
+                type="checkbox"
+                checked={dailyBackup}
+                onChange={(e) => updateDailyBackup(e.target.checked)}
+              />
+              <span class="settings-toggle-track-sm" />
+            </label>
+          </div>
+          <p class="settings-hint" style="margin-top: 0;">
+            One JSON backup per day in your Downloads/TabHoarder/ folder.
+          </p>
         </section>
 
         <footer class="settings-about">

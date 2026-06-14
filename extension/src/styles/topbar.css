@@ -17,7 +17,12 @@
 }
 
 .topbar-brand {
-  flex: 1;
+  flex-shrink: 0;
+}
+
+/* Let the tab search fill the space between the brand and the gear */
+.topbar .search-bar {
+  max-width: none;
 }
 
 .topbar-title {

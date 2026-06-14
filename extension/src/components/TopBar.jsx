@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { SettingsModal } from './SettingsModal';
+import { SearchBar } from './SearchBar';
 import '../styles/topbar.css';
 
 export function TopBar() {
@@ -11,6 +12,8 @@ export function TopBar() {
         <div class="topbar-brand">
           <h1 class="topbar-title">My Community</h1>
         </div>
+
+        <SearchBar />
 
         <div class="topbar-actions">
           <button
