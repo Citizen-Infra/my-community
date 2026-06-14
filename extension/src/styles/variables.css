@@ -55,6 +55,7 @@
   /* Layout */
   --topbar-height: 72px;
   --max-width: 720px;
+  --sidebar-width: 248px;
 
   /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);

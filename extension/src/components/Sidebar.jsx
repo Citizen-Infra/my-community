@@ -1,12 +1,12 @@
 import { useState } from 'preact/hooks';
 import {
-  activeCollectionId,
   archiveCollection,
   regularCollections,
   createCollection,
 } from '../store/collections';
 import { allTabs } from '../store/tabs';
 import { collectionSort, setCollectionSort } from '../store/sort';
+import { activeView, showDashboard, showCollection } from '../store/view';
 import { CollectionItem } from './CollectionItem';
 import { SortMenu } from './SortMenu';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
@@ -35,8 +35,22 @@ export function Sidebar() {
 
   return (
     <div class="sidebar">
+      <nav class="sidebar-pinned-nav">
+        <button
+          class={`sidebar-pinned ${activeView.value === 'dashboard' ? 'active' : ''}`}
+          onClick={showDashboard}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+          </svg>
+          <span>Dashboard</span>
+        </button>
+      </nav>
       <div class="sidebar-header">
-        <span class="sidebar-title">Tab Hoarder</span>
+        <span class="sidebar-title">Collections</span>
         <SortMenu
           value={collectionSort.value}
           onChange={setCollectionSort}
@@ -57,8 +71,8 @@ export function Sidebar() {
               key={col.id}
               collection={col}
               count={count}
-              active={col.id === activeCollectionId.value}
-              onSelect={() => { activeCollectionId.value = col.id; }}
+              active={activeView.value === col.id}
+              onSelect={() => showCollection(col.id)}
               collectionDrag={collectionDrag}
             />
           );
@@ -72,8 +86,8 @@ export function Sidebar() {
           ).length;
           return (
             <div
-              class={`collection-item archive-item ${archive.id === activeCollectionId.value ? 'active' : ''}`}
-              onClick={() => { activeCollectionId.value = archive.id; }}
+              class={`collection-item archive-item ${activeView.value === archive.id ? 'active' : ''}`}
+              onClick={() => showCollection(archive.id)}
               onDragOver={(e) => collectionDrag.onDragOver(e, archive.id)}
               onDragLeave={(e) => collectionDrag.onDragLeave(e)}
               onDrop={(e) => collectionDrag.onDrop(e, archive.id)}

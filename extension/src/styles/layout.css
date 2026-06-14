@@ -19,7 +19,57 @@
   width: 100%;
   margin: 0 auto;
   padding: var(--space-lg);
-  padding-top: calc(var(--topbar-height) + 52px + var(--space-lg));
+}
+
+/* Merged shell: TopBar across the top, then sidebar + main row */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* Pinned Dashboard entry at the very top of the side panel */
+.sidebar-pinned-nav {
+  padding: var(--space-sm) var(--space-sm) 0;
+}
+
+.sidebar-pinned {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.sidebar-pinned:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.sidebar-pinned.active {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.sidebar-pinned svg {
+  flex-shrink: 0;
 }
 
 .welcome-prompt {
