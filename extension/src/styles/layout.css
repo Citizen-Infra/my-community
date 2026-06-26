@@ -1,11 +1,73 @@
+/* Boot state — the almanac setting today's page, not a spinner.
+   Serif wordmark on warm paper + a typesetting rule that sweeps. */
 .loading-screen {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-md);
   min-height: 100vh;
+  background: var(--color-bg);
+  animation: loading-fade-in 0.4s var(--ease-out) both;
+}
+
+@keyframes loading-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.loading-mark {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.loading-rule {
+  position: relative;
+  width: 132px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-border-light);
+  overflow: hidden;
+}
+
+/* Fill from the left, then drain off the right — a rule being set and cleared.
+   transform-only (scaleX), never a layout property. */
+.loading-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: loading-wipe 1.5s var(--ease-out) infinite;
+}
+
+@keyframes loading-wipe {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  45%  { transform: scaleX(1); transform-origin: left; }
+  55%  { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+.loading-line {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-style: italic;
   color: var(--color-text-muted);
-  font-size: 15px;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen { animation: none; }
+  .loading-rule::after {
+    animation: none;
+    transform: scaleX(1);
+    opacity: 0.5;
+  }
 }
 
 .app {
