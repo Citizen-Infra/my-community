@@ -7,6 +7,16 @@ export const visibleTabs = signal({
   participation: stored.participation ?? true,
 });
 
+// Jam is a global "now listening" strip (below the TopBar, every screen), not a
+// dashboard tab — so it gets its own visibility flag, kept out of visibleTabs.
+const storedJam = localStorage.getItem('mc_jam_visible');
+export const jamVisible = signal(storedJam === null ? true : storedJam === 'true');
+
+export function setJamVisible(visible) {
+  jamVisible.value = visible;
+  localStorage.setItem('mc_jam_visible', String(visible));
+}
+
 export const activeTab = signal(localStorage.getItem('mc_active_tab') || 'digest');
 
 export function setActiveTab(tab) {

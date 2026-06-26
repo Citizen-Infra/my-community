@@ -14,6 +14,7 @@ import { syncToStorage, restoreFromStorage } from './store/backup';
 import { activeView } from './store/view';
 import { searchQuery } from './store/search';
 import { TopBar } from './components/TopBar';
+import { JamBanner } from './components/JamBanner';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { MainContent } from './components/MainContent';
@@ -111,6 +112,7 @@ export function App() {
   return (
     <div class="app-shell">
       <TopBar />
+      <JamBanner />
       <div class="app-body">
         <Sidebar />
         <main class="app-main">
