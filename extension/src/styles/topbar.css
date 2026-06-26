@@ -58,7 +58,7 @@
 }
 
 .topbar-gear svg {
-  transition: transform 0.5s var(--ease-spring);
+  transition: transform 0.4s var(--ease-out);
 }
 
 .topbar-gear:hover svg {
