@@ -1,9 +1,11 @@
 import { jamRooms } from '../store/jam';
+import { jamVisible } from '../store/panels';
 import { selectedCommunityIds } from '../store/communities';
 import { getCommunityColors } from '../lib/community-colors';
 import '../styles/jam.css';
 
 export function JamBanner() {
+  if (!jamVisible.value) return null;
   const rooms = jamRooms.value;
   if (rooms.length === 0) return null;
 

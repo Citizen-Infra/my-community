@@ -23,11 +23,13 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Global strip below the TopBar — only present when a room is live */
 .jam-banner-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: var(--space-lg, 24px);
+  gap: 8px;
+  padding: 10px var(--space-lg, 24px);
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .jam-banner {
@@ -172,4 +174,13 @@
 
 [data-theme="dark"] .jam-banner:hover .jam-banner-join {
   background: rgba(74, 222, 128, 0.08);
+}
+
+/* Respect reduced-motion: hold the pulse, equalizer, and slide-in static */
+@media (prefers-reduced-motion: reduce) {
+  .jam-banner,
+  .jam-banner-pulse,
+  .jam-banner-eq-bar {
+    animation: none;
+  }
 }

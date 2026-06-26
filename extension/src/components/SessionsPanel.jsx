@@ -1,8 +1,6 @@
 import { useState } from 'preact/hooks';
 import { activeSessions, upcomingSessions, completedSessions, sessionsLoading } from '../store/sessions';
-import { jamRooms } from '../store/jam';
 import { getCommunityColors } from '../lib/community-colors';
-import { JamBanner } from './JamBanner';
 import { AvailsBanner } from './AvailsBanner';
 import '../styles/sessions.css';
 
@@ -24,10 +22,9 @@ export function SessionsPanel() {
   return (
     <div class="sessions-panel">
       <h2 class="section-title">Participation</h2>
-      <JamBanner />
       <AvailsBanner />
 
-      {!hasAny && jamRooms.value.length === 0 ? (
+      {!hasAny ? (
         <div class="sessions-empty">
           No sessions or events right now. Check back soon.
         </div>

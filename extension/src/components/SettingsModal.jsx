@@ -3,7 +3,7 @@ import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
 import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
-import { visibleTabs, setTabVisible } from '../store/panels';
+import { visibleTabs, setTabVisible, jamVisible, setJamVisible } from '../store/panels';
 import { exportData } from '../lib/export';
 import { ImportModal } from './ImportModal';
 import { BookmarkImportModal } from './BookmarkImportModal';
@@ -265,6 +265,24 @@ export function SettingsModal({ onClose }) {
                 </div>
                 <p class="settings-hint" style="margin-top: 0;">
                   Sessions and events from your selected communities.
+                </p>
+              </section>
+
+              {/* Jam Section — global "now listening" strip */}
+              <section class="settings-section">
+                <div class="settings-section-header">
+                  <h4 class="settings-section-title">Jam</h4>
+                  <label class="settings-toggle-inline">
+                    <input
+                      type="checkbox"
+                      checked={jamVisible.value}
+                      onChange={(e) => setJamVisible(e.target.checked)}
+                    />
+                    <span class="settings-toggle-track-sm" />
+                  </label>
+                </div>
+                <p class="settings-hint" style="margin-top: 0;">
+                  Live listening rooms, shown across the top of every screen when one is active.
                 </p>
               </section>
 
