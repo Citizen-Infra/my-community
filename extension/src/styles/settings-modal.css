@@ -125,10 +125,10 @@
   left: 2px;
   width: 16px;
   height: 16px;
-  background: #fff;
+  background: var(--color-control-knob);
   border-radius: 50%;
   transition: transform 0.25s var(--ease-out);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.18);
 }
 
 .settings-toggle-inline input:checked + .settings-toggle-track-sm {
@@ -425,10 +425,10 @@
   left: 2px;
   width: 18px;
   height: 18px;
-  background: #fff;
+  background: var(--color-control-knob);
   border-radius: 50%;
   transition: transform 0.25s var(--ease-out);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.18);
 }
 
 .settings-toggle-switch input:checked + .settings-toggle-track {

@@ -4,6 +4,7 @@
   --color-surface: #ffffff;
   --color-surface-hover: #f3f1ec;
   --color-surface-raised: #ffffff;
+  --color-control-knob: #faf8f4; /* warm near-white toggle handle; stays light in both themes */
   --color-border: #ddd9d0;
   --color-border-light: #eceae4;
 

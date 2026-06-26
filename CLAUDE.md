@@ -85,7 +85,7 @@ Signals-based stores in `src/store/`:
 ### Design system
 
 - **Typography**: `--font-display: 'Instrument Serif'` (headings, brand), `--font-body: 'DM Sans'` (body text). Loaded via Google Fonts in `newtab.html`.
-- **Palette**: Warm editorial -- cream background (`#f8f6f1`), stone text colors, amber primary (`#c4841d`). Dark mode uses warm near-black (`#151311`).
+- **Palette**: Warm editorial -- warm paper background (`#f8f6f1`), stone text colors, forest-green primary (`#2d6a4f`) with amber (`#d97706`) as a rationed accent. Dark mode uses warm near-black (`#151311`). Source of truth: `DESIGN.md` + `extension/src/styles/variables.css`.
 - **Cards**: `card-enter` stagger animation on load, hover lift with shadow transition.
 
 ### localStorage keys
