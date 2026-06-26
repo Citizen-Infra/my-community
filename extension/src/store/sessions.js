@@ -69,7 +69,11 @@ export async function loadSessions(communities) {
     const seen = new Set();
     const deduped = [];
     for (const item of results) {
-      if (isBareUrl(item.title)) continue; // skip bare-link junk (scenius-digest#12)
+      // Only show events we can place in time; also skip bare-link junk.
+      // An undated item defaults to 'upcoming' and sticks there forever (past
+      // events shown as Coming Up). Real fix is date parsing at the source:
+      // scenius-digest#12.
+      if (!item.starts_at || isBareUrl(item.title)) continue;
       const key = item.url || item.id;
       if (!seen.has(key)) {
         seen.add(key);
