@@ -1,4 +1,4 @@
-import { activeTab, setActiveTab, availableTabs } from '../store/tabs';
+import { activeTab, setActiveTab, availableTabs } from '../store/panels';
 import '../styles/tabs.css';
 
 const TAB_LABELS = {

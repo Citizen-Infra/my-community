@@ -1,8 +1,5 @@
 .topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
   height: var(--topbar-height);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-light);
@@ -15,14 +12,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-lg);
-  max-width: var(--max-width);
   width: 100%;
-  margin: 0 auto;
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-xl);
 }
 
 .topbar-brand {
-  flex: 1;
+  flex-shrink: 0;
+}
+
+/* Let the tab search fill the space between the brand and the gear */
+.topbar .search-bar {
+  max-width: none;
 }
 
 .topbar-title {

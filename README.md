@@ -1,6 +1,6 @@
 # My Community
 
-A Chrome extension that turns your new tab into a community dashboard. Stay connected to your communities without endless scrolling.
+A Chrome extension that turns your new tab into a community dashboard and a tab manager. Stay connected to your communities, and keep your tabs in tidy collections, without endless scrolling.
 
 ## What you get
 
@@ -9,6 +9,8 @@ A Chrome extension that turns your new tab into a community dashboard. Stay conn
 **Bluesky Network** — Popular posts from people you follow, sorted by engagement. See what resonated in the last 24 hours, week, or month. Connect your Bluesky account to enable this feed.
 
 **Participation** — Upcoming sessions, deliberations, and events from your communities. Never miss an opportunity to join the conversation.
+
+**Saved Tabs** — A built-in tab manager. Save the current tab with the toolbar button or Alt+S, organize tabs into collections, drag to reorder, search across everything, and import from Toby or your bookmarks. Everything stays local with automatic daily backups.
 
 Toggle any feed on or off. Choose light, dark, or system theme. The extension works without Bluesky — digest and participation are always available.
 
@@ -29,6 +31,11 @@ Click the gear icon to:
 - Toggle which feeds to show
 
 ## Changelog
+
+### 0.2.0 — June 2026
+- **Saved Tabs:** a full tab manager now lives alongside the dashboard. The dashboard is pinned at the top of the new side panel; your tab collections sit below it. Save tabs with the toolbar button or the Alt+S shortcut, drag to reorder within and across collections, search everything, and import from Toby or Chrome bookmarks. Tabs are stored locally with a daily backup.
+- Save targets and backups are configurable in Settings → Save Behavior / Backups; set the keyboard shortcut at `chrome://extensions/shortcuts`.
+- **Note:** this update adds the `alarms`, `downloads`, and `bookmarks` permissions (for backups, daily backup files, and bookmark import), so Chrome will ask you to re-approve the extension on update.
 
 ### 0.1.4 — February 2026
 - Live jam rooms from [Navidrome Jam](https://github.com/zhiganov/navidrome-jam) appear in the participation feed with animated equalizer bars
