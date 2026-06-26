@@ -82,13 +82,13 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 4px;
   background: var(--community-border, var(--color-session-upcoming));
   transition: width 0.2s var(--ease-out);
 }
 
 .session-card:hover .session-card-accent {
-  width: 4px;
+  width: 5px;
 }
 
 /* Active card override — green accent takes priority */
