@@ -26,6 +26,13 @@ function getEventStatus(startsAt, endsAt) {
   return 'completed';
 }
 
+// A real event never has a bare URL as its title. These are link posts dropped
+// into the Telegram events topic (YouTube videos, homepages, surveys), not events.
+// Stopgap on the consumer side until the source filters them: scenius-digest#12.
+function isBareUrl(title) {
+  return /^https?:\/\/\S+$/i.test((title || '').trim());
+}
+
 export async function loadSessions(communities) {
   sessionsLoading.value = true;
 
@@ -62,6 +69,7 @@ export async function loadSessions(communities) {
     const seen = new Set();
     const deduped = [];
     for (const item of results) {
+      if (isBareUrl(item.title)) continue; // skip bare-link junk (scenius-digest#12)
       const key = item.url || item.id;
       if (!seen.has(key)) {
         seen.add(key);

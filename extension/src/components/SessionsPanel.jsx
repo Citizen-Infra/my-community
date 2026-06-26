@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks';
 import { activeSessions, upcomingSessions, completedSessions, sessionsLoading } from '../store/sessions';
 import { jamRooms } from '../store/jam';
 import { getCommunityColors } from '../lib/community-colors';
@@ -67,6 +68,8 @@ const SOURCE_LABELS = {
 };
 
 function SessionCard({ session, status }) {
+  const [imgError, setImgError] = useState(false);
+
   const timeStr = session.starts_at
     ? new Date(session.starts_at).toLocaleDateString('en-US', {
         month: 'short',
@@ -82,42 +85,50 @@ function SessionCard({ session, status }) {
 
   const sourceLabel = SOURCE_LABELS[session.source] || session.source;
   const colors = session.community ? getCommunityColors(session.community) : null;
+  const cover = (!imgError && session.image) ? session.image : null;
 
   return (
     <a
-      class={`session-card status-${status}`}
+      class={`session-card status-${status} ${cover ? 'has-cover' : ''}`}
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       style={colors ? { '--community-border': colors.border, '--community-bg': colors.bg, '--community-text': colors.text } : undefined}
     >
       {colors && <div class="session-card-accent" />}
-      <div class="session-card-header">
-        <div class="session-card-meta">
-          <span class={`session-status-badge status-${status}`}>
-            {status === 'active' ? 'Live' : status === 'upcoming' ? 'Upcoming' : 'Done'}
-          </span>
-          {session.source && session.source !== 'session' && (
-            <span class={`session-source-badge source-${session.source}`}>{sourceLabel}</span>
-          )}
-          {session.community && (
-            <span class="session-community-badge" style={{ background: colors?.bg, color: colors?.text, borderColor: colors?.border }}>{session.community}</span>
-          )}
+      <div class="session-card-body">
+        <div class="session-card-header">
+          <div class="session-card-meta">
+            <span class={`session-status-badge status-${status}`}>
+              {status === 'active' ? 'Live' : status === 'upcoming' ? 'Upcoming' : 'Done'}
+            </span>
+            {session.source && session.source !== 'session' && (
+              <span class={`session-source-badge source-${session.source}`}>{sourceLabel}</span>
+            )}
+            {session.community && (
+              <span class="session-community-badge" style={{ background: colors?.bg, color: colors?.text, borderColor: colors?.border }}>{session.community}</span>
+            )}
+          </div>
+          {timeStr && <span class="session-time">{timeStr}</span>}
         </div>
-        {timeStr && <span class="session-time">{timeStr}</span>}
+        <h4 class="session-title">{session.title}</h4>
+        {session.description && (
+          <p class="session-description">{session.description}</p>
+        )}
+        {session.location && (
+          <p class="session-location">{session.location}</p>
+        )}
+        {session.topic_names?.length > 0 && (
+          <div class="session-tags">
+            {session.topic_names.map((name) => (
+              <span key={name} class="session-tag">{name}</span>
+            ))}
+          </div>
+        )}
       </div>
-      <h4 class="session-title">{session.title}</h4>
-      {session.description && (
-        <p class="session-description">{session.description}</p>
-      )}
-      {session.location && (
-        <p class="session-location">{session.location}</p>
-      )}
-      {session.topic_names?.length > 0 && (
-        <div class="session-tags">
-          {session.topic_names.map((name) => (
-            <span key={name} class="session-tag">{name}</span>
-          ))}
+      {cover && (
+        <div class="session-card-thumb">
+          <img src={cover} alt="" loading="lazy" onError={() => setImgError(true)} />
         </div>
       )}
     </a>
