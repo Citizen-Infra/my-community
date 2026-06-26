@@ -458,3 +458,74 @@
 .settings-about a:hover {
   text-decoration: underline;
 }
+
+/* Internal tabs (Dashboard / Tab Manager) — text tabs, green active underline */
+.settings-tabs {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.settings-tab {
+  padding-bottom: var(--space-sm);
+  margin-bottom: -1px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+
+.settings-tab:hover {
+  color: var(--color-text);
+}
+
+.settings-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Data actions (export / import) */
+.settings-data-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-data-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s var(--ease-out);
+}
+
+.settings-data-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  transform: translateY(-1px);
+}
+
+.settings-data-btn:active {
+  transform: scale(0.99);
+}
+
+.settings-data-btn-arrow {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  transition: color 0.2s var(--ease-out);
+}
+
+.settings-data-btn:hover .settings-data-btn-arrow {
+  color: var(--color-primary);
+}
