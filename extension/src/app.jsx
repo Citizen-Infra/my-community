@@ -106,7 +106,13 @@ export function App() {
   }, [ready, collections.value, allTabs.value]);
 
   if (!ready) {
-    return <div class="loading-screen"><p>Loading...</p></div>;
+    return (
+      <div class="loading-screen" role="status" aria-label="Loading your community">
+        <span class="loading-mark">My Community</span>
+        <span class="loading-rule" aria-hidden="true" />
+        <span class="loading-line" aria-hidden="true">Setting today's page</span>
+      </div>
+    );
   }
 
   return (
