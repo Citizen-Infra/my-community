@@ -529,3 +529,14 @@
 .settings-data-btn:hover .settings-data-btn-arrow {
   color: var(--color-primary);
 }
+
+/* Danger variant — destructive actions (clear all data) */
+.settings-data-btn.danger {
+  color: var(--color-danger);
+}
+
+.settings-data-btn.danger:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}

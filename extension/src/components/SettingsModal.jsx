@@ -5,8 +5,12 @@ import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../
 import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
 import { visibleTabs, setTabVisible, jamVisible, setJamVisible } from '../store/panels';
 import { exportData } from '../lib/export';
+import { clearAllData } from '../store/db';
+import { activeCollectionId, loadCollections, getOrCreateArchive } from '../store/collections';
+import { loadTabs } from '../store/tabs';
 import { ImportModal } from './ImportModal';
 import { BookmarkImportModal } from './BookmarkImportModal';
+import { ConfirmDialog } from './ConfirmDialog';
 import '../styles/settings-modal.css';
 import '../styles/auth-modal.css';
 
@@ -22,16 +26,20 @@ export function SettingsModal({ onClose }) {
   const [toolbarTarget, setToolbarTarget] = useState('saved-tabs');
   const [shortcutTarget, setShortcutTarget] = useState('most-recent');
   const [dailyBackup, setDailyBackup] = useState(true);
+  const [backupInterval, setBackupInterval] = useState('1440');
+  const [showClear, setShowClear] = useState(false);
 
   useEffect(() => {
     chrome.storage?.local?.get([
       'tab-hoarder-toolbar-target',
       'tab-hoarder-shortcut-target',
       'tab-hoarder-daily-backup',
+      'tab-hoarder-backup-interval',
     ], (result) => {
       if (result['tab-hoarder-toolbar-target']) setToolbarTarget(result['tab-hoarder-toolbar-target']);
       if (result['tab-hoarder-shortcut-target']) setShortcutTarget(result['tab-hoarder-shortcut-target']);
       if (result['tab-hoarder-daily-backup'] !== undefined) setDailyBackup(result['tab-hoarder-daily-backup'] !== false);
+      if (result['tab-hoarder-backup-interval']) setBackupInterval(result['tab-hoarder-backup-interval']);
     });
   }, []);
 
@@ -47,6 +55,23 @@ export function SettingsModal({ onClose }) {
     setDailyBackup(val);
     chrome.storage?.local?.set({ 'tab-hoarder-daily-backup': val });
   };
+  const updateBackupInterval = (val) => {
+    setBackupInterval(val);
+    chrome.storage?.local?.set({ 'tab-hoarder-backup-interval': val });
+  };
+
+  async function handleClearAll() {
+    try {
+      await clearAllData();
+      activeCollectionId.value = null;
+      await loadCollections();
+      await loadTabs();
+      await getOrCreateArchive();
+    } catch (err) {
+      console.error('My Community: clear all data failed', err);
+    }
+    setShowClear(false);
+  }
 
   async function handleConnect(e) {
     e.preventDefault();
@@ -358,6 +383,12 @@ export function SettingsModal({ onClose }) {
                     <span>Export all</span>
                     <span class="settings-data-btn-arrow" aria-hidden="true">↓</span>
                   </button>
+                  {activeCollectionId.value && (
+                    <button class="settings-data-btn" onClick={() => exportData(activeCollectionId.value)}>
+                      <span>Export current collection</span>
+                      <span class="settings-data-btn-arrow" aria-hidden="true">↓</span>
+                    </button>
+                  )}
                   <button class="settings-data-btn" onClick={() => setSubModal('import')}>
                     <span>Import tabs</span>
                     <span class="settings-data-btn-arrow" aria-hidden="true">↑</span>
@@ -370,6 +401,11 @@ export function SettingsModal({ onClose }) {
                 <p class="settings-hint">
                   Export downloads a JSON of your tabs and collections. Import accepts a Toby or Tab Hoarder export, or your browser bookmarks.
                 </p>
+                <div class="settings-data-actions" style="margin-top: var(--space-md);">
+                  <button class="settings-data-btn danger" onClick={() => setShowClear(true)}>
+                    <span>Clear all data</span>
+                  </button>
+                </div>
               </section>
 
               {/* Backups Section */}
@@ -385,9 +421,31 @@ export function SettingsModal({ onClose }) {
                     <span class="settings-toggle-track-sm" />
                   </label>
                 </div>
-                <p class="settings-hint" style="margin-top: 0;">
-                  One JSON backup per day in your Downloads/TabHoarder/ folder.
-                </p>
+                {dailyBackup ? (
+                  <div class="settings-card">
+                    <div class="settings-field">
+                      <label class="settings-label">Frequency</label>
+                      <div class="theme-picker">
+                        {[['720', '12h'], ['1440', 'Daily'], ['4320', '3 days'], ['10080', 'Weekly']].map(([val, label]) => (
+                          <button
+                            key={val}
+                            class={`topic-grid-chip ${backupInterval === val ? 'active' : ''}`}
+                            onClick={() => updateBackupInterval(val)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p class="settings-hint">
+                      Automatic JSON backups to your Downloads/TabHoarder/ folder.
+                    </p>
+                  </div>
+                ) : (
+                  <p class="settings-hint" style="margin-top: 0;">
+                    Turn on to keep automatic JSON backups in your Downloads/TabHoarder/ folder.
+                  </p>
+                )}
               </section>
             </>
           )}
@@ -400,6 +458,16 @@ export function SettingsModal({ onClose }) {
 
       {subModal === 'import' && <ImportModal onClose={() => setSubModal(null)} />}
       {subModal === 'bookmarks' && <BookmarkImportModal onClose={() => setSubModal(null)} />}
+      {showClear && (
+        <ConfirmDialog
+          title="Clear all data?"
+          message="This permanently deletes all your saved tabs and collections. This cannot be undone."
+          confirmLabel="Clear everything"
+          danger
+          onConfirm={handleClearAll}
+          onCancel={() => setShowClear(false)}
+        />
+      )}
     </>
   );
 }
