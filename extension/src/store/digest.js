@@ -1,4 +1,5 @@
 import { signal } from '@preact/signals';
+import { getIdentity } from '../lib/atproto';
 
 const LINKS_API = 'https://scenius-digest.vercel.app/api/links';
 const CACHE_KEY = 'mc_digest_cache';
@@ -38,10 +39,12 @@ export async function loadDigest(communityIds) {
   digestLoading.value = true;
 
   try {
+    const did = getIdentity();
+    const idParam = did ? `&identity=${encodeURIComponent(did)}` : '';
     const allLinks = [];
     await Promise.all(
       communityIds.map(async (id) => {
-        const res = await fetch(`${LINKS_API}?group=${id}&days=7&all=true`);
+        const res = await fetch(`${LINKS_API}?group=${id}&days=7&all=true${idParam}`);
         const data = await res.json();
         const links = (data.links || []).map((l) => ({ ...l, community_id: id }));
         allLinks.push(...links);

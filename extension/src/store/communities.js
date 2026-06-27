@@ -1,4 +1,5 @@
 import { signal, computed } from '@preact/signals';
+import { getIdentity } from '../lib/atproto';
 
 const GROUPS_API = 'https://scenius-digest.vercel.app/api/groups';
 
@@ -18,7 +19,8 @@ export const selectedCommunities = computed(() =>
 export async function loadCommunities() {
   communitiesLoading.value = true;
   try {
-    const res = await fetch(GROUPS_API);
+    const did = getIdentity();
+    const res = await fetch(did ? `${GROUPS_API}?identity=${encodeURIComponent(did)}` : GROUPS_API);
     const data = await res.json();
     // Transform { scenius: { name: ... }, cibc: { name: ... } } → array
     const groups = Object.entries(data.groups || data).map(([key, val]) => ({
