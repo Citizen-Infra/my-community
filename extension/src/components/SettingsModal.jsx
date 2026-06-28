@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { allCommunities, selectedCommunityIds, selectedCommunities, toggleCommunity, loadCommunities } from '../store/communities';
+import { allCommunities, communitiesStatus, selectedCommunityIds, selectedCommunities, toggleCommunity, loadCommunities } from '../store/communities';
 import { loadDigest } from '../store/digest';
 import { loadSessions } from '../store/sessions';
 import { caEmail, caSignedIn, requestSignIn, signOut } from '../store/caAuth';
@@ -316,22 +316,38 @@ export function SettingsModal({ onClose }) {
               {/* Communities Section */}
               <section class="settings-section">
                 <h4 class="settings-section-title">Communities</h4>
-                <div class="settings-card">
-                  <div class="topic-grid">
-                    {allCommunities.value.map((c) => (
-                      <button
-                        key={c.id}
-                        class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
-                        onClick={() => toggleCommunity(c.id)}
-                      >
-                        {c.name}
-                      </button>
-                    ))}
+                {communitiesStatus.value === 'ready' && allCommunities.value.length > 0 ? (
+                  <div class="settings-card">
+                    <div class="topic-grid">
+                      {allCommunities.value.map((c) => (
+                        <button
+                          key={c.id}
+                          class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
+                          onClick={() => toggleCommunity(c.id)}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  {allCommunities.value.length === 0 && (
-                    <p class="settings-hint" style="margin-top: 0;">Loading communities...</p>
-                  )}
-                </div>
+                ) : (
+                  <div class="settings-card settings-card-empty">
+                    {communitiesStatus.value === 'loading' ? (
+                      <p class="settings-card-desc">Loading communities...</p>
+                    ) : communitiesStatus.value === 'error' ? (
+                      <>
+                        <p class="settings-card-desc">Couldn't load communities. Check your connection.</p>
+                        <button type="button" class="settings-link-btn" onClick={loadCommunities}>Try again</button>
+                      </>
+                    ) : (
+                      <p class="settings-card-desc">
+                        {caSignedIn.value
+                          ? 'No communities available yet.'
+                          : 'No public communities right now. Sign in above to see communities you belong to.'}
+                      </p>
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* Digest Section */}

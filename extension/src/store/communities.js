@@ -4,7 +4,7 @@ import { authHeader } from './caAuth';
 const GROUPS_API = 'https://scenius-digest.vercel.app/api/groups';
 
 export const allCommunities = signal([]);
-export const communitiesLoading = signal(false);
+export const communitiesStatus = signal('loading'); // 'loading' | 'ready' | 'error'
 
 // Persisted: array of community keys (e.g. ["scenius", "cibc"])
 const stored = JSON.parse(localStorage.getItem('mc_communities') || '[]');
@@ -17,9 +17,10 @@ export const selectedCommunities = computed(() =>
 );
 
 export async function loadCommunities() {
-  communitiesLoading.value = true;
+  communitiesStatus.value = 'loading';
   try {
     const res = await fetch(GROUPS_API, { headers: await authHeader() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     // Transform { scenius: { name: ... }, cibc: { name: ... } } → array
     const groups = Object.entries(data.groups || data).map(([key, val]) => ({
@@ -33,10 +34,11 @@ export async function loadCommunities() {
       hasEvents: !!(val.event_apis && val.event_apis.length > 0) || !!(val.event_topics && val.event_topics.length > 0),
     }));
     allCommunities.value = groups;
+    communitiesStatus.value = 'ready';
   } catch (err) {
     console.error('Failed to load communities:', err);
+    communitiesStatus.value = 'error';
   }
-  communitiesLoading.value = false;
 }
 
 export function toggleCommunity(id) {
