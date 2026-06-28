@@ -286,3 +286,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
+
+// --- Community Admin sign-in redirect catch (IdP S3) ---
+// After magic-link verify, community-admin redirects an extension login to
+// /auth/extension-callback#session=<token>. Chrome blocks external→extension
+// redirects, so catch the callback here, stash the session token, and navigate
+// the tab back to the dashboard. Mirrors the dear-neighbors auth redirect-stash.
+const CA_CALLBACK_HOST = 'community-admin-server-production.up.railway.app';
+const CA_CALLBACK_PATH = '/auth/extension-callback';
+const CA_STASH_KEY = 'mc_ca_auth_redirect';
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (!changeInfo.url) return;
+  let url;
+  try { url = new URL(changeInfo.url); } catch { return; }
+  if (url.hostname !== CA_CALLBACK_HOST || url.pathname !== CA_CALLBACK_PATH) return;
+  const m = url.hash.match(/session=([^&]+)/);
+  if (!m) return;
+  chrome.storage.local.set({ [CA_STASH_KEY]: decodeURIComponent(m[1]) }, () => {
+    chrome.tabs.update(tabId, { url: chrome.runtime.getURL('src/newtab.html') });
+  });
+});
