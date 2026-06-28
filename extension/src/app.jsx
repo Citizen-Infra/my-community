@@ -4,6 +4,7 @@ import { initAuth, isConnected } from './store/auth';
 import { loadCommunities, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
+import { initCaAuth } from './store/caAuth';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
@@ -56,6 +57,10 @@ export function App() {
         }
       }
       await getOrCreateArchive();
+      // Restore the community-admin session (and pick up a just-completed sign-in
+      // stashed by the service worker) BEFORE loading communities, so private
+      // communities resolve on first paint.
+      await initCaAuth();
       // Preserve original feed ordering: communities + auth resolve before reveal.
       await Promise.all([loadCommunities(), initAuth()]);
       setReady(true);

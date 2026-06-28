@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'preact/hooks';
-import { allCommunities, selectedCommunityIds, toggleCommunity } from '../store/communities';
+import { allCommunities, selectedCommunityIds, selectedCommunities, toggleCommunity, loadCommunities } from '../store/communities';
+import { loadDigest } from '../store/digest';
+import { loadSessions } from '../store/sessions';
+import { caEmail, caSignedIn, requestSignIn, signOut } from '../store/caAuth';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
 import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
@@ -21,6 +24,12 @@ export function SettingsModal({ onClose }) {
   const [appPassword, setAppPassword] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [authError, setAuthError] = useState(null);
+
+  // Community-admin (IdP) email sign-in
+  const [caEmailInput, setCaEmailInput] = useState('');
+  const [caError, setCaError] = useState(null);
+  const [caSubmitting, setCaSubmitting] = useState(false);
+  const [caLinkSent, setCaLinkSent] = useState(false);
 
   // Tab-manager save behavior (persisted in chrome.storage.local, read by the worker)
   const [toolbarTarget, setToolbarTarget] = useState('saved-tabs');
@@ -87,6 +96,30 @@ export function SettingsModal({ onClose }) {
       setAuthError(err.message);
     }
     setConnecting(false);
+  }
+
+  async function handleCaSignIn(e) {
+    e.preventDefault();
+    if (!caEmailInput.trim()) return;
+    setCaError(null);
+    setCaSubmitting(true);
+    try {
+      await requestSignIn(caEmailInput.trim());
+      setCaLinkSent(true);
+      setCaEmailInput('');
+    } catch (err) {
+      setCaError(err.message);
+    }
+    setCaSubmitting(false);
+  }
+
+  async function handleCaSignOut() {
+    signOut();
+    await loadCommunities();
+    if (selectedCommunityIds.value.length > 0) {
+      loadDigest(selectedCommunityIds.value);
+      loadSessions(selectedCommunities.value);
+    }
   }
 
   return (
@@ -232,6 +265,50 @@ export function SettingsModal({ onClose }) {
                         Create an app password
                       </a> at bsky.app
                     </p>
+                  </div>
+                )}
+              </section>
+
+              {/* Community Account Section */}
+              <section class="settings-section">
+                <h4 class="settings-section-title">Community account</h4>
+                {caSignedIn.value ? (
+                  <div class="settings-card">
+                    <div class="settings-card-header">
+                      <span class="settings-card-status">
+                        <span class="status-dot" />
+                        {caEmail.value}
+                      </span>
+                      <button class="settings-link-btn" onClick={handleCaSignOut}>
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                ) : caLinkSent ? (
+                  <div class="settings-card settings-card-empty">
+                    <p class="settings-card-desc">
+                      Check your email for a sign-in link.
+                    </p>
+                  </div>
+                ) : (
+                  <div class="settings-card settings-card-empty">
+                    <p class="settings-card-desc">
+                      Sign in to see communities you're a member of.
+                    </p>
+                    <form onSubmit={handleCaSignIn} class="auth-form-compact">
+                      <input
+                        type="email"
+                        class="auth-input"
+                        placeholder="you@example.com"
+                        value={caEmailInput}
+                        onInput={(e) => setCaEmailInput(e.target.value)}
+                        required
+                      />
+                      {caError && <p class="auth-error">{caError}</p>}
+                      <button type="submit" class="auth-submit" disabled={caSubmitting}>
+                        {caSubmitting ? 'Sending...' : 'Send magic link'}
+                      </button>
+                    </form>
                   </div>
                 )}
               </section>
