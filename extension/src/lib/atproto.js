@@ -35,12 +35,6 @@ export function getSavedSession() {
   }
 }
 
-// V7: the signed-in Bluesky DID, passed to scenius-digest as ?identity= so the
-// user sees private communities they're a member of. Null when not signed in.
-export function getIdentity() {
-  return getSavedSession()?.did || null;
-}
-
 export async function refreshSession(session) {
   const res = await fetch(`${session.pdsUrl}/xrpc/com.atproto.server.refreshSession`, {
     method: 'POST',

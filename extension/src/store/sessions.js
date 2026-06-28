@@ -1,6 +1,6 @@
 import { signal, computed } from '@preact/signals';
 import { supabase } from '../lib/supabase';
-import { getIdentity } from '../lib/atproto';
+import { authHeader } from './caAuth';
 
 const EVENTS_API = 'https://scenius-digest.vercel.app/api/events';
 
@@ -42,10 +42,9 @@ export async function loadSessions(communities) {
 
     // Fetch events from scenius-digest /api/events for each selected community
     const communityKeys = communities.map((c) => c.id);
-    const did = getIdentity();
-    const idParam = did ? `&identity=${encodeURIComponent(did)}` : '';
+    const headers = await authHeader();
     const eventPromises = communityKeys.map((key) =>
-      fetch(`${EVENTS_API}?community=${key}${idParam}`)
+      fetch(`${EVENTS_API}?community=${key}`, { headers })
         .then((r) => r.ok ? r.json() : { events: [] })
         .catch(() => ({ events: [] }))
     );
