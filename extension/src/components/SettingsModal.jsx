@@ -528,7 +528,8 @@ export function SettingsModal({ onClose }) {
           )}
 
           <footer class="settings-about">
-            Built by <a href="https://github.com/Citizen-Infra" target="_blank" rel="noopener">Citizen Infra</a>
+            <div>Built by <a href="https://github.com/Citizen-Infra" target="_blank" rel="noopener">Citizen Infra</a></div>
+            <div class="settings-about-support">Support this via <a href="https://opencollective.com/citizen-infra/projects/my-community" target="_blank" rel="noopener">Open Collective</a></div>
           </footer>
         </div>
       </div>

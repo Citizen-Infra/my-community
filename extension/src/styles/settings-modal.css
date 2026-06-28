@@ -459,6 +459,10 @@
   text-decoration: underline;
 }
 
+.settings-about-support {
+  margin-top: var(--space-xs);
+}
+
 /* Internal tabs (Dashboard / Tab Manager) — text tabs, green active underline */
 .settings-tabs {
   display: flex;
