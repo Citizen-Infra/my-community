@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { allCommunities, communitiesStatus, selectedCommunityIds, selectedCommunities, toggleCommunity, loadCommunities } from '../store/communities';
 import { loadDigest } from '../store/digest';
 import { loadSessions } from '../store/sessions';
-import { caEmail, caSignedIn, requestSignIn, signOut } from '../store/caAuth';
+import { caSubject, caSignedIn, requestSignIn, signOut } from '../store/caAuth';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
 import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
@@ -277,7 +277,7 @@ export function SettingsModal({ onClose }) {
                     <div class="settings-card-header">
                       <span class="settings-card-status">
                         <span class="status-dot" />
-                        {caEmail.value}
+                        {caSubject.value}
                       </span>
                       <button class="settings-link-btn" onClick={handleCaSignOut}>
                         Sign out

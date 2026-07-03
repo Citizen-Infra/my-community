@@ -4,8 +4,10 @@ const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-pr
 const SESSION_KEY = 'mc_ca_session';
 const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
 
-export const caEmail = signal(null);
-export const caSignedIn = computed(() => !!caEmail.value);
+// The signed-in community identity: an email or a Bluesky DID, plus which kind.
+export const caSubject = signal(null); // string | null
+export const caType = signal(null);    // 'email' | 'atproto' | null
+export const caSignedIn = computed(() => !!caSubject.value);
 
 let _jwt = null;   // cached 15-min JWT
 let _jwtExp = 0;   // epoch ms
@@ -22,7 +24,7 @@ function decodeExp(jwt) {
 }
 
 // Pull a freshly-stashed session token (from the service worker's redirect catch)
-// into localStorage, then resolve the signed-in email. Call once on app start.
+// into localStorage, then resolve the signed-in identity. Call once on app start.
 export async function initCaAuth() {
   try {
     const stash = await chrome.storage?.local?.get(STASH_KEY);
@@ -33,13 +35,21 @@ export async function initCaAuth() {
       _jwt = null; _jwtExp = 0;
     }
   } catch {}
-  if (sessionToken()) await refreshEmail();
+  if (sessionToken()) await refreshIdentity();
 }
 
-async function refreshEmail() {
+// Resolve the signed-in identity from the session token. community-admin's
+// /auth/me returns { subject, type }; older builds returned { email }. Read both
+// so a rollback or mixed deploy never blanks a live session.
+async function refreshIdentity() {
   try {
     const res = await fetch(`${CA_URL}/auth/me`, { headers: { Authorization: `Bearer ${sessionToken()}` } });
-    if (res.ok) { caEmail.value = (await res.json()).email; return; }
+    if (res.ok) {
+      const me = await res.json();
+      caSubject.value = me.subject ?? me.email ?? null;
+      caType.value = me.type ?? (me.email ? 'email' : null);
+      return;
+    }
     if (res.status === 401) signOut();
   } catch {}
 }
@@ -76,5 +86,6 @@ export async function authHeader() {
 export function signOut() {
   localStorage.removeItem(SESSION_KEY);
   _jwt = null; _jwtExp = 0;
-  caEmail.value = null;
+  caSubject.value = null;
+  caType.value = null;
 }
