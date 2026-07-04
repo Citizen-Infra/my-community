@@ -66,6 +66,14 @@ async function resolveIdentity(handle) {
   return { did, doc, pds, md };
 }
 
+// The account's handle from its DID document's alsoKnownAs (at://handle), so a
+// community identity keyed on a DID can display @handle without a live feed session.
+export async function resolveHandleFromDid(did) {
+  const doc = await resolveDidDoc(did);
+  const aka = (doc.alsoKnownAs || []).find((a) => typeof a === 'string' && a.startsWith('at://'));
+  return aka ? aka.slice('at://'.length) : null;
+}
+
 // --- DPoP ---
 
 async function makeDpopKey() {

@@ -27,6 +27,23 @@
   padding-bottom: var(--space-md);
 }
 
+/* Quiet feed disconnect (mild-destructive: danger tint on hover only) */
+.bsky-disconnect {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: transparent;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color 0.2s var(--ease-out), background 0.2s var(--ease-out);
+}
+
+.bsky-disconnect:hover {
+  color: var(--color-danger);
+  background: var(--color-surface-hover);
+}
+
 .bsky-window-btns {
   display: flex;
   gap: var(--space-sm);

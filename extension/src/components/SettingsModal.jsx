@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { allCommunities, communitiesStatus, selectedCommunityIds, selectedCommunities, toggleCommunity, loadCommunities } from '../store/communities';
 import { loadDigest } from '../store/digest';
 import { loadSessions } from '../store/sessions';
-import { caSubject, caType, caSignedIn, requestSignIn, requestBlueskySignIn, signOut } from '../store/caAuth';
+import { caSubject, caType, caHandle, caSignedIn, requestSignIn, requestBlueskySignIn, signOut } from '../store/caAuth';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
 import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri } from '../store/bluesky';
@@ -23,7 +23,7 @@ export function SettingsModal({ onClose }) {
 
   // Community account: two equal sign-in doors (email + Bluesky)
   const [caEmailInput, setCaEmailInput] = useState('');
-  const [caHandle, setCaHandle] = useState('');
+  const [caHandleInput, setCaHandleInput] = useState('');
   const [caError, setCaError] = useState(null);
   const [caSubmitting, setCaSubmitting] = useState(false);
   const [caBlueskyBusy, setCaBlueskyBusy] = useState(false);
@@ -104,12 +104,12 @@ export function SettingsModal({ onClose }) {
     setCaBlueskyBusy(true);
     try {
       if (!isConnected.value) {
-        const h = caHandle.trim();
+        const h = caHandleInput.trim();
         if (!h) { setCaError('Enter your Bluesky handle.'); setCaBlueskyBusy(false); return; }
         await connectBluesky(h);
       }
       await requestBlueskySignIn();
-      setCaHandle('');
+      setCaHandleInput('');
       await loadCommunities();
       if (selectedCommunityIds.value.length > 0) {
         loadDigest(selectedCommunityIds.value);
@@ -122,7 +122,12 @@ export function SettingsModal({ onClose }) {
   }
 
   async function handleCaSignOut() {
+    // When the community login IS the Bluesky account, sign-out ends the Bluesky
+    // session too (one login, one sign-out). An email login leaves any Bluesky
+    // feed connection untouched.
+    const wasBluesky = caType.value === 'atproto';
     signOut();
+    if (wasBluesky) await disconnectBluesky();
     await loadCommunities();
     if (selectedCommunityIds.value.length > 0) {
       loadDigest(selectedCommunityIds.value);
@@ -133,8 +138,10 @@ export function SettingsModal({ onClose }) {
   // Friendly identity label: @handle when a Bluesky DID matches the live feed
   // session, otherwise the raw subject (the DID, or an email address).
   function caIdentityLabel() {
-    if (caType.value === 'atproto' && blueskyUser.value && blueskyUser.value.did === caSubject.value) {
-      return `@${blueskyUser.value.handle}`;
+    if (caType.value === 'atproto') {
+      if (blueskyUser.value && blueskyUser.value.did === caSubject.value) return `@${blueskyUser.value.handle}`;
+      if (caHandle.value) return `@${caHandle.value}`;
+      return caSubject.value; // raw DID, until the handle backfill resolves
     }
     return caSubject.value;
   }
@@ -219,8 +226,8 @@ export function SettingsModal({ onClose }) {
                           type="text"
                           class="auth-input"
                           placeholder="Handle (e.g. alice.bsky.social)"
-                          value={caHandle}
-                          onInput={(e) => setCaHandle(e.target.value)}
+                          value={caHandleInput}
+                          onInput={(e) => setCaHandleInput(e.target.value)}
                         />
                       )}
                       <button type="submit" class="auth-submit" disabled={caBlueskyBusy}>
@@ -290,16 +297,6 @@ export function SettingsModal({ onClose }) {
 
                 {isConnected.value ? (
                   <div class="settings-card">
-                    <div class="settings-card-header">
-                      <span class="settings-card-status">
-                        <span class="status-dot" />
-                        @{blueskyUser.value.handle}
-                      </span>
-                      <button class="settings-link-btn" onClick={disconnectBluesky}>
-                        Disconnect
-                      </button>
-                    </div>
-
                     {blueskyAvailableFeeds.value.length > 1 && (
                       <div class="settings-field">
                         <label class="settings-label">Feed</label>

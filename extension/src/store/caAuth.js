@@ -1,14 +1,16 @@
 import { signal, computed } from '@preact/signals';
-import { getServiceAuth } from '../lib/oauth-atproto';
+import { getServiceAuth, resolveHandleFromDid } from '../lib/oauth-atproto';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
 const SESSION_KEY = 'mc_ca_session';
+const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
 const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
 const CA_DID = import.meta.env.VITE_CA_DID || 'did:web:community-admin-server-production.up.railway.app';
 
 // The signed-in community identity: an email or a Bluesky DID, plus which kind.
 export const caSubject = signal(null); // string | null
 export const caType = signal(null);    // 'email' | 'atproto' | null
+export const caHandle = signal(localStorage.getItem(HANDLE_KEY) || null); // friendly @handle for a DID identity
 export const caSignedIn = computed(() => !!caSubject.value);
 
 let _jwt = null;   // cached 15-min JWT
@@ -50,6 +52,13 @@ async function refreshIdentity() {
       const me = await res.json();
       caSubject.value = me.subject ?? me.email ?? null;
       caType.value = me.type ?? (me.email ? 'email' : null);
+      // Backfill a friendly @handle for a Bluesky (DID) identity so the UI never
+      // shows a raw DID, even with no live feed session. Resolved from the DID doc.
+      if (caType.value === 'atproto' && caSubject.value && !caHandle.value) {
+        resolveHandleFromDid(caSubject.value)
+          .then((h) => { if (h) { caHandle.value = h; localStorage.setItem(HANDLE_KEY, h); } })
+          .catch(() => {});
+      }
       return;
     }
     if (res.status === 401) signOut();
@@ -105,7 +114,9 @@ export async function authHeader() {
 
 export function signOut() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(HANDLE_KEY);
   _jwt = null; _jwtExp = 0;
   caSubject.value = null;
   caType.value = null;
+  caHandle.value = null;
 }

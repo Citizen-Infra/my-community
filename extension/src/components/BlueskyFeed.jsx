@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { blueskyPosts, blueskyLoading, blueskyTimeWindow, setBlueskyTimeWindow, blueskyFeedUri, loadBlueskyFeed, blueskyAvailableFeeds, loadSavedFeeds } from '../store/bluesky';
-import { isConnected, connectBluesky, legacyBlueskySession } from '../store/auth';
+import { isConnected, connectBluesky, disconnectBluesky, legacyBlueskySession } from '../store/auth';
 import { BlueskyPostCard } from './BlueskyPostCard';
 import '../styles/bluesky.css';
 import '../styles/auth-modal.css';
@@ -24,6 +24,13 @@ export function BlueskyFeed() {
       setFeedErr(err.message);
     }
     setFeedBusy(false);
+  }
+
+  // Disconnecting the feed drops the Bluesky session (content only). A community
+  // membership keyed on this DID stays signed in; the account section still shows
+  // @handle. Full sign-out lives at the account.
+  function handleDisconnect() {
+    disconnectBluesky();
   }
 
   // The one place the feed-only Bluesky connect lives. When signed in with email
@@ -66,6 +73,7 @@ export function BlueskyFeed() {
   return (
     <div class="bluesky-feed">
       <div class="bsky-controls">
+        <button class="bsky-disconnect" onClick={handleDisconnect}>Disconnect</button>
         {!isTimeline && currentFeed && (
           <span class="bsky-feed-label">{currentFeed.name}</span>
         )}
