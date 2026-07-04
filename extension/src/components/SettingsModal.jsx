@@ -270,12 +270,12 @@ export function SettingsModal({ onClose }) {
                         <p class="settings-card-desc">Couldn't load communities. Check your connection.</p>
                         <button type="button" class="settings-link-btn" onClick={loadCommunities}>Try again</button>
                       </>
+                    ) : !caSignedIn.value ? (
+                      <p class="settings-card-desc">No public communities right now. Sign in above to see communities you belong to.</p>
+                    ) : caType.value === 'atproto' ? (
+                      <p class="settings-card-desc">Not seeing your communities? You may have been added by email. Sign out and sign in with email instead.</p>
                     ) : (
-                      <p class="settings-card-desc">
-                        {caSignedIn.value
-                          ? 'No communities available yet.'
-                          : 'No public communities right now. Sign in above to see communities you belong to.'}
-                      </p>
+                      <p class="settings-card-desc">No communities available yet.</p>
                     )}
                   </div>
                 )}
