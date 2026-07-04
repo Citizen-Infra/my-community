@@ -69,7 +69,10 @@ async function resolveIdentity(handle) {
 // --- DPoP ---
 
 async function makeDpopKey() {
-  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  // extractable: false keeps the private signing key non-exportable. WebCrypto
+  // always leaves an EC public key extractable regardless, so exportKey below
+  // still yields the public jwk, and the private CryptoKey persists in IndexedDB.
+  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
   const jwk = await crypto.subtle.exportKey('jwk', kp.publicKey);
   const publicJwk = { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y, alg: 'ES256' };
   return { privateKey: kp.privateKey, publicKey: kp.publicKey, publicJwk };
@@ -99,19 +102,6 @@ async function dpopPost(endpoint, form, key, { nonce, accessToken } = {}) {
     return { res: r, nonce: serverNonce || curNonce };
   }
   throw new Error('exhausted DPoP nonce retries');
-}
-
-// GET with DPoP + access token, retrying once on a use_dpop_nonce challenge.
-async function dpopGet(url, key, accessToken, { nonce } = {}) {
-  let curNonce = nonce;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const headers = { Authorization: `DPoP ${accessToken}`, DPoP: await dpopProof(key, 'GET', url, { accessToken, nonce: curNonce }) };
-    const r = await fetch(url, { headers });
-    const serverNonce = r.headers.get('DPoP-Nonce');
-    if (r.status === 401 && serverNonce && serverNonce !== curNonce) { curNonce = serverNonce; continue; }
-    return r;
-  }
-  throw new Error('exhausted DPoP nonce retries (GET)');
 }
 
 async function doPar(md, handle, { codeChallenge, state }, key) {
@@ -203,9 +193,21 @@ export async function dpopFetch(url, init = {}) {
     const headers = { ...(init.headers || {}), Authorization: `DPoP ${accessToken}`, DPoP: await dpopProof(key, init.method || 'GET', url, { accessToken, nonce }) };
     return fetch(url, { ...init, headers });
   };
-  let r = await doOnce(s.accessToken);
-  if (r.status === 401 && r.headers.get('DPoP-Nonce')) r = await doOnce(s.accessToken, r.headers.get('DPoP-Nonce'));
-  if (r.status === 401) { const rs = await refresh(s); if (rs) r = await doOnce(rs.accessToken); }
+  // Track the latest server nonce so the refresh retry does not re-omit it: an
+  // expired-token-plus-nonce-challenge round-trip would otherwise 401 after a
+  // successful refresh and look like a dead session.
+  let nonce;
+  let r = await doOnce(s.accessToken, nonce);
+  nonce = r.headers.get('DPoP-Nonce') || nonce;
+  if (r.status === 401 && nonce) { r = await doOnce(s.accessToken, nonce); nonce = r.headers.get('DPoP-Nonce') || nonce; }
+  if (r.status === 401) {
+    const rs = await refresh(s);
+    if (rs) {
+      r = await doOnce(rs.accessToken, nonce);
+      const freshNonce = r.headers.get('DPoP-Nonce');
+      if (r.status === 401 && freshNonce && freshNonce !== nonce) r = await doOnce(rs.accessToken, freshNonce);
+    }
+  }
   return r;
 }
 
