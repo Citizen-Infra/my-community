@@ -1,11 +1,12 @@
 import { signal, computed } from '@preact/signals';
-import { loginWithBluesky, getStoredSession, logout } from '../lib/oauth-atproto';
+import { loginWithBluesky, getStoredSession, logout, hasLegacyAppPasswordSession } from '../lib/oauth-atproto';
 import { clearBlueskyState } from './bluesky';
 
 export const blueskyUser = signal(null); // { did, handle }
 export const blueskySession = signal(null); // marker { did, handle, pdsUrl } (no tokens)
 export const authLoading = signal(true);
 export const isConnected = computed(() => blueskyUser.value !== null);
+export const legacyBlueskySession = signal(hasLegacyAppPasswordSession());
 
 export async function initAuth() {
   authLoading.value = true;
@@ -21,6 +22,7 @@ export async function connectBluesky(handle) {
   const id = await loginWithBluesky(handle);
   blueskyUser.value = { did: id.did, handle: id.handle };
   blueskySession.value = id;
+  legacyBlueskySession.value = false;
   return id;
 }
 

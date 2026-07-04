@@ -177,6 +177,7 @@ export async function loginWithBluesky(handle) {
   const tok = await res.json();
   const session = { did: tok.sub, handle, pdsUrl: pds, accessToken: tok.access_token, refreshToken: tok.refresh_token, sub: tok.sub, tokenEndpoint: md.token_endpoint, authIssuer: md.issuer, dpopPublicKey: key.publicKey, dpopPrivateKey: key.privateKey };
   await saveSession(session);
+  localStorage.removeItem('mc_bluesky_session'); // retire any legacy app-password session
   return { did: session.did, handle, pdsUrl: pds };
 }
 
@@ -228,6 +229,10 @@ async function refresh(s) {
   const tok = await res.json();
   const next = { ...s, accessToken: tok.access_token, refreshToken: tok.refresh_token || s.refreshToken };
   await saveSession(next); return next;
+}
+
+export function hasLegacyAppPasswordSession() {
+  return !!localStorage.getItem('mc_bluesky_session');
 }
 
 export async function getStoredSession() { const s = await readSession(); return s ? { did: s.did, handle: s.handle, pdsUrl: s.pdsUrl } : null; }
