@@ -240,25 +240,3 @@
 .bsky-like-btn svg {
   flex-shrink: 0;
 }
-
-/* Connect prompt (when not connected) */
-.bsky-connect-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-2xl) var(--space-lg);
-  text-align: center;
-}
-
-.bsky-connect-prompt p {
-  color: var(--color-text-secondary);
-  font-size: 15px;
-  margin: 0;
-  line-height: 1.6;
-}
-
-.bsky-connect-prompt .bsky-connect-hint {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}

@@ -1,5 +1,4 @@
 import { communitiesConfigured } from '../store/communities';
-import { isConnected } from '../store/auth';
 import { activeTab } from '../store/panels';
 import { TabBar } from './TabBar';
 import { DigestFeed } from './DigestFeed';
@@ -25,16 +24,7 @@ export function Dashboard() {
       <main class="dashboard">
         {activeTab.value === 'digest' && <DigestFeed />}
         {activeTab.value === 'participation' && <SessionsPanel />}
-        {activeTab.value === 'network' && (
-          isConnected.value ? (
-            <BlueskyFeed />
-          ) : (
-            <div class="bsky-connect-prompt">
-              <p>Connect your Bluesky account to see your network feed.</p>
-              <p class="bsky-connect-hint">Open Settings to connect with an app password.</p>
-            </div>
-          )
-        )}
+        {activeTab.value === 'network' && <BlueskyFeed />}
       </main>
     </>
   );
