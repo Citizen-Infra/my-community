@@ -10,7 +10,7 @@ Forked from dear-neighbors, replacing location-based content with community-scop
 
 ## Skills
 
-Always use the `frontend-design` skill for visual/UI tasks: icons, component design, styling, layout changes.
+Always use the `impeccable` skill for visual/UI tasks (MC has `PRODUCT.md` + `DESIGN.md`): `shape` before building, `craft` to build, `polish` before ship. Route every visible change through it.
 
 ## Commands
 
@@ -40,7 +40,8 @@ git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
 - **Preact + @preact/signals** -- reactive UI
 - **Vite** -- build tool, `base: ''` for Chrome extension relative paths
 - **@supabase/supabase-js** -- sessions data
-- **ATproto API** -- Bluesky authentication and feed access (app passwords)
+- **ATProto OAuth (in-extension)** -- Bluesky sign-in via `chrome.identity.launchWebAuthFlow` (PKCE + DPoP + PAR). One OAuth session powers BOTH the Network feed and the community identity. See `lib/oauth-atproto.js`. App passwords are retired (v0.3.0).
+- **community-admin** -- the ecosystem identity provider. The community account has two equal sign-in doors: email magic link OR Bluesky DID (a `getServiceAuth` proof exchanged at `/auth/atproto/assert`). It issues the session that gates private communities.
 
 ### Single entry point
 
@@ -50,7 +51,7 @@ git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
 
 | Feed | Source | Auth required |
 |------|--------|--------------|
-| Bluesky Network | ATproto API (getTimeline / getFeed) | Yes (app password) |
+| Network (Bluesky) | ATproto API (getTimeline / getFeed) via the in-extension OAuth session (DPoP) | Yes (Bluesky OAuth) |
 | Community Digest | scenius-digest API (GET /api/links), includes OG metadata | No |
 | Participation | scenius-digest API (GET /api/events?community=X) + Supabase sessions | No |
 | Jam Rooms | navidrome-jam API (GET /api/rooms?community=X), 2-min polling | No |
@@ -58,7 +59,8 @@ git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
 ### State management
 
 Signals-based stores in `src/store/`:
-- `auth.js` -- Bluesky app password auth (createSession), session persistence
+- `auth.js` -- Bluesky feed identity from the in-extension OAuth session (`connectBluesky`/`disconnectBluesky`, `blueskyUser`/`isConnected`/`legacyBlueskySession`)
+- `caAuth.js` -- community account (the IdP session): two-door sign-in (email magic link + Bluesky `getServiceAuth` -> `/auth/atproto/assert`); `caSubject`/`caType`/`caHandle`/`caSignedIn`, `requestSignIn`/`requestBlueskySignIn`/`signOut`. Backfills `@handle` from the DID doc so the account never shows a raw DID.
 - `bluesky.js` -- timeline fetching with pagination, follow-only filter, reposts toggle, sort by likes or weighted engagement
 - `communities.js` -- community selection from scenius-digest /api/groups (includes city, event_topics, event_apis)
 - `digest.js` -- digest links from scenius-digest API, cached
@@ -69,18 +71,20 @@ Signals-based stores in `src/store/`:
 
 ### Libraries
 
-- `lib/atproto.js` -- ATproto session management, authenticated fetch
+- `lib/oauth-atproto.js` -- in-extension ATProto OAuth client (PKCE + DPoP + PAR via `launchWebAuthFlow`); persists the DPoP key + tokens in IndexedDB (`mc-atproto-oauth`); exports `loginWithBluesky`/`dpopFetch`/`getServiceAuth`/`logout`/`getStoredSession`/`resolveHandleFromDid`. Ported from the validated `../atproto-oauth-poc/` spike.
+- `lib/atproto.js` -- thin `bskyFetch`/`bskyPost` that delegate to `dpopFetch` (the OAuth session owns the tokens; app-password functions are gone)
 - `lib/supabase.js` -- Supabase client
 
 ### Components
 
 - `TopBar.jsx` -- branding + settings gear
-- `TabBar.jsx` -- horizontal tab navigation
-- `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline
+- `TabBar.jsx` -- horizontal tab navigation (Network / Digest / Participation)
+- `Dashboard.jsx` -- renders the community feed tabs; always mounts `BlueskyFeed` for the Network tab (it owns both the connected + not-connected states)
+- `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline; owns the not-connected connect / legacy-reconnect empty state and the feed Disconnect
 - `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
 - `JamBanner.jsx` + `jam.css` -- live jam room banners with animated equalizer bars, shown atop SessionsPanel
 - `SessionsPanel.jsx` -- participation opportunities (events from /api/events + Supabase sessions, with source badges)
-- `SettingsModal.jsx` -- communities, Bluesky account, tab toggles, theme
+- `SettingsModal.jsx` -- two-door community account (email + Bluesky, equal), Network feed prefs (connected only; connect/disconnect live at the feed), communities, tab toggles, theme
 
 ### Design system
 
@@ -94,7 +98,9 @@ All keys prefixed with `mc_`:
 
 | Key | Store | Description |
 |-----|-------|-------------|
-| `mc_bluesky_session` | `lib/atproto.js` | ATproto session (DID, handle, tokens) |
+| `mc_ca_session` | `store/caAuth.js` | community-admin session token (email or Bluesky-DID identity) |
+| `mc_ca_bluesky_handle` | `store/caAuth.js` | cached `@handle` for a Bluesky (DID) community identity |
+| `mc_bluesky_session` | (legacy) | retired app-password session; detected as `legacyBlueskySession`, prompts a reconnect. The live Bluesky OAuth session (DPoP key + tokens) lives in **IndexedDB** (`mc-atproto-oauth`), not localStorage |
 | `mc_bluesky_feed` | `store/bluesky.js` | Selected feed URI (default: `timeline`) |
 | `mc_bluesky_window` | `store/bluesky.js` | Time window filter (default: `24h`) |
 | `mc_bluesky_reposts` | `store/bluesky.js` | Show reposts toggle (default: `true`) |
@@ -113,7 +119,7 @@ All keys prefixed with `mc_`:
 - Bluesky timeline filtered to followed users only (`author.viewer.following`); reposts kept or hidden based on user setting
 - Bluesky pagination: 2 pages for 24h, 6 for 7d, 10 for 30d — stops early when posts fall outside window
 - DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available
-- All feeds degrade gracefully -- Bluesky requires auth but digest and participation work without it; broken OG images are hidden via `onError` handler
+- All feeds degrade gracefully -- the Network feed requires Bluesky OAuth (connect at the Network tab) but digest and participation work without it; broken OG images are hidden via `onError` handler
 
 ## Related Projects
 
