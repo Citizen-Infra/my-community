@@ -1,15 +1,15 @@
 import { signal, computed } from '@preact/signals';
-import { createSession, getValidSession, clearSession } from '../lib/atproto';
+import { loginWithBluesky, getStoredSession, logout } from '../lib/oauth-atproto';
 import { clearBlueskyState } from './bluesky';
 
 export const blueskyUser = signal(null); // { did, handle }
-export const blueskySession = signal(null); // Full session with tokens
+export const blueskySession = signal(null); // marker { did, handle, pdsUrl } (no tokens)
 export const authLoading = signal(true);
 export const isConnected = computed(() => blueskyUser.value !== null);
 
 export async function initAuth() {
   authLoading.value = true;
-  const session = await getValidSession();
+  const session = await getStoredSession();
   if (session) {
     blueskyUser.value = { did: session.did, handle: session.handle };
     blueskySession.value = session;
@@ -17,15 +17,15 @@ export async function initAuth() {
   authLoading.value = false;
 }
 
-export async function connectBluesky(handle, appPassword) {
-  const session = await createSession(handle, appPassword);
-  blueskyUser.value = { did: session.did, handle: session.handle };
-  blueskySession.value = session;
-  return session;
+export async function connectBluesky(handle) {
+  const id = await loginWithBluesky(handle);
+  blueskyUser.value = { did: id.did, handle: id.handle };
+  blueskySession.value = id;
+  return id;
 }
 
-export function disconnectBluesky() {
-  clearSession();
+export async function disconnectBluesky() {
+  await logout();
   blueskyUser.value = null;
   blueskySession.value = null;
   clearBlueskyState();

@@ -48,8 +48,8 @@ export async function loadBlueskyFeed() {
       let cursor = undefined;
 
       for (let page = 0; page < maxPages; page++) {
-        const url = `https://bsky.social/xrpc/app.bsky.feed.getTimeline?limit=50${cursor ? `&cursor=${cursor}` : ''}`;
-        const res = await bskyFetch(url, session);
+        const url = `${session.pdsUrl}/xrpc/app.bsky.feed.getTimeline?limit=50${cursor ? `&cursor=${cursor}` : ''}`;
+        const res = await bskyFetch(url);
         if (!res || !res.ok) break;
 
         const data = await res.json();
@@ -110,9 +110,9 @@ export async function loadBlueskyFeed() {
 
       for (let page = 0; page < maxPages; page++) {
         const url = isList
-          ? `https://bsky.social/xrpc/app.bsky.feed.getListFeed?list=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`
-          : `https://bsky.social/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`;
-        const res = await bskyFetch(url, session);
+          ? `${session.pdsUrl}/xrpc/app.bsky.feed.getListFeed?list=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`
+          : `${session.pdsUrl}/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`;
+        const res = await bskyFetch(url);
         if (!res || !res.ok) break;
 
         const data = await res.json();
@@ -208,7 +208,7 @@ export async function loadSavedFeeds() {
 
   try {
     // Get user's saved feed preferences
-    const prefsRes = await bskyFetch('https://bsky.social/xrpc/app.bsky.actor.getPreferences', session);
+    const prefsRes = await bskyFetch(`${session.pdsUrl}/xrpc/app.bsky.actor.getPreferences`);
     if (!prefsRes || !prefsRes.ok) return;
 
     const prefsData = await prefsRes.json();
@@ -242,8 +242,7 @@ export async function loadSavedFeeds() {
       // Get feed generator details for display names
       const feedsParam = feedUris.map(uri => `feeds=${encodeURIComponent(uri)}`).join('&');
       const feedsRes = await bskyFetch(
-        `https://bsky.social/xrpc/app.bsky.feed.getFeedGenerators?${feedsParam}`,
-        session
+        `${session.pdsUrl}/xrpc/app.bsky.feed.getFeedGenerators?${feedsParam}`
       );
 
       if (feedsRes && feedsRes.ok) {
@@ -262,8 +261,7 @@ export async function loadSavedFeeds() {
     for (const listUri of listUris) {
       try {
         const listRes = await bskyFetch(
-          `https://bsky.social/xrpc/app.bsky.graph.getList?list=${encodeURIComponent(listUri)}&limit=1`,
-          session
+          `${session.pdsUrl}/xrpc/app.bsky.graph.getList?list=${encodeURIComponent(listUri)}&limit=1`
         );
         if (listRes && listRes.ok) {
           const listData = await listRes.json();
@@ -316,7 +314,6 @@ export async function toggleLike(post) {
       const res = await bskyPost(
         `${session.pdsUrl}/xrpc/com.atproto.repo.deleteRecord`,
         { repo: session.did, collection: 'app.bsky.feed.like', rkey },
-        session,
       );
       if (!res || !res.ok) throw new Error('Failed to unlike');
     } else {
@@ -332,7 +329,6 @@ export async function toggleLike(post) {
             createdAt: new Date().toISOString(),
           },
         },
-        session,
       );
       if (!res || !res.ok) throw new Error('Failed to like');
       const data = await res.json();
