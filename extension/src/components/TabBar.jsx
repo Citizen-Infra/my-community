@@ -2,7 +2,7 @@ import { activeTab, setActiveTab, availableTabs } from '../store/panels';
 import '../styles/tabs.css';
 
 const TAB_LABELS = {
-  network: 'Bluesky',
+  network: 'Network',
   digest: 'Digest',
   participation: 'Participation',
 };
