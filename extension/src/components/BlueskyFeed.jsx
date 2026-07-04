@@ -1,8 +1,61 @@
-import { blueskyPosts, blueskyLoading, blueskyTimeWindow, setBlueskyTimeWindow, blueskyFeedUri, loadBlueskyFeed, blueskyAvailableFeeds } from '../store/bluesky';
+import { useState } from 'preact/hooks';
+import { blueskyPosts, blueskyLoading, blueskyTimeWindow, setBlueskyTimeWindow, blueskyFeedUri, loadBlueskyFeed, blueskyAvailableFeeds, loadSavedFeeds } from '../store/bluesky';
+import { isConnected, connectBluesky, legacyBlueskySession } from '../store/auth';
 import { BlueskyPostCard } from './BlueskyPostCard';
 import '../styles/bluesky.css';
+import '../styles/auth-modal.css';
 
 export function BlueskyFeed() {
+  const [feedHandle, setFeedHandle] = useState('');
+  const [feedErr, setFeedErr] = useState(null);
+  const [feedBusy, setFeedBusy] = useState(false);
+
+  async function handleFeedConnect(e) {
+    if (e) e.preventDefault();
+    setFeedErr(null);
+    const h = feedHandle.trim();
+    if (!h) { setFeedErr('Enter your Bluesky handle.'); return; }
+    setFeedBusy(true);
+    try {
+      await connectBluesky(h);
+      await loadSavedFeeds();
+      await loadBlueskyFeed();
+    } catch (err) {
+      setFeedErr(err.message);
+    }
+    setFeedBusy(false);
+  }
+
+  // The one place the feed-only Bluesky connect lives. When signed in with email
+  // (or fully signed out), the Network feed prompts to connect here rather than in
+  // the account settings, so there is never a second Bluesky control on the account.
+  if (!isConnected.value) {
+    return (
+      <div class="bluesky-feed">
+        <div class="feed-connect">
+          <p class="feed-connect-lead">
+            {legacyBlueskySession.value
+              ? 'Reconnect Bluesky to restore your feed.'
+              : 'Connect Bluesky to see popular posts from your network.'}
+          </p>
+          <form onSubmit={handleFeedConnect} class="auth-form-compact">
+            <input
+              type="text"
+              class="auth-input"
+              placeholder="Handle (e.g. alice.bsky.social)"
+              value={feedHandle}
+              onInput={(e) => setFeedHandle(e.target.value)}
+            />
+            {feedErr && <p class="auth-error">{feedErr}</p>}
+            <button type="submit" class="auth-submit" disabled={feedBusy}>
+              {feedBusy ? 'Connecting...' : 'Connect Bluesky'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (blueskyLoading.value) {
     return <div class="feed-empty">Loading Bluesky feed...</div>;
   }

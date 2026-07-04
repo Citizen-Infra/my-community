@@ -4,6 +4,20 @@
   gap: var(--space-md);
 }
 
+/* Not-connected empty state: contextual Bluesky feed connect */
+.feed-connect {
+  max-width: 340px;
+  margin: var(--space-xl) auto 0;
+}
+
+.feed-connect-lead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
 /* Time window controls */
 .bsky-controls {
   display: flex;
