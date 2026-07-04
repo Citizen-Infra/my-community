@@ -2,10 +2,10 @@ import { useState, useEffect } from 'preact/hooks';
 import { allCommunities, communitiesStatus, selectedCommunityIds, selectedCommunities, toggleCommunity, loadCommunities } from '../store/communities';
 import { loadDigest } from '../store/digest';
 import { loadSessions } from '../store/sessions';
-import { caSubject, caSignedIn, requestSignIn, signOut } from '../store/caAuth';
+import { caSubject, caType, caSignedIn, requestSignIn, requestBlueskySignIn, signOut } from '../store/caAuth';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
-import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri, loadSavedFeeds } from '../store/bluesky';
+import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri } from '../store/bluesky';
 import { visibleTabs, setTabVisible, jamVisible, setJamVisible } from '../store/panels';
 import { exportData } from '../lib/export';
 import { clearAllData } from '../store/db';
@@ -20,15 +20,13 @@ import '../styles/auth-modal.css';
 export function SettingsModal({ onClose }) {
   const [activeSettingsTab, setActiveSettingsTab] = useState('dashboard');
   const [subModal, setSubModal] = useState(null);
-  const [handle, setHandle] = useState('');
-  const [appPassword, setAppPassword] = useState('');
-  const [connecting, setConnecting] = useState(false);
-  const [authError, setAuthError] = useState(null);
 
-  // Community-admin (IdP) email sign-in
+  // Community account: two equal sign-in doors (email + Bluesky)
   const [caEmailInput, setCaEmailInput] = useState('');
+  const [caHandle, setCaHandle] = useState('');
   const [caError, setCaError] = useState(null);
   const [caSubmitting, setCaSubmitting] = useState(false);
+  const [caBlueskyBusy, setCaBlueskyBusy] = useState(false);
   const [caLinkSent, setCaLinkSent] = useState(false);
 
   // Tab-manager save behavior (persisted in chrome.storage.local, read by the worker)
@@ -82,22 +80,6 @@ export function SettingsModal({ onClose }) {
     setShowClear(false);
   }
 
-  async function handleConnect(e) {
-    e.preventDefault();
-    if (!handle.trim() || !appPassword.trim()) return;
-    setAuthError(null);
-    setConnecting(true);
-    try {
-      await connectBluesky(handle.trim(), appPassword.trim());
-      setHandle('');
-      setAppPassword('');
-      await loadSavedFeeds();
-    } catch (err) {
-      setAuthError(err.message);
-    }
-    setConnecting(false);
-  }
-
   async function handleCaSignIn(e) {
     e.preventDefault();
     if (!caEmailInput.trim()) return;
@@ -113,6 +95,32 @@ export function SettingsModal({ onClose }) {
     setCaSubmitting(false);
   }
 
+  // Community account: sign in with Bluesky. Reuses the live feed OAuth session
+  // when one exists, else runs the OAuth login (which also lights the feed), then
+  // exchanges a service-auth proof for a community session.
+  async function handleAccountBlueskySignIn(e) {
+    if (e) e.preventDefault();
+    setCaError(null);
+    setCaBlueskyBusy(true);
+    try {
+      if (!isConnected.value) {
+        const h = caHandle.trim();
+        if (!h) { setCaError('Enter your Bluesky handle.'); setCaBlueskyBusy(false); return; }
+        await connectBluesky(h);
+      }
+      await requestBlueskySignIn();
+      setCaHandle('');
+      await loadCommunities();
+      if (selectedCommunityIds.value.length > 0) {
+        loadDigest(selectedCommunityIds.value);
+        loadSessions(selectedCommunities.value);
+      }
+    } catch (err) {
+      setCaError(err.message);
+    }
+    setCaBlueskyBusy(false);
+  }
+
   async function handleCaSignOut() {
     signOut();
     await loadCommunities();
@@ -120,6 +128,15 @@ export function SettingsModal({ onClose }) {
       loadDigest(selectedCommunityIds.value);
       loadSessions(selectedCommunities.value);
     }
+  }
+
+  // Friendly identity label: @handle when a Bluesky DID matches the live feed
+  // session, otherwise the raw subject (the DID, or an email address).
+  function caIdentityLabel() {
+    if (caType.value === 'atproto' && blueskyUser.value && blueskyUser.value.did === caSubject.value) {
+      return `@${blueskyUser.value.handle}`;
+    }
+    return caSubject.value;
   }
 
   return (
@@ -154,20 +171,121 @@ export function SettingsModal({ onClose }) {
 
           {activeSettingsTab === 'dashboard' && (
             <>
-              {/* Bluesky Section */}
+              {/* Community Account — two equal doors: email + Bluesky */}
+              <section class="settings-section">
+                <h4 class="settings-section-title">Community account</h4>
+                {caSignedIn.value ? (
+                  <div class="settings-card">
+                    <div class="settings-card-header">
+                      <span class="settings-card-status">
+                        <span class="status-dot" />
+                        {caIdentityLabel()}
+                      </span>
+                      <button class="settings-link-btn" onClick={handleCaSignOut}>
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                ) : caLinkSent ? (
+                  <div class="settings-card settings-card-empty">
+                    <p class="settings-card-desc">
+                      Check your email for a sign-in link.
+                    </p>
+                  </div>
+                ) : (
+                  <div class="settings-card settings-card-empty">
+                    <p class="settings-card-desc">
+                      Sign in to see communities you're a member of.
+                    </p>
+                    <form onSubmit={handleCaSignIn} class="auth-form-compact">
+                      <input
+                        type="email"
+                        class="auth-input"
+                        placeholder="you@example.com"
+                        value={caEmailInput}
+                        onInput={(e) => setCaEmailInput(e.target.value)}
+                        required
+                      />
+                      <button type="submit" class="auth-submit" disabled={caSubmitting}>
+                        {caSubmitting ? 'Sending...' : 'Send magic link'}
+                      </button>
+                    </form>
+
+                    <div class="auth-or">or</div>
+
+                    <form onSubmit={handleAccountBlueskySignIn} class="auth-form-compact">
+                      {!isConnected.value && (
+                        <input
+                          type="text"
+                          class="auth-input"
+                          placeholder="Handle (e.g. alice.bsky.social)"
+                          value={caHandle}
+                          onInput={(e) => setCaHandle(e.target.value)}
+                        />
+                      )}
+                      <button type="submit" class="auth-submit" disabled={caBlueskyBusy}>
+                        {caBlueskyBusy
+                          ? 'Signing in...'
+                          : isConnected.value
+                            ? `Sign in as @${blueskyUser.value.handle}`
+                            : 'Sign in with Bluesky'}
+                      </button>
+                    </form>
+
+                    {caError && <p class="auth-error">{caError}</p>}
+                  </div>
+                )}
+              </section>
+
+              {/* Communities */}
+              <section class="settings-section">
+                <h4 class="settings-section-title">Communities</h4>
+                {communitiesStatus.value === 'ready' && allCommunities.value.length > 0 ? (
+                  <div class="settings-card">
+                    <div class="topic-grid">
+                      {allCommunities.value.map((c) => (
+                        <button
+                          key={c.id}
+                          class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
+                          onClick={() => toggleCommunity(c.id)}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div class="settings-card settings-card-empty">
+                    {communitiesStatus.value === 'loading' ? (
+                      <p class="settings-card-desc">Loading communities...</p>
+                    ) : communitiesStatus.value === 'error' ? (
+                      <>
+                        <p class="settings-card-desc">Couldn't load communities. Check your connection.</p>
+                        <button type="button" class="settings-link-btn" onClick={loadCommunities}>Try again</button>
+                      </>
+                    ) : (
+                      <p class="settings-card-desc">
+                        {caSignedIn.value
+                          ? 'No communities available yet.'
+                          : 'No public communities right now. Sign in above to see communities you belong to.'}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
+
+              {/* Network — the Bluesky feed and its preferences */}
               <section class="settings-section">
                 <div class="settings-section-header">
-                  <h4 class="settings-section-title">Bluesky</h4>
-                  {isConnected.value && (
-                    <label class="settings-toggle-inline">
-                      <input
-                        type="checkbox"
-                        checked={visibleTabs.value.network}
-                        onChange={(e) => setTabVisible('network', e.target.checked)}
-                      />
-                      <span class="settings-toggle-track-sm" />
-                    </label>
-                  )}
+                  <h4 class="settings-section-title">Network</h4>
+                  <label class="settings-toggle-inline">
+                    <input
+                      type="checkbox"
+                      checked={visibleTabs.value.network}
+                      onChange={(e) => setTabVisible('network', e.target.checked)}
+                    />
+                    <span class="settings-toggle-track-sm" />
+                  </label>
                 </div>
 
                 {isConnected.value ? (
@@ -234,119 +352,9 @@ export function SettingsModal({ onClose }) {
                     </div>
                   </div>
                 ) : (
-                  <div class="settings-card settings-card-empty">
-                    <p class="settings-card-desc">
-                      Connect to see popular posts from your network.
-                    </p>
-                    <form onSubmit={handleConnect} class="auth-form-compact">
-                      <input
-                        type="text"
-                        class="auth-input"
-                        placeholder="Handle (e.g. alice.bsky.social)"
-                        value={handle}
-                        onInput={(e) => setHandle(e.target.value)}
-                        required
-                      />
-                      <input
-                        type="password"
-                        class="auth-input"
-                        placeholder="App Password"
-                        value={appPassword}
-                        onInput={(e) => setAppPassword(e.target.value)}
-                        required
-                      />
-                      {authError && <p class="auth-error">{authError}</p>}
-                      <button type="submit" class="auth-submit" disabled={connecting}>
-                        {connecting ? 'Connecting...' : 'Connect'}
-                      </button>
-                    </form>
-                    <p class="settings-hint">
-                      <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noopener">
-                        Create an app password
-                      </a> at bsky.app
-                    </p>
-                  </div>
-                )}
-              </section>
-
-              {/* Community Account Section */}
-              <section class="settings-section">
-                <h4 class="settings-section-title">Community account</h4>
-                {caSignedIn.value ? (
-                  <div class="settings-card">
-                    <div class="settings-card-header">
-                      <span class="settings-card-status">
-                        <span class="status-dot" />
-                        {caSubject.value}
-                      </span>
-                      <button class="settings-link-btn" onClick={handleCaSignOut}>
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                ) : caLinkSent ? (
-                  <div class="settings-card settings-card-empty">
-                    <p class="settings-card-desc">
-                      Check your email for a sign-in link.
-                    </p>
-                  </div>
-                ) : (
-                  <div class="settings-card settings-card-empty">
-                    <p class="settings-card-desc">
-                      Sign in to see communities you're a member of.
-                    </p>
-                    <form onSubmit={handleCaSignIn} class="auth-form-compact">
-                      <input
-                        type="email"
-                        class="auth-input"
-                        placeholder="you@example.com"
-                        value={caEmailInput}
-                        onInput={(e) => setCaEmailInput(e.target.value)}
-                        required
-                      />
-                      {caError && <p class="auth-error">{caError}</p>}
-                      <button type="submit" class="auth-submit" disabled={caSubmitting}>
-                        {caSubmitting ? 'Sending...' : 'Send magic link'}
-                      </button>
-                    </form>
-                  </div>
-                )}
-              </section>
-
-              {/* Communities Section */}
-              <section class="settings-section">
-                <h4 class="settings-section-title">Communities</h4>
-                {communitiesStatus.value === 'ready' && allCommunities.value.length > 0 ? (
-                  <div class="settings-card">
-                    <div class="topic-grid">
-                      {allCommunities.value.map((c) => (
-                        <button
-                          key={c.id}
-                          class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
-                          onClick={() => toggleCommunity(c.id)}
-                        >
-                          {c.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div class="settings-card settings-card-empty">
-                    {communitiesStatus.value === 'loading' ? (
-                      <p class="settings-card-desc">Loading communities...</p>
-                    ) : communitiesStatus.value === 'error' ? (
-                      <>
-                        <p class="settings-card-desc">Couldn't load communities. Check your connection.</p>
-                        <button type="button" class="settings-link-btn" onClick={loadCommunities}>Try again</button>
-                      </>
-                    ) : (
-                      <p class="settings-card-desc">
-                        {caSignedIn.value
-                          ? 'No communities available yet.'
-                          : 'No public communities right now. Sign in above to see communities you belong to.'}
-                      </p>
-                    )}
-                  </div>
+                  <p class="settings-hint" style="margin-top: 0;">
+                    Connect Bluesky from the Network tab to see popular posts from your network.
+                  </p>
                 )}
               </section>
 

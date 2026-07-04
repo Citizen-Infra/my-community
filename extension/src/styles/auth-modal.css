@@ -129,6 +129,24 @@
   line-height: 1.5;
 }
 
+/* Divider between the two equal sign-in doors (email / Bluesky) */
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.auth-or::before,
+.auth-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
 .auth-spam-hint {
   font-size: 12px;
   color: var(--color-text-muted);
