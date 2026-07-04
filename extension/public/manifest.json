@@ -12,6 +12,8 @@
     "https://api.lu.ma/*",
     "https://*.bsky.network/*",
     "https://bsky.social/*",
+    "https://public.api.bsky.app/*",
+    "https://plc.directory/*",
     "https://navidrome-jam-production.up.railway.app/*",
     "https://avails.zhgnv.com/*"
   ],
