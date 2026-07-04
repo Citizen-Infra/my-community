@@ -171,7 +171,7 @@ export function SettingsModal({ onClose }) {
 
           {activeSettingsTab === 'dashboard' && (
             <>
-              {/* Community Account — two equal doors: email + Bluesky */}
+              {/* Community Account: two equal doors (email + Bluesky) */}
               <section class="settings-section">
                 <h4 class="settings-section-title">Community account</h4>
                 {caSignedIn.value ? (
@@ -274,7 +274,7 @@ export function SettingsModal({ onClose }) {
                 )}
               </section>
 
-              {/* Network — the Bluesky feed and its preferences */}
+              {/* Network: the Bluesky feed and its preferences */}
               <section class="settings-section">
                 <div class="settings-section-header">
                   <h4 class="settings-section-title">Network</h4>
