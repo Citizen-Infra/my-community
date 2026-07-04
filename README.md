@@ -26,11 +26,19 @@ Toggle any feed on or off. Choose light, dark, or system theme. The extension wo
 ## Getting started
 
 Click the gear icon to:
+- Sign in to your community account with Bluesky or email
 - Select your communities
-- Connect your Bluesky account with an [app password](https://bsky.app/settings/app-passwords) (optional — enables Bluesky feed)
 - Toggle which feeds to show
 
+Open the Network tab and connect Bluesky to see popular posts from people you follow (optional).
+
 ## Changelog
+
+### 0.3.0 — July 2026
+- **Sign in with Bluesky or email.** Your community account now has two equal sign-in options: a Bluesky account or an email magic link. Pick whichever your community knows you by.
+- **One Bluesky sign-in for everything.** A single Bluesky sign-in powers both your community account and the Network feed. App passwords are retired; you sign in through Bluesky's own consent screen instead. If you used the old app-password flow, you will be prompted to reconnect once.
+- **The Bluesky tab is now "Network."** The same ATProto protocol runs different networks (Bluesky, Blacksky, and more), so the tab reflects the network rather than one app. Connect the feed right from the Network tab.
+- **Note:** this update adds the `identity` permission and a couple of Bluesky host permissions (for the in-browser sign-in), so Chrome will ask you to re-approve the extension on update.
 
 ### 0.2.0 — June 2026
 - **Saved Tabs:** a full tab manager now lives alongside the dashboard. The dashboard is pinned at the top of the new side panel; your tab collections sit below it. Save tabs with the toolbar button or the Alt+S shortcut, drag to reorder within and across collections, search everything, and import from Toby or Chrome bookmarks. Tabs are stored locally with a daily backup.
