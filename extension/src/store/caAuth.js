@@ -1,8 +1,10 @@
 import { signal, computed } from '@preact/signals';
+import { getServiceAuth } from '../lib/oauth-atproto';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
 const SESSION_KEY = 'mc_ca_session';
 const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
+const CA_DID = import.meta.env.VITE_CA_DID || 'did:web:community-admin-server-production.up.railway.app';
 
 // The signed-in community identity: an email or a Bluesky DID, plus which kind.
 export const caSubject = signal(null); // string | null
@@ -61,6 +63,24 @@ export async function requestSignIn(email) {
     body: JSON.stringify({ email, client: 'extension' }),
   });
   if (!res.ok && res.status !== 204) throw new Error('Could not send the magic link. Try again.');
+}
+
+// Community sign-in via the existing Bluesky OAuth session: mint a PDS-signed
+// service-auth JWT for community-admin's DID, exchange it at /auth/atproto/assert
+// for a community session. Requires Bluesky already connected (getServiceAuth
+// throws "not signed in" otherwise).
+export async function requestBlueskySignIn() {
+  const jwt = await getServiceAuth(CA_DID);
+  const res = await fetch(`${CA_URL}/auth/atproto/assert`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: jwt }),
+  });
+  if (!res.ok) throw new Error('Could not verify your Bluesky identity with the community server.');
+  const { session } = await res.json();
+  localStorage.setItem(SESSION_KEY, session);
+  _jwt = null; _jwtExp = 0;
+  await refreshIdentity();
 }
 
 // A valid 15-min JWT, or null when signed out / on failure.
