@@ -1,6 +1,10 @@
 import { useState } from 'preact/hooks';
 import { blueskyPosts, blueskyLoading, blueskyTimeWindow, setBlueskyTimeWindow, blueskyFeedUri, loadBlueskyFeed, blueskyAvailableFeeds, loadSavedFeeds } from '../store/bluesky';
-import { isConnected, connectBluesky, disconnectBluesky, legacyBlueskySession } from '../store/auth';
+import { isConnected, connectBluesky, disconnectBluesky, blueskyUser, legacyBlueskySession } from '../store/auth';
+import { caType, caSubject, signOut } from '../store/caAuth';
+import { loadCommunities, selectedCommunityIds, selectedCommunities } from '../store/communities';
+import { loadDigest } from '../store/digest';
+import { loadSessions } from '../store/sessions';
 import { BlueskyPostCard } from './BlueskyPostCard';
 import '../styles/bluesky.css';
 import '../styles/auth-modal.css';
@@ -26,11 +30,21 @@ export function BlueskyFeed() {
     setFeedBusy(false);
   }
 
-  // Disconnecting the feed drops the Bluesky session (content only). A community
-  // membership keyed on this DID stays signed in; the account section still shows
-  // @handle. Full sign-out lives at the account.
-  function handleDisconnect() {
-    disconnectBluesky();
+  // Disconnect the Bluesky session. If that Bluesky account IS the community
+  // login (an atproto identity matching the feed session), this ends the whole
+  // session: one login, one sign-out, no "signed in but feed off" split. If the
+  // community login is email, only the feed is dropped.
+  async function handleDisconnect() {
+    const endsCommunity = caType.value === 'atproto' && blueskyUser.value?.did === caSubject.value;
+    await disconnectBluesky();
+    if (endsCommunity) {
+      signOut();
+      await loadCommunities();
+      if (selectedCommunityIds.value.length > 0) {
+        loadDigest(selectedCommunityIds.value);
+        loadSessions(selectedCommunities.value);
+      }
+    }
   }
 
   // The one place the feed-only Bluesky connect lives. When signed in with email
