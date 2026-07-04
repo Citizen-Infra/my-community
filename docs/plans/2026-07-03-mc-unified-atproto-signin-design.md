@@ -99,6 +99,8 @@ The feasibility spike resolved the unknowns in favor of the in-extension approac
 
 **Implementation note surfaced by the PoC:** community-admin needs its own DID (a `did:web` served at its domain) to be the `aud` of the service-auth JWT and to check `aud` on verification. Setup item for subsystem A. The proven OAuth/DPoP/getServiceAuth code in the PoC is the seed for subsystem B's OAuth module (reuse, do not rewrite).
 
+**Known runtime risk (settle in subsystem B's OAuth smoke).** The hosted OAuth `client-metadata.json` (subsystem A, live) declares a PUBLIC client (`token_endpoint_auth_method: "none"`). AT Protocol may require a hosted client (a real HTTPS `client_id`, `application_type: "web"`) to be CONFIDENTIAL (`private_key_jwt`), which is what the removed V5 server-side client used. The PoC only proved the loopback/localhost public client, which is always allowed. If a real PDS rejects the hosted public client during B's first `launchWebAuthFlow`, the fallback is to make community-admin a confidential client again (reintroduce a signing key + client assertion, served in the metadata). Flagged by the S5 final review; do not treat B's OAuth as done until a real consent round-trips.
+
 ## Scope and decomposition
 
 Three subsystems, each its own implementation plan after this spec is approved and the spikes pass:
