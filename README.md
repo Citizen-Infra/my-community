@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.1 — July 2026
+- **Cleaner, more consistent typography.** The editorial serif is now reserved for the "My Community" wordmark and the title of the collection you are viewing; sidebar and settings labels use the clean sans throughout. "Dashboard" reads as a first-class destination above your collections.
+- **Fixed the "Move to" menu.** Moving a saved tab to another collection now opens a proper floating menu that shows the full list, scrolls if it is long, and no longer gets clipped as you scroll the collection.
+
 ### 0.3.0 — July 2026
 - **Sign in with Bluesky or email.** Your community account now has two equal sign-in options: a Bluesky account or an email magic link. Pick whichever your community knows you by.
 - **One Bluesky sign-in for everything.** A single Bluesky sign-in powers both your community account and the Network feed. App passwords are retired; you sign in through Bluesky's own consent screen instead. If you used the old app-password flow, you will be prompted to reconnect once.
