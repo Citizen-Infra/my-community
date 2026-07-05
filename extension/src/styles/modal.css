@@ -22,7 +22,7 @@
 .modal-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--text-primary);
   margin-bottom: var(--space-sm);
 }

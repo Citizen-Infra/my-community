@@ -114,9 +114,9 @@
   width: 100%;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
 }
 

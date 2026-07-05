@@ -17,7 +17,7 @@
 .collection-title {
   font-family: var(--font-display);
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
@@ -46,7 +46,7 @@
 .collection-title-input {
   font-family: var(--font-display);
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: -0.02em;
   padding: 0 var(--space-xs);
   border: 1px solid var(--border-active);
