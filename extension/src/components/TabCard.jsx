@@ -7,6 +7,7 @@ import { getFaviconUrl, getDomain } from '../lib/favicon';
 export function TabCard({ tab, tabDrag }) {
   const favicon = tab.favicon || getFaviconUrl(tab.url);
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState(null);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -16,9 +17,42 @@ export function TabCard({ tab, tabDrag }) {
         setShowMenu(false);
       }
     };
+    const close = () => setShowMenu(false);
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    // Capture so we also catch scrolling of the .main-content scroller (scroll doesn't bubble).
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
   }, [showMenu]);
+
+  // Anchor the menu to the button's on-screen rect with position: fixed so it escapes
+  // the .main-content overflow clip. Flip upward when there isn't room below.
+  const toggleMenu = (e) => {
+    e.stopPropagation();
+    if (showMenu) {
+      setShowMenu(false);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const margin = 6;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const openUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+    const pos = { right: window.innerWidth - rect.right };
+    if (openUp) {
+      pos.bottom = window.innerHeight - rect.top + margin;
+      pos.maxHeight = spaceAbove - margin * 2;
+    } else {
+      pos.top = rect.bottom + margin;
+      pos.maxHeight = spaceBelow - margin * 2;
+    }
+    setMenuPos(pos);
+    setShowMenu(true);
+  };
 
   const handleClick = () => {
     chrome.tabs.create({ url: tab.url });
@@ -70,14 +104,11 @@ export function TabCard({ tab, tabDrag }) {
         <div class="tab-title" title={tab.title}>{tab.title}</div>
         <div class="tab-domain" title={tab.url}>{getDomain(tab.url)}</div>
       </div>
-      <div class="tab-actions" ref={menuRef}>
+      <div class={`tab-actions ${showMenu ? 'menu-open' : ''}`} ref={menuRef}>
         {otherCollections.length > 0 && (
           <button
             class="tab-action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowMenu(!showMenu);
-            }}
+            onClick={toggleMenu}
             title="Move to collection"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,8 +131,16 @@ export function TabCard({ tab, tabDrag }) {
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        {showMenu && (
-          <div class="tab-move-menu">
+        {showMenu && menuPos && (
+          <div
+            class="tab-move-menu"
+            style={{
+              top: menuPos.top != null ? `${menuPos.top}px` : 'auto',
+              bottom: menuPos.bottom != null ? `${menuPos.bottom}px` : 'auto',
+              right: `${menuPos.right}px`,
+              maxHeight: `${menuPos.maxHeight}px`,
+            }}
+          >
             <div class="tab-move-menu-title">Move to</div>
             {otherCollections.map((col) => (
               <button
