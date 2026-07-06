@@ -210,7 +210,7 @@ export async function dpopFetch(url, init = {}) {
   nonce = r.headers.get('DPoP-Nonce') || nonce;
   if (r.status === 401 && nonce) { r = await doOnce(s.accessToken, nonce); nonce = r.headers.get('DPoP-Nonce') || nonce; }
   if (r.status === 401) {
-    const rs = await refresh(s);
+    const rs = await refresh();
     if (rs) {
       r = await doOnce(rs.accessToken, nonce);
       const freshNonce = r.headers.get('DPoP-Nonce');
@@ -229,14 +229,36 @@ export async function getServiceAuth(aud) {
   return (await r.json()).token;
 }
 
-async function refresh(s) {
+// Rotating ATProto refresh tokens are single-use: two concurrent 401s must not
+// each spend the stored token, or the loser's invalid_grant would wipe the
+// session the winner just refreshed (the "keeps asking me to reconnect" bug).
+// Single-flight collapses concurrent callers onto one refresh, and each refresh
+// re-reads the freshest stored token so a straggler never reuses a consumed one.
+// Only a definitive invalid_grant retires the session; transient failures leave
+// it intact for the next boot to retry.
+let refreshing = null;
+
+async function doRefresh() {
+  const s = await readSession();
+  if (!s) return null;
   const key = await keyFromSession(s);
   const form = new URLSearchParams({ client_id: CLIENT_ID, grant_type: 'refresh_token', refresh_token: s.refreshToken });
   const { res } = await dpopPost(s.tokenEndpoint, form, key);
-  if (!res.ok) { await clearSessionIdb(); return null; }
+  if (!res.ok) {
+    let dead = false;
+    try { dead = res.status === 400 && (await res.json()).error === 'invalid_grant'; } catch {}
+    if (dead) await clearSessionIdb();
+    return null;
+  }
   const tok = await res.json();
   const next = { ...s, accessToken: tok.access_token, refreshToken: tok.refresh_token || s.refreshToken };
-  await saveSession(next); return next;
+  await saveSession(next);
+  return next;
+}
+
+function refresh() {
+  if (!refreshing) refreshing = doRefresh().finally(() => { refreshing = null; });
+  return refreshing;
 }
 
 export function hasLegacyAppPasswordSession() {
