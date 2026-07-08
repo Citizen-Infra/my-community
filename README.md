@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.2 — July 2026
+- **Bluesky now stays connected.** Fixed a bug where the Network feed kept asking you to reconnect Bluesky even though you had already signed in. Your sign-in now persists reliably across new tabs and days.
+
 ### 0.3.1 — July 2026
 - **Cleaner, more consistent typography.** The editorial serif is now reserved for the "My Community" wordmark and the title of the collection you are viewing; sidebar and settings labels use the clean sans throughout. "Dashboard" reads as a first-class destination above your collections.
 - **Fixed the "Move to" menu.** Moving a saved tab to another collection now opens a proper floating menu that shows the full list, scrolls if it is long, and no longer gets clipped as you scroll the collection.
