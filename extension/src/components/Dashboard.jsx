@@ -4,6 +4,7 @@ import { TabBar } from './TabBar';
 import { DigestFeed } from './DigestFeed';
 import { SessionsPanel } from './SessionsPanel';
 import { BlueskyFeed } from './BlueskyFeed';
+import { CommunityInputFeed } from './CommunityInputFeed';
 
 export function Dashboard() {
   if (!communitiesConfigured.value) {
@@ -25,6 +26,7 @@ export function Dashboard() {
         {activeTab.value === 'digest' && <DigestFeed />}
         {activeTab.value === 'participation' && <SessionsPanel />}
         {activeTab.value === 'network' && <BlueskyFeed />}
+        {activeTab.value === 'communityInput' && <CommunityInputFeed />}
       </main>
     </>
   );

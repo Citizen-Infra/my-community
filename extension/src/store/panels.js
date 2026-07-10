@@ -5,6 +5,7 @@ export const visibleTabs = signal({
   network: stored.network ?? true,
   digest: stored.digest ?? true,
   participation: stored.participation ?? true,
+  communityInput: stored.communityInput ?? true,
 });
 
 // Jam is a global "now listening" strip (below the TopBar, every screen), not a

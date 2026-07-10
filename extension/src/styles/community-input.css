@@ -1,0 +1,360 @@
+/* Community Input — the member-facing consent feed. Adopts the dashboard skin:
+   warm paper, near-flat cards with the 4px community accent bar, forest-green as the
+   primary voice, amber reserved for the weight of a blocking objection. */
+
+.ci-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.ci-intro {
+  margin: 0 0 var(--space-xs);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 60ch;
+}
+
+/* --- Card shell (sibling of .digest-card) --- */
+.decision-card {
+  position: relative;
+  padding: var(--space-lg);
+  padding-left: calc(var(--space-lg) + 4px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.25s var(--ease-out), border-color 0.2s ease;
+  animation: card-enter 0.4s var(--ease-out) both;
+  overflow: hidden;
+}
+
+.decision-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border);
+}
+
+.decision-card-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--community-border, var(--color-primary));
+}
+
+.decision-card:nth-child(2) { animation-delay: 0.03s; }
+.decision-card:nth-child(3) { animation-delay: 0.06s; }
+.decision-card:nth-child(4) { animation-delay: 0.09s; }
+.decision-card:nth-child(5) { animation-delay: 0.12s; }
+.decision-card:nth-child(6) { animation-delay: 0.15s; }
+
+.decision-card-body { min-width: 0; }
+
+/* --- Head: community chip + status pill --- */
+.decision-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.decision-card-community {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--community-bg, var(--color-surface-hover));
+  color: var(--community-text, var(--color-text-secondary));
+  border: 1px solid var(--community-border, var(--color-border));
+}
+
+.decision-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.decision-status--ratified {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-subtle);
+}
+
+.decision-status--objected {
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent-subtle);
+}
+
+/* --- Title + body text --- */
+.decision-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.decision-card-text {
+  margin: var(--space-sm) 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  max-width: 68ch;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.decision-card-meta {
+  margin: var(--space-sm) 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.decision-card-window { color: var(--color-session-upcoming); font-weight: 500; }
+.decision-card-closed { font-style: italic; }
+
+/* --- Consent-weighted actions ---
+   Agree is the light primary; Pass is quiet; Raise objection is set apart and carries
+   the amber weight of a consequential act. */
+.decision-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-md);
+}
+
+.decision-vote {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), color 0.18s var(--ease-out),
+    border-color 0.18s var(--ease-out), transform 0.18s var(--ease-out);
+}
+
+.decision-vote:active { transform: scale(0.97); }
+.decision-vote:disabled { opacity: 0.55; cursor: default; }
+
+.decision-vote--agree {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-subtle);
+}
+.decision-vote--agree:hover:not(:disabled) { background: var(--color-primary-light); }
+.decision-vote--agree.is-selected {
+  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.decision-vote--pass {
+  color: var(--color-text-muted);
+  background: transparent;
+}
+.decision-vote--pass:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+}
+.decision-vote--pass.is-selected {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+}
+
+/* Raise objection: pushed to the right, amber-outlined, deliberately heavier. */
+.decision-objection-trigger {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  background: transparent;
+  border: 1px solid var(--color-accent-subtle);
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), color 0.18s var(--ease-out),
+    border-color 0.18s var(--ease-out), transform 0.18s var(--ease-out);
+}
+.decision-objection-trigger:hover:not(:disabled) {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+}
+.decision-objection-trigger:active { transform: scale(0.97); }
+.decision-objection-trigger:disabled { opacity: 0.55; cursor: default; }
+.decision-objection-trigger.is-selected {
+  color: #fff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* --- Objection reason form --- */
+.decision-objection {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.decision-objection-label {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.decision-objection-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  resize: vertical;
+  transition: border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
+}
+.decision-objection-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.decision-objection-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.decision-btn-ghost {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), color 0.18s var(--ease-out);
+}
+.decision-btn-ghost:hover { background: var(--color-surface-hover); color: var(--color-text-secondary); }
+
+.decision-objection-submit {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  color: #fff;
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), transform 0.18s var(--ease-out);
+}
+.decision-objection-submit:hover:not(:disabled) { background: var(--color-accent-hover); }
+.decision-objection-submit:active { transform: scale(0.97); }
+.decision-objection-submit:disabled { opacity: 0.55; cursor: default; }
+
+/* --- Foot: tally + your-response cue --- */
+.decision-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.decision-tally { font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }
+
+.decision-myvote {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.decision-card-error {
+  margin: var(--space-sm) 0 0;
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+/* --- Empty state --- */
+.ci-empty {
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+}
+.ci-empty-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+.ci-empty-line {
+  margin: var(--space-sm) auto 0;
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+/* --- Signed-out connect prompt (reuses the two-door auth-* controls) --- */
+.ci-connect {
+  max-width: 420px;
+  margin: var(--space-xl) auto 0;
+  padding: var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+.ci-connect-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--color-text);
+}
+.ci-connect-desc {
+  margin: var(--space-sm) 0 var(--space-lg);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.ci-connect-sent {
+  margin: var(--space-md) 0 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+.ci-connect .auth-or { margin: var(--space-md) 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .decision-card { animation: none; }
+}
