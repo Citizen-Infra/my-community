@@ -4,7 +4,8 @@ import { initAuth, isConnected } from './store/auth';
 import { loadCommunities, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
-import { initCaAuth } from './store/caAuth';
+import { initCaAuth, caSignedIn } from './store/caAuth';
+import { loadProposals } from './store/proposals';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
@@ -91,6 +92,12 @@ export function App() {
     }
     return () => { stopJamPolling(); stopAvailsPolling(); };
   }, [ready, selectedCommunityIds.value]);
+
+  // Consent feed is member-gated: reacts to community selection AND sign-in state.
+  useEffect(() => {
+    if (!ready) return;
+    loadProposals(caSignedIn.value ? selectedCommunityIds.value : []);
+  }, [ready, caSignedIn.value, selectedCommunityIds.value]);
 
   useEffect(() => {
     if (ready && isConnected.value) {

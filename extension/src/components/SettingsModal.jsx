@@ -391,6 +391,24 @@ export function SettingsModal({ onClose }) {
                 </p>
               </section>
 
+              {/* Community Input Section */}
+              <section class="settings-section">
+                <div class="settings-section-header">
+                  <h4 class="settings-section-title">Community Input</h4>
+                  <label class="settings-toggle-inline">
+                    <input
+                      type="checkbox"
+                      checked={visibleTabs.value.communityInput}
+                      onChange={(e) => setTabVisible('communityInput', e.target.checked)}
+                    />
+                    <span class="settings-toggle-track-sm" />
+                  </label>
+                </div>
+                <p class="settings-hint" style="margin-top: 0;">
+                  Decisions your communities are weighing. Sign in to agree or raise an objection.
+                </p>
+              </section>
+
               {/* Jam Section — global "now listening" strip */}
               <section class="settings-section">
                 <div class="settings-section-header">

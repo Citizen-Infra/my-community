@@ -112,6 +112,15 @@ export async function authHeader() {
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
+// Header for community-admin's OWN endpoints (e.g. /communities/:id/proposals).
+// authMiddleware there accepts the session token as Bearer (the same token /auth/me
+// uses), NOT the short-lived JWT above — that JWT is for services verifying via JWKS
+// (scenius-digest). Synchronous: reads the stored session token directly.
+export function caSessionHeader() {
+  const t = sessionToken();
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
 export function signOut() {
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(HANDLE_KEY);

@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.3 — July 2026
+- **Community Input: decide together by consent.** A new signed-in tab shows the decisions your communities are weighing. Agree, pass, or raise a blocking objection with a reason. Silence counts as consent, and a decision ratifies when its window closes without an objection. Sign in with email or Bluesky to take part.
+
 ### 0.3.2 — July 2026
 - **Bluesky now stays connected.** Fixed a bug where the Network feed kept asking you to reconnect Bluesky even though you had already signed in. Your sign-in now persists reliably across new tabs and days.
 

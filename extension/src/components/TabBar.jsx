@@ -5,6 +5,7 @@ const TAB_LABELS = {
   network: 'Network',
   digest: 'Digest',
   participation: 'Participation',
+  communityInput: 'Community Input',
 };
 
 export function TabBar() {
