@@ -1,4 +1,4 @@
-import { signal } from '@preact/signals';
+import { signal, computed } from '@preact/signals';
 import { caSessionHeader } from './caAuth';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
@@ -8,6 +8,11 @@ const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-pr
 // and the caller's own my_vote. Status is computed server-side at read time.
 export const proposals = signal([]);
 export const proposalsLoading = signal(false);
+
+// Open decisions the member has not responded to — the Community Input tab badge.
+export const openUnvotedCount = computed(() =>
+  proposals.value.filter((p) => new Date(p.closes_at).getTime() > Date.now() && !p.my_vote).length
+);
 
 // Sort: open decisions first (soonest-closing at the top), then closed ones
 // (most-recently-closed first). Keeps the actionable items in view.

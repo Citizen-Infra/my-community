@@ -364,6 +364,38 @@
 }
 .ci-connect .auth-or { margin: var(--space-md) 0; }
 
+/* --- Slice C: lineage, member-visible objections, change-your-vote --- */
+.decision-card-lineage {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+.decision-card-lineage a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.decision-card-lineage a:hover { text-decoration: underline; }
+
+.decision-objections-shown {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent-subtle);
+  border-radius: var(--radius-sm);
+}
+.decision-objection-reason {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.decision-objection-reason + .decision-objection-reason { margin-top: 4px; }
+
+.decision-changevote {
+  margin: var(--space-sm) 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .decision-card { animation: none; }
 }

@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.5 — July 2026
+- **The consent loop closes.** Objected decisions now show the objection itself (who raised it stays private), you can change your response any time while the window is open, and amended re-posts link back to the version they replace.
+- **You can see there's something to decide.** The Community Input tab shows a badge with the number of open decisions you haven't responded to.
+
 ### 0.3.4 — July 2026
 - **Decisions show where they came from.** A decision drafted from a sync meeting now names the meeting it came from, so you know which conversation you are being asked to consent to.
 
