@@ -1,4 +1,5 @@
 import { activeTab, setActiveTab, availableTabs } from '../store/panels';
+import { openUnvotedCount } from '../store/proposals';
 import '../styles/tabs.css';
 
 const TAB_LABELS = {
@@ -21,6 +22,9 @@ export function TabBar() {
           onClick={() => setActiveTab(tab)}
         >
           {TAB_LABELS[tab]}
+          {tab === 'communityInput' && openUnvotedCount.value > 0 && (
+            <span class="tab-badge">{openUnvotedCount.value}</span>
+          )}
         </button>
       ))}
     </nav>
