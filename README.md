@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.4 — July 2026
+- **Decisions show where they came from.** A decision drafted from a sync meeting now names the meeting it came from, so you know which conversation you are being asked to consent to.
+
 ### 0.3.3 — July 2026
 - **Community Input: decide together by consent.** A new signed-in tab shows the decisions your communities are weighing. Agree, pass, or raise a blocking objection with a reason. Silence counts as consent, and a decision ratifies when its window closes without an objection. Sign in with email or Bluesky to take part.
 

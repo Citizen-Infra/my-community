@@ -80,6 +80,8 @@ export function DecisionCard({ proposal: p }) {
             : <span class="decision-card-closed">voting closed</span>}
         </p>
 
+        {p.source && <p class="decision-card-source">From {p.source}</p>}
+
         {windowOpen && (
           <>
             <div class="decision-actions">

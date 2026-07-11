@@ -126,6 +126,15 @@
 .decision-card-window { color: var(--color-session-upcoming); font-weight: 500; }
 .decision-card-closed { font-style: italic; }
 
+/* Provenance: which meeting a decision came from. Quiet tertiary metadata,
+   an editorial citation line beneath the operational meta. */
+.decision-card-source {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
 /* --- Consent-weighted actions ---
    Agree is the light primary; Pass is quiet; Raise objection is set apart and carries
    the amber weight of a consequential act. */
