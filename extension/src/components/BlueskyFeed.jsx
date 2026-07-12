@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { blueskyPosts, blueskyLoading, blueskyTimeWindow, setBlueskyTimeWindow, blueskyFeedUri, loadBlueskyFeed, blueskyAvailableFeeds, loadSavedFeeds } from '../store/bluesky';
+import { blueskyPosts, blueskyLoading, blueskyTimeWindow, setBlueskyTimeWindow, blueskyFeedUri, loadBlueskyFeed, blueskyAvailableFeeds } from '../store/bluesky';
 import { isConnected, connectBluesky, disconnectBluesky, blueskyUser, legacyBlueskySession } from '../store/auth';
 import { caType, caSubject, signOut } from '../store/caAuth';
 import { loadCommunities, selectedCommunityIds, selectedCommunities } from '../store/communities';
@@ -21,9 +21,10 @@ export function BlueskyFeed() {
     if (!h) { setFeedErr('Enter your Bluesky handle.'); return; }
     setFeedBusy(true);
     try {
+      // Just connect. Flipping isConnected re-triggers the connection-state
+      // effect in app.jsx, which owns loadSavedFeeds() + loadBlueskyFeed().
+      // Loading here too double-fetched the timeline on connect (#35).
       await connectBluesky(h);
-      await loadSavedFeeds();
-      await loadBlueskyFeed();
     } catch (err) {
       setFeedErr(err.message);
     }
