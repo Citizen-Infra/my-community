@@ -75,6 +75,10 @@ export function App() {
   }, []);
 
   // Feeds react to community selection.
+  // The Bluesky Network feed is community-independent (posts from people you
+  // follow), so it is NOT loaded here — the connection-state effect below owns
+  // its load lifecycle. Loading it here too double-fetched the timeline on a
+  // cold cache every open (#33).
   useEffect(() => {
     if (!ready) return;
     const ids = selectedCommunityIds.value;
@@ -87,9 +91,6 @@ export function App() {
       stopJamPolling();
       stopAvailsPolling();
     }
-    if (isConnected.value) {
-      loadBlueskyFeed();
-    }
     return () => { stopJamPolling(); stopAvailsPolling(); };
   }, [ready, selectedCommunityIds.value]);
 
@@ -99,6 +100,8 @@ export function App() {
     loadProposals(caSignedIn.value ? selectedCommunityIds.value : []);
   }, [ready, caSignedIn.value, selectedCommunityIds.value]);
 
+  // Owns the Bluesky feed load lifecycle: fires on mount (once connected) and
+  // whenever the connection state flips. Community selection does not affect it.
   useEffect(() => {
     if (ready && isConnected.value) {
       loadSavedFeeds();
