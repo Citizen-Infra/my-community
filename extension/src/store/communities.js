@@ -1,7 +1,10 @@
 import { signal, computed } from '@preact/signals';
 import { authHeader } from './caAuth';
+import { getCached, setCached } from '../lib/cache';
 
 const GROUPS_API = 'https://scenius-digest.vercel.app/api/groups';
+const CACHE_KEY = 'mc_communities_cache';
+const CACHE_TTL = 60 * 60 * 1000; // 1h — the community list changes rarely
 
 export const allCommunities = signal([]);
 export const communitiesStatus = signal('loading'); // 'loading' | 'ready' | 'error'
@@ -17,6 +20,12 @@ export const selectedCommunities = computed(() =>
 );
 
 export async function loadCommunities() {
+  const cached = getCached(CACHE_KEY, CACHE_TTL);
+  if (cached) {
+    allCommunities.value = cached;
+    communitiesStatus.value = 'ready';
+    return;
+  }
   communitiesStatus.value = 'loading';
   try {
     const res = await fetch(GROUPS_API, { headers: await authHeader() });
@@ -34,6 +43,7 @@ export async function loadCommunities() {
       hasEvents: !!(val.event_apis && val.event_apis.length > 0) || !!(val.event_topics && val.event_topics.length > 0),
     }));
     allCommunities.value = groups;
+    setCached(CACHE_KEY, groups);
     communitiesStatus.value = 'ready';
   } catch (err) {
     console.error('Failed to load communities:', err);
