@@ -1,8 +1,11 @@
 import { signal, computed } from '@preact/signals';
 import { supabase } from '../lib/supabase';
 import { authHeader } from './caAuth';
+import { getCached, setCached, communityKey } from '../lib/cache';
 
 const EVENTS_API = 'https://scenius-digest.vercel.app/api/events';
+const CACHE_KEY = 'mc_sessions_cache';
+const CACHE_TTL = 5 * 60 * 1000; // 5min
 
 export const sessions = signal([]);
 export const sessionsLoading = signal(false);
@@ -35,6 +38,10 @@ function isBareUrl(title) {
 }
 
 export async function loadSessions(communities) {
+  const selector = communityKey(communities.map((c) => c.id));
+  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
+  if (cached) { sessions.value = cached; return; }
+
   sessionsLoading.value = true;
 
   try {
@@ -91,6 +98,7 @@ export async function loadSessions(communities) {
     });
 
     sessions.value = deduped;
+    setCached(CACHE_KEY, deduped, selector);
   } catch (err) {
     console.error('Failed to load sessions:', err);
   }

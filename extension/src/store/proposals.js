@@ -1,7 +1,10 @@
 import { signal, computed } from '@preact/signals';
 import { caSessionHeader } from './caAuth';
+import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
+const CACHE_KEY = 'mc_proposals_cache';
+const CACHE_TTL = 90 * 1000; // 90s — short, keeps the consent badge fresh
 
 // The member-facing consent feed: open decisions across the member's selected
 // communities, each with a computed status (open / ratified / objected), tallies,
@@ -35,6 +38,10 @@ export async function loadProposals(communityIds) {
     return;
   }
 
+  const selector = communityKey(communityIds);
+  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
+  if (cached) { proposals.value = cached; return; }
+
   proposalsLoading.value = true;
   try {
     const all = [];
@@ -52,6 +59,7 @@ export async function loadProposals(communityIds) {
     );
     all.sort(byUrgency);
     proposals.value = all;
+    setCached(CACHE_KEY, all, selector);
   } catch (err) {
     console.error('Failed to load decisions:', err);
   }
@@ -78,5 +86,6 @@ export async function castVote(communityId, proposalId, value, reason) {
       ? { ...p, tallies: updated.tallies, my_vote: updated.my_vote, status: updated.status }
       : p
   );
+  clearCached(CACHE_KEY); // a vote changes my_vote/tallies; drop the cache so the next open refetches
   return updated;
 }

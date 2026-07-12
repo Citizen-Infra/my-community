@@ -14,6 +14,7 @@ import { loadCollections, collections, getOrCreateArchive } from './store/collec
 import { allTabs, loadTabs } from './store/tabs';
 import { syncToStorage, restoreFromStorage } from './store/backup';
 import { activeView } from './store/view';
+import { activeTab } from './store/panels';
 import { searchQuery } from './store/search';
 import { TopBar } from './components/TopBar';
 import { JamBanner } from './components/JamBanner';
@@ -74,40 +75,53 @@ export function App() {
     };
   }, []);
 
-  // Feeds react to community selection.
-  // The Bluesky Network feed is community-independent (posts from people you
-  // follow), so it is NOT loaded here — the connection-state effect below owns
-  // its load lifecycle. Loading it here too double-fetched the timeline on a
-  // cold cache every open (#33).
+  // Always-on feeds: the consent badge (proposals) and the global jam strip.
+  // These load on mount and on community / sign-in change regardless of the
+  // active tab, so the Community Input badge is live on every open.
   useEffect(() => {
     if (!ready) return;
     const ids = selectedCommunityIds.value;
-    if (ids.length > 0) {
-      loadDigest(ids);
-      loadSessions(selectedCommunities.value);
-      startJamPolling(ids);
-      startAvailsPolling(ids);
-    } else {
-      stopJamPolling();
-      stopAvailsPolling();
-    }
-    return () => { stopJamPolling(); stopAvailsPolling(); };
-  }, [ready, selectedCommunityIds.value]);
-
-  // Consent feed is member-gated: reacts to community selection AND sign-in state.
-  useEffect(() => {
-    if (!ready) return;
-    loadProposals(caSignedIn.value ? selectedCommunityIds.value : []);
+    loadProposals(caSignedIn.value ? ids : []);
+    if (ids.length > 0) startJamPolling(ids);
+    else stopJamPolling();
+    return () => stopJamPolling();
   }, [ready, caSignedIn.value, selectedCommunityIds.value]);
 
-  // Owns the Bluesky feed load lifecycle: fires on mount (once connected) and
-  // whenever the connection state flips. Community selection does not affect it.
+  // Lazy-load the active tab's feed. Fires on mount for the current tab and on
+  // every tab switch; the per-store caches dedup repeat activations, so a
+  // return visit costs nothing. Network + Participation are never fetched until
+  // visited. Bluesky stays single-owner HERE (see #33/#35): it loads only when
+  // Network is the active tab and Bluesky is connected — no other caller.
   useEffect(() => {
-    if (ready && isConnected.value) {
-      loadSavedFeeds();
-      loadBlueskyFeed();
+    if (!ready) return;
+    const ids = selectedCommunityIds.value;
+    switch (activeTab.value) {
+      case 'network':
+        if (isConnected.value) { loadSavedFeeds(); loadBlueskyFeed(); }
+        break;
+      case 'digest':
+        loadDigest(ids);
+        break;
+      case 'participation':
+        loadSessions(selectedCommunities.value);
+        break;
+      // 'communityInput' -> proposals, already loaded by the always-on effect above
     }
-  }, [ready, isConnected.value]);
+  }, [ready, activeTab.value, selectedCommunityIds.value, isConnected.value]);
+
+  // avails polling is scoped to the Participation tab being open (its banners
+  // only show there). Starts on activation, stops when you leave.
+  // (Slice 2 moves this into a shared service-worker loop.)
+  useEffect(() => {
+    if (!ready) return;
+    const ids = selectedCommunityIds.value;
+    if (activeTab.value === 'participation' && ids.length > 0) {
+      startAvailsPolling(ids);
+    } else {
+      stopAvailsPolling();
+    }
+    return () => stopAvailsPolling();
+  }, [ready, activeTab.value, selectedCommunityIds.value]);
 
   // Debounced mirror of tab data to chrome.storage.local.
   useEffect(() => {
