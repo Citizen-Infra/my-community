@@ -1,11 +1,15 @@
 import { signal, computed } from '@preact/signals';
 import { getServiceAuth, resolveHandleFromDid } from '../lib/oauth-atproto';
+import { getCached, setCached, clearCached } from '../lib/cache';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
 const SESSION_KEY = 'mc_ca_session';
 const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
 const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
 const CA_DID = import.meta.env.VITE_CA_DID || 'did:web:community-admin-server-production.up.railway.app';
+const JWT_KEY = 'mc_ca_jwt';           // persisted { token, exp } so the 15-min JWT survives page loads
+const IDENTITY_KEY = 'mc_ca_identity'; // cached { subject, type } to skip /auth/me on warm reopens
+const IDENTITY_TTL = 5 * 60 * 1000;
 
 // The signed-in community identity: an email or a Bluesky DID, plus which kind.
 export const caSubject = signal(null); // string | null
@@ -15,6 +19,12 @@ export const caSignedIn = computed(() => !!caSubject.value);
 
 let _jwt = null;   // cached 15-min JWT
 let _jwtExp = 0;   // epoch ms
+
+// Reuse a still-valid JWT minted by a prior new-tab page instead of re-fetching /auth/token every open.
+try {
+  const c = JSON.parse(localStorage.getItem(JWT_KEY) || 'null');
+  if (c && Date.now() < c.exp - 30000) { _jwt = c.token; _jwtExp = c.exp; }
+} catch {}
 
 function sessionToken() {
   return localStorage.getItem(SESSION_KEY);
@@ -37,9 +47,20 @@ export async function initCaAuth() {
       localStorage.setItem(SESSION_KEY, stashed);
       await chrome.storage.local.remove(STASH_KEY);
       _jwt = null; _jwtExp = 0;
+      clearCached(JWT_KEY);
+      clearCached(IDENTITY_KEY);
     }
   } catch {}
-  if (sessionToken()) await refreshIdentity();
+  if (sessionToken()) {
+    const cached = getCached(IDENTITY_KEY, IDENTITY_TTL);
+    if (cached) {
+      caSubject.value = cached.subject;
+      caType.value = cached.type;
+      refreshIdentity(); // background: self-corrects a server-side revocation (401 -> signOut)
+    } else {
+      await refreshIdentity();
+    }
+  }
 }
 
 // Resolve the signed-in identity from the session token. community-admin's
@@ -52,6 +73,7 @@ async function refreshIdentity() {
       const me = await res.json();
       caSubject.value = me.subject ?? me.email ?? null;
       caType.value = me.type ?? (me.email ? 'email' : null);
+      setCached(IDENTITY_KEY, { subject: caSubject.value, type: caType.value });
       // Backfill a friendly @handle for a Bluesky (DID) identity so the UI never
       // shows a raw DID, even with no live feed session. Resolved from the DID doc.
       if (caType.value === 'atproto' && caSubject.value && !caHandle.value) {
@@ -89,6 +111,8 @@ export async function requestBlueskySignIn() {
   const { session } = await res.json();
   localStorage.setItem(SESSION_KEY, session);
   _jwt = null; _jwtExp = 0;
+  clearCached(JWT_KEY);
+  clearCached(IDENTITY_KEY);
   await refreshIdentity();
 }
 
@@ -102,6 +126,7 @@ export async function getToken() {
     if (!res.ok) return null;
     const { token } = await res.json();
     _jwt = token; _jwtExp = decodeExp(token);
+    try { localStorage.setItem(JWT_KEY, JSON.stringify({ token, exp: _jwtExp })); } catch {}
     return token;
   } catch { return null; }
 }
@@ -124,6 +149,8 @@ export function caSessionHeader() {
 export function signOut() {
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(HANDLE_KEY);
+  localStorage.removeItem(JWT_KEY);
+  localStorage.removeItem(IDENTITY_KEY);
   _jwt = null; _jwtExp = 0;
   caSubject.value = null;
   caType.value = null;
