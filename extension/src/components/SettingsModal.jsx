@@ -5,7 +5,6 @@ import { loadSessions } from '../store/sessions';
 import { caSubject, caType, caHandle, caSignedIn, requestSignIn, requestBlueskySignIn, signOut } from '../store/caAuth';
 import { theme, setTheme } from '../store/theme';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
-import { blueskyShowReposts, setBlueskyShowReposts, blueskyWeightedSort, setBlueskyWeightedSort, loadBlueskyFeed, blueskyAvailableFeeds, blueskyFeedUri, setBlueskyFeedUri } from '../store/bluesky';
 import { visibleTabs, setTabVisible, jamVisible, setJamVisible } from '../store/panels';
 import { exportData } from '../lib/export';
 import { clearAllData } from '../store/db';
@@ -296,58 +295,9 @@ export function SettingsModal({ onClose }) {
                 </div>
 
                 {isConnected.value ? (
-                  <div class="settings-card">
-                    {blueskyAvailableFeeds.value.length > 1 && (
-                      <div class="settings-field">
-                        <label class="settings-label">Feed</label>
-                        <select
-                          class="location-select"
-                          value={blueskyFeedUri.value}
-                          onChange={(e) => {
-                            setBlueskyFeedUri(e.target.value);
-                            loadBlueskyFeed();
-                          }}
-                        >
-                          {blueskyAvailableFeeds.value.map((feed) => (
-                            <option key={feed.uri} value={feed.uri}>
-                              {feed.type === 'list' ? `List: ${feed.name}` : feed.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    <div class="settings-toggles">
-                      <label class="settings-toggle-compact">
-                        <span>Show reposts</span>
-                        <label class="settings-toggle-switch">
-                          <input
-                            type="checkbox"
-                            checked={blueskyShowReposts.value}
-                            onChange={(e) => {
-                              setBlueskyShowReposts(e.target.checked);
-                              loadBlueskyFeed();
-                            }}
-                          />
-                          <span class="settings-toggle-track" />
-                        </label>
-                      </label>
-                      <label class="settings-toggle-compact">
-                        <span>Weighted engagement</span>
-                        <label class="settings-toggle-switch">
-                          <input
-                            type="checkbox"
-                            checked={blueskyWeightedSort.value}
-                            onChange={(e) => {
-                              setBlueskyWeightedSort(e.target.checked);
-                              loadBlueskyFeed();
-                            }}
-                          />
-                          <span class="settings-toggle-track" />
-                        </label>
-                      </label>
-                    </div>
-                  </div>
+                  <p class="settings-hint" style="margin-top: 0;">
+                    Feed filters (source, time, reposts, sort) live at the top of the Network tab now.
+                  </p>
                 ) : (
                   <p class="settings-hint" style="margin-top: 0;">
                     Connect Bluesky from the Network tab to see popular posts from your network.

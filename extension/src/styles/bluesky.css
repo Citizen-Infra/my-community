@@ -18,17 +18,33 @@
   margin-bottom: var(--space-md);
 }
 
-/* Time window controls */
+/* Feed filter bar (#26): the active rule, legible and adjustable inline.
+   "Showing <source> · <window> · <reposts> · <sort>", Disconnect kept to the
+   right as an identity action, not a filter. */
 .bsky-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  gap: var(--space-sm) var(--space-md);
   padding-bottom: var(--space-md);
+}
+
+.bsky-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.bsky-filters-lead {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
 }
 
 /* Quiet feed disconnect (mild-destructive: danger tint on hover only) */
 .bsky-disconnect {
+  margin-left: auto;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 500;
@@ -44,43 +60,103 @@
   background: var(--color-surface-hover);
 }
 
-.bsky-window-btns {
-  display: flex;
-  gap: var(--space-sm);
-  margin-left: auto;
+/* Filter chips */
+.bsky-chip-wrap {
+  position: relative;
+  display: inline-flex;
 }
 
-.bsky-window-btn {
-  padding: 6px 16px;
+.bsky-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  font-family: inherit;
+  line-height: 1.2;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s var(--ease-out);
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
 }
 
-.bsky-window-btn:hover {
+.bsky-chip-select:hover,
+.bsky-chip-toggle:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-subtle);
 }
 
-.bsky-window-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
+.bsky-chip-caret {
+  opacity: 0.6;
+  margin-right: -2px;
 }
 
-.bsky-feed-label {
+/* Static source chip: shown when Following is the only feed (not adjustable).
+   Keeps the legible secondary text (AA); the transparent fill + lighter border
+   and absent caret mark it as fixed rather than a control. */
+.bsky-chip-static {
+  cursor: default;
+  background: transparent;
+  border-color: var(--color-border-light);
+}
+
+/* Flip chips: filled when the richer option is on (reposts / weighted sort).
+   The off state stays a plain secondary-text outline chip (not dimmed) so every
+   value in the rule stays legible; the fill alone carries on/off. */
+.bsky-chip-toggle.on {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* Chip dropdown menu */
+.bsky-chip-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 168px;
+  padding: var(--space-xs);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  animation: card-enter 0.16s var(--ease-out) both;
+}
+
+.bsky-chip-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 7px 10px;
   font-size: 13px;
-  font-weight: 500;
+  font-family: inherit;
   color: var(--color-text-secondary);
-  padding: 6px 0;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.bsky-chip-menu-item:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.bsky-chip-menu-item.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.bsky-chip-check {
+  width: 12px;
+  flex-shrink: 0;
+  color: var(--color-primary);
 }
 
 /* Post card */
