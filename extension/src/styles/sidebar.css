@@ -174,3 +174,26 @@
   color: var(--color-danger);
   opacity: 1;
 }
+
+/* #27 — quiet colophon marking the tab manager as local + private.
+   Lives in the persistent sidebar footer so it labels the Collections list on
+   every tab-manager view (has-tabs, empty collection, and no-collections).
+   Uses --text-secondary rather than --text-muted: at 11px, muted fails the AA
+   contrast target (PRODUCT.md) in dark mode. Secondary stays quiet but legible. */
+.sidebar-privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.sidebar-privacy-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.7;
+}

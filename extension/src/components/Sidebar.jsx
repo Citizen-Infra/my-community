@@ -127,6 +127,16 @@ export function Sidebar() {
             New collection
           </button>
         )}
+        <p
+          class="sidebar-privacy-note"
+          title="Your saved tabs and collections are stored locally in this browser. They are never uploaded or shared with your communities."
+        >
+          <svg class="sidebar-privacy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>Only on this device. Not visible to your community.</span>
+        </p>
       </div>
     </div>
   );
