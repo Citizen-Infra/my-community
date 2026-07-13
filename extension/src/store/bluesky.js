@@ -24,6 +24,19 @@ function engagementScore(post) {
   return (post.likeCount || 0) + (post.repostCount || 0) * 2 + (post.replyCount || 0);
 }
 
+// Order posts for the active sort mode (mutates in place).
+// "Most liked" ranks by like count. "Most discussed" ranks by reply volume (the
+// conversation axis) rather than an engagement score dominated by likes, so the
+// two modes surface genuinely different posts and the label stays honest;
+// engagement is only the tie-break when reply counts are equal.
+function sortPosts(posts) {
+  if (blueskyWeightedSort.value) {
+    posts.sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0) || engagementScore(b) - engagementScore(a));
+  } else {
+    posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+  }
+}
+
 export async function loadBlueskyFeed() {
   const session = blueskySession.value;
   if (!session) return;
@@ -95,12 +108,8 @@ export async function loadBlueskyFeed() {
         if (!cursor) break;
       }
 
-      // Sort by likes or weighted engagement
-      if (blueskyWeightedSort.value) {
-        posts.sort((a, b) => engagementScore(b) - engagementScore(a));
-      } else {
-        posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-      }
+      // Sort by likes (most liked) or reply volume (most discussed)
+      sortPosts(posts);
     } else {
       // Determine API endpoint: list feeds use getListFeed, feed generators use getFeed
       const isList = blueskyFeedUri.value.includes('app.bsky.graph.list');
@@ -156,12 +165,8 @@ export async function loadBlueskyFeed() {
         if (!cursor) break;
       }
 
-      // Sort by likes or weighted engagement
-      if (blueskyWeightedSort.value) {
-        posts.sort((a, b) => engagementScore(b) - engagementScore(a));
-      } else {
-        posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-      }
+      // Sort by likes (most liked) or reply volume (most discussed)
+      sortPosts(posts);
     }
 
     blueskyPosts.value = posts;
