@@ -134,6 +134,23 @@ export function SettingsModal({ onClose }) {
     }
   }
 
+  // Disconnect the Bluesky feed session. If that Bluesky account IS the community
+  // login (an atproto identity matching the feed session), this ends the whole
+  // session; if the community login is email, only the feed is dropped. Mirrors
+  // what the feed's own Disconnect used to do, now that it lives here.
+  async function handleFeedDisconnect() {
+    const endsCommunity = caType.value === 'atproto' && blueskyUser.value?.did === caSubject.value;
+    await disconnectBluesky();
+    if (endsCommunity) {
+      signOut();
+      await loadCommunities();
+      if (selectedCommunityIds.value.length > 0) {
+        loadDigest(selectedCommunityIds.value);
+        loadSessions(selectedCommunities.value);
+      }
+    }
+  }
+
   // Friendly identity label: @handle when a Bluesky DID matches the live feed
   // session, otherwise the raw subject (the DID, or an email address).
   function caIdentityLabel() {
@@ -295,9 +312,22 @@ export function SettingsModal({ onClose }) {
                 </div>
 
                 {isConnected.value ? (
-                  <p class="settings-hint" style="margin-top: 0;">
-                    Feed filters (source, time, reposts, sort) live at the top of the Network tab now.
-                  </p>
+                  <>
+                    <div class="settings-card">
+                      <div class="settings-card-header">
+                        <span class="settings-card-status">
+                          <span class="status-dot" />
+                          Bluesky connected
+                        </span>
+                        <button class="settings-link-btn" onClick={handleFeedDisconnect}>
+                          Disconnect
+                        </button>
+                      </div>
+                    </div>
+                    <p class="settings-hint">
+                      Feed filters (source, time, reposts, sort) live at the top of the Network tab.
+                    </p>
+                  </>
                 ) : (
                   <p class="settings-hint" style="margin-top: 0;">
                     Connect Bluesky from the Network tab to see popular posts from your network.

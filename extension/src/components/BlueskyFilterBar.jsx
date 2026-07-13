@@ -8,13 +8,18 @@ import {
 } from '../store/bluesky';
 
 const WINDOWS = [
-  { value: '24h', label: 'past 24h' },
-  { value: '7d', label: 'past 7 days' },
-  { value: '30d', label: 'past 30 days' },
+  { value: '24h', label: '24h' },
+  { value: '7d', label: '7d' },
+  { value: '30d', label: '30d' },
 ];
 
-// A labelled chip that opens a small menu of choices. Used for feed source and
-// time window (2+ named options each).
+const SORT_OPTIONS = [
+  { value: false, label: 'Most liked' },
+  { value: true, label: 'Most discussed' },
+];
+
+// A labelled chip that opens a small menu of choices. Used for feed source, which
+// has a variable-length option list (Following + saved feeds + lists).
 function ChipSelect({ label, value, options, onSelect, title }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -68,27 +73,30 @@ function ChipSelect({ label, value, options, onSelect, title }) {
   );
 }
 
-// A chip that flips between two states in place. Filled when the richer option
-// is on (reposts shown / weighted engagement), muted otherwise. The label always
-// names the current state.
-function ChipToggle({ label, active, onClick, title }) {
+// A segmented control: one of a small fixed set, all options shown at once.
+// Used for time window (3) and sort (2).
+function Segmented({ label, options, value, onChange }) {
   return (
-    <button
-      type="button"
-      class={`bsky-chip bsky-chip-toggle ${active ? 'on' : 'off'}`}
-      aria-pressed={active}
-      title={title}
-      onClick={onClick}
-    >
-      {label}
-    </button>
+    <div class="bsky-segment" role="group" aria-label={label}>
+      {options.map((opt) => (
+        <button
+          key={String(opt.value)}
+          type="button"
+          class={`bsky-segment-btn ${opt.value === value ? 'active' : ''}`}
+          aria-pressed={opt.value === value}
+          onClick={() => { if (opt.value !== value) onChange(opt.value); }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
-// The active-rule summary at the top of the Network feed: reads left to right as
-// "Showing <source> · <window> · <reposts> · <sort>", each segment adjustable
-// inline. Applying any change re-fetches immediately (loadBlueskyFeed is cache
-// aware, so a no-op change costs nothing).
+// The active-rule summary at the top of the Network feed, left to right:
+// source (dropdown, variable options), time window + sort (segmented, all options
+// shown), reposts (toggle, a true on/off). Any change re-fetches immediately
+// (loadBlueskyFeed is cache aware, so a no-op costs nothing).
 export function BlueskyFilterBar() {
   const feeds = blueskyAvailableFeeds.value;
   const uri = blueskyFeedUri.value;
@@ -101,13 +109,11 @@ export function BlueskyFilterBar() {
 
   const applyFeed = (v) => { setBlueskyFeedUri(v); loadBlueskyFeed(); };
   const applyWindow = (v) => { setBlueskyTimeWindow(v); loadBlueskyFeed(); };
-  const toggleReposts = () => { setBlueskyShowReposts(!showReposts); loadBlueskyFeed(); };
-  const toggleSort = () => { setBlueskyWeightedSort(!weighted); loadBlueskyFeed(); };
+  const applySort = (v) => { setBlueskyWeightedSort(v); loadBlueskyFeed(); };
+  const onRepostsChange = (e) => { setBlueskyShowReposts(e.target.checked); loadBlueskyFeed(); };
 
   return (
     <div class="bsky-filters" role="group" aria-label="Feed filters">
-      <span class="bsky-filters-lead">Showing</span>
-
       {feeds.length > 1 ? (
         <ChipSelect
           label={feedLabel}
@@ -123,27 +129,17 @@ export function BlueskyFilterBar() {
         <span class="bsky-chip bsky-chip-static">Following</span>
       )}
 
-      <ChipSelect
-        label={WINDOWS.find((w) => w.value === win)?.label || 'past 24h'}
-        value={win}
-        options={WINDOWS}
-        onSelect={applyWindow}
-        title="Time window"
-      />
+      <Segmented label="Time window" options={WINDOWS} value={win} onChange={applyWindow} />
 
-      <ChipToggle
-        label={showReposts ? 'reposts on' : 'reposts off'}
-        active={showReposts}
-        onClick={toggleReposts}
-        title={showReposts ? 'Hide reposts' : 'Show reposts'}
-      />
+      <Segmented label="Sort" options={SORT_OPTIONS} value={weighted} onChange={applySort} />
 
-      <ChipToggle
-        label={weighted ? 'top by engagement' : 'top by likes'}
-        active={weighted}
-        onClick={toggleSort}
-        title={weighted ? 'Sort by likes instead' : 'Sort by weighted engagement instead'}
-      />
+      <label class="bsky-toggle">
+        <span>Reposts</span>
+        <span class="bsky-toggle-switch">
+          <input type="checkbox" checked={showReposts} onChange={onRepostsChange} />
+          <span class="bsky-toggle-track" aria-hidden="true" />
+        </span>
+      </label>
     </div>
   );
 }
