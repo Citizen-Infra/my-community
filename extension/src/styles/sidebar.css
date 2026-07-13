@@ -174,3 +174,19 @@
   color: var(--color-danger);
   opacity: 1;
 }
+
+/* #27 — compact privacy cue: a lock beside the Collections label. Zero added
+   vertical space (the sidebar's is scarce); the full explanation lives at the
+   top of Settings > Tab Manager. Muted to sit with the label, tooltip + the
+   Settings note carry the meaning. */
+.sidebar-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sidebar-title-lock {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+}
