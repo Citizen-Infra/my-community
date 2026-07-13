@@ -25,7 +25,7 @@ No linting or test framework configured.
 
 ### Releasing
 
-Bump version in `extension/package.json`, update changelog in `README.md`, commit, tag `v*`, push tag. GitHub Actions (`package.yml`) builds a `.zip` and attaches it to the GitHub Release.
+Bump version in `extension/package.json`, update changelog in `README.md`, commit, tag `v*`, push tag. GitHub Actions (`package.yml`) builds a `.zip` and attaches it to the GitHub Release. The release body is auto-generated from the matching `### <version>` block of the README changelog, so keep that heading format (`### X.Y.Z — Month Year`).
 
 ```bash
 git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
