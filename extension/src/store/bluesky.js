@@ -24,6 +24,57 @@ function engagementScore(post) {
   return (post.likeCount || 0) + (post.repostCount || 0) * 2 + (post.replyCount || 0);
 }
 
+// Order posts for the active sort mode (mutates in place).
+// "Most liked" ranks by like count. "Most discussed" ranks by reply volume (the
+// conversation axis) rather than an engagement score dominated by likes, so the
+// two modes surface genuinely different posts and the label stays honest;
+// engagement is only the tie-break when reply counts are equal.
+function sortPosts(posts) {
+  if (blueskyWeightedSort.value) {
+    posts.sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0) || engagementScore(b) - engagementScore(a));
+  } else {
+    posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+  }
+}
+
+// Algorithmic feeds have no time window, so they page to a flat budget (~150 posts).
+const ALGO_MAX_PAGES = 3;
+
+// Build the XRPC URL for the active feed source: the Following timeline, a list
+// feed (chronological), or a feed generator (algorithmic).
+function feedUrl(session, uri, cursor) {
+  const c = cursor ? `&cursor=${cursor}` : '';
+  if (uri === 'timeline') {
+    return `${session.pdsUrl}/xrpc/app.bsky.feed.getTimeline?limit=50${c}`;
+  }
+  if (uri.includes('app.bsky.graph.list')) {
+    return `${session.pdsUrl}/xrpc/app.bsky.feed.getListFeed?list=${encodeURIComponent(uri)}&limit=50${c}`;
+  }
+  return `${session.pdsUrl}/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(uri)}&limit=50${c}`;
+}
+
+// Map a raw feed item into the post shape the UI renders.
+function mapPost(item) {
+  return {
+    uri: item.post.uri,
+    cid: item.post.cid,
+    author: {
+      did: item.post.author.did,
+      handle: item.post.author.handle,
+      displayName: item.post.author.displayName || item.post.author.handle,
+      avatar: item.post.author.avatar || null,
+    },
+    text: item.post.record?.text || '',
+    createdAt: item.post.record?.createdAt || item.post.indexedAt,
+    likeCount: item.post.likeCount || 0,
+    repostCount: item.post.repostCount || 0,
+    replyCount: item.post.replyCount || 0,
+    embed: item.post.embed || null,
+    reason: item.reason || null,
+    viewer: item.post.viewer || null,
+  };
+}
+
 export async function loadBlueskyFeed() {
   const session = blueskySession.value;
   if (!session) return;
@@ -40,129 +91,59 @@ export async function loadBlueskyFeed() {
   blueskyLoading.value = true;
 
   try {
-    let posts = [];
+    const uri = blueskyFeedUri.value;
+    const isTimeline = uri === 'timeline';
+    const isList = uri.includes('app.bsky.graph.list');
+    // Feed generators (getFeed) rank algorithmically; the Following timeline and
+    // Lists (getListFeed) are reverse-chronological. Only chronological feeds get
+    // the time-window filter, age-based pagination, and engagement re-sort. An
+    // algorithmic feed is shown in its own order, at whatever ages it served.
+    const isAlgorithmic = !isTimeline && !isList;
 
-    if (blueskyFeedUri.value === 'timeline') {
-      const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
-      const maxPages = MAX_PAGES[blueskyTimeWindow.value] || 2;
-      let cursor = undefined;
+    const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
+    const maxPages = isAlgorithmic ? ALGO_MAX_PAGES : (MAX_PAGES[blueskyTimeWindow.value] || 2);
+    let cursor = undefined;
+    const posts = [];
 
-      for (let page = 0; page < maxPages; page++) {
-        const url = `${session.pdsUrl}/xrpc/app.bsky.feed.getTimeline?limit=50${cursor ? `&cursor=${cursor}` : ''}`;
-        const res = await bskyFetch(url);
-        if (!res || !res.ok) break;
+    for (let page = 0; page < maxPages; page++) {
+      const res = await bskyFetch(feedUrl(session, uri, cursor));
+      if (!res || !res.ok) break;
 
-        const data = await res.json();
-        const items = data.feed || [];
-        if (items.length === 0) break;
+      const data = await res.json();
+      const items = data.feed || [];
+      if (items.length === 0) break;
 
-        // Check if we've gone past the time window
-        const lastItem = items[items.length - 1];
-        const lastTime = new Date(lastItem.post.record?.createdAt || lastItem.post.indexedAt).getTime();
-
-        for (const item of items) {
-          const isFollowed = !!item.post.author.viewer?.following;
-          const isRepost = !!item.reason;
-          if (isRepost && !blueskyShowReposts.value) continue;
-          if (!isRepost && !isFollowed) continue;
-
+      for (const item of items) {
+        const isRepost = !!item.reason;
+        if (isRepost && !blueskyShowReposts.value) continue;
+        // The Following timeline mixes in non-followed context posts; keep only
+        // followed authors (reposts already passed the toggle above).
+        if (isTimeline && !isRepost && !item.post.author.viewer?.following) continue;
+        // Chronological feeds honour the selected time window; algorithmic feeds
+        // keep whatever the feed served, regardless of age.
+        if (!isAlgorithmic) {
           const createdAt = item.post.record?.createdAt || item.post.indexedAt;
           if (new Date(createdAt).getTime() < cutoff) continue;
-
-          posts.push({
-            uri: item.post.uri,
-            cid: item.post.cid,
-            author: {
-              did: item.post.author.did,
-              handle: item.post.author.handle,
-              displayName: item.post.author.displayName || item.post.author.handle,
-              avatar: item.post.author.avatar || null,
-            },
-            text: item.post.record?.text || '',
-            createdAt,
-            likeCount: item.post.likeCount || 0,
-            repostCount: item.post.repostCount || 0,
-            replyCount: item.post.replyCount || 0,
-            embed: item.post.embed || null,
-            reason: item.reason || null,
-            viewer: item.post.viewer || null,
-          });
         }
-
-        // Stop if oldest post on this page is before the cutoff
-        if (lastTime < cutoff) break;
-        cursor = data.cursor;
-        if (!cursor) break;
+        posts.push(mapPost(item));
       }
 
-      // Sort by likes or weighted engagement
-      if (blueskyWeightedSort.value) {
-        posts.sort((a, b) => engagementScore(b) - engagementScore(a));
-      } else {
-        posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-      }
-    } else {
-      // Determine API endpoint: list feeds use getListFeed, feed generators use getFeed
-      const isList = blueskyFeedUri.value.includes('app.bsky.graph.list');
-      const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
-      const maxPages = MAX_PAGES[blueskyTimeWindow.value] || 2;
-      let cursor = undefined;
-
-      for (let page = 0; page < maxPages; page++) {
-        const url = isList
-          ? `${session.pdsUrl}/xrpc/app.bsky.feed.getListFeed?list=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`
-          : `${session.pdsUrl}/xrpc/app.bsky.feed.getFeed?feed=${encodeURIComponent(blueskyFeedUri.value)}&limit=50${cursor ? `&cursor=${cursor}` : ''}`;
-        const res = await bskyFetch(url);
-        if (!res || !res.ok) break;
-
-        const data = await res.json();
-        const items = data.feed || [];
-        if (items.length === 0) break;
-
-        // Check if we've gone past the time window
+      // A chronological feed is time-ordered, so once a page ends before the
+      // window there is nothing older worth fetching. That test is meaningless
+      // for an algorithmic feed (its posts are not in time order), so those page
+      // straight to the budget instead.
+      if (!isAlgorithmic) {
         const lastItem = items[items.length - 1];
         const lastTime = new Date(lastItem.post.record?.createdAt || lastItem.post.indexedAt).getTime();
-
-        for (const item of items) {
-          const isRepost = !!item.reason;
-          if (isRepost && !blueskyShowReposts.value) continue;
-
-          const createdAt = item.post.record?.createdAt || item.post.indexedAt;
-          if (new Date(createdAt).getTime() < cutoff) continue;
-
-          posts.push({
-            uri: item.post.uri,
-            cid: item.post.cid,
-            author: {
-              did: item.post.author.did,
-              handle: item.post.author.handle,
-              displayName: item.post.author.displayName || item.post.author.handle,
-              avatar: item.post.author.avatar || null,
-            },
-            text: item.post.record?.text || '',
-            createdAt,
-            likeCount: item.post.likeCount || 0,
-            repostCount: item.post.repostCount || 0,
-            replyCount: item.post.replyCount || 0,
-            embed: item.post.embed || null,
-            reason: item.reason || null,
-            viewer: item.post.viewer || null,
-          });
-        }
-
-        // Stop if oldest post on this page is before the cutoff
         if (lastTime < cutoff) break;
-        cursor = data.cursor;
-        if (!cursor) break;
       }
-
-      // Sort by likes or weighted engagement
-      if (blueskyWeightedSort.value) {
-        posts.sort((a, b) => engagementScore(b) - engagementScore(a));
-      } else {
-        posts.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-      }
+      cursor = data.cursor;
+      if (!cursor) break;
     }
+
+    // Chronological feeds re-rank by the active sort; algorithmic feeds keep the
+    // feed's own ranking.
+    if (!isAlgorithmic) sortPosts(posts);
 
     blueskyPosts.value = posts;
 
