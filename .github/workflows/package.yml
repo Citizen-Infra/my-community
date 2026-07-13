@@ -35,8 +35,25 @@ jobs:
           name: my-community-zip
           path: '*.zip'
 
+      - name: Extract release notes from changelog
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # Pull the "### <version> — ..." section out of the README changelog,
+          # up to the next "### " heading, and use it as the release body.
+          awk -v v="$VERSION" '
+            /^### / { if (m) exit; if ($2 == v) { m=1; next } }
+            m { print }
+          ' README.md > release-notes.md
+          if ! grep -q "[^[:space:]]" release-notes.md; then
+            echo "Release $VERSION. See the changelog in README.md." > release-notes.md
+          fi
+          echo "=== release-notes.md ==="
+          cat release-notes.md
+
       - name: Attach zip to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: '*.zip'
+          body_path: release-notes.md
