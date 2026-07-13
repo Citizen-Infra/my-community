@@ -18,9 +18,10 @@ const SORT_OPTIONS = [
   { value: true, label: 'Most discussed' },
 ];
 
-// A labelled chip that opens a small menu of choices. Used for feed source, which
-// has a variable-length option list (Following + saved feeds + lists).
-function ChipSelect({ label, value, options, onSelect, title }) {
+// A labelled chip that opens a menu of feed choices, grouped by kind. `groups` is
+// an array of { label, options: [{ value, label }] }; group headers render only
+// when more than one group is present (a lone group stays a flat list).
+function ChipSelect({ label, value, groups, onSelect, title }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -32,6 +33,8 @@ function ChipSelect({ label, value, options, onSelect, title }) {
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
+
+  const showHeaders = groups.length > 1;
 
   return (
     <div
@@ -54,18 +57,23 @@ function ChipSelect({ label, value, options, onSelect, title }) {
       </button>
       {open && (
         <div class="bsky-chip-menu" role="listbox">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              role="option"
-              aria-selected={opt.value === value}
-              class={`bsky-chip-menu-item ${opt.value === value ? 'active' : ''}`}
-              onClick={(e) => { e.stopPropagation(); onSelect(opt.value); setOpen(false); }}
-            >
-              <span class="bsky-chip-check" aria-hidden="true">{opt.value === value ? '✓' : ''}</span>
-              <span>{opt.label}</span>
-            </button>
+          {groups.map((group) => (
+            <div class="bsky-chip-group" role="group" aria-label={group.label} key={group.label}>
+              {showHeaders && <div class="bsky-chip-group-label" aria-hidden="true">{group.label}</div>}
+              {group.options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="option"
+                  aria-selected={opt.value === value}
+                  class={`bsky-chip-menu-item ${opt.value === value ? 'active' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); onSelect(opt.value); setOpen(false); }}
+                >
+                  <span class="bsky-chip-check" aria-hidden="true">{opt.value === value ? '✓' : ''}</span>
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       )}
@@ -94,9 +102,10 @@ function Segmented({ label, options, value, onChange }) {
 }
 
 // The active-rule summary at the top of the Network feed, left to right:
-// source (dropdown, variable options), time window + sort (segmented, all options
-// shown), reposts (toggle, a true on/off). Any change re-fetches immediately
-// (loadBlueskyFeed is cache aware, so a no-op costs nothing).
+// source (grouped dropdown), then, for chronological feeds only, time window +
+// sort (segmented), then reposts (toggle). Algorithmic feed generators rank
+// their own way, so the window and sort controls are hidden for them. Any change
+// re-fetches immediately (loadBlueskyFeed is cache aware, so a no-op costs nothing).
 export function BlueskyFilterBar() {
   const feeds = blueskyAvailableFeeds.value;
   const uri = blueskyFeedUri.value;
@@ -106,6 +115,23 @@ export function BlueskyFilterBar() {
 
   const currentFeed = feeds.find((f) => f.uri === uri);
   const feedLabel = currentFeed ? currentFeed.name : 'Following';
+
+  // Mirror the store's rule: a feed generator is algorithmic, the Following
+  // timeline and Lists are chronological. Window + sort apply only to the latter.
+  const algorithmic = currentFeed
+    ? currentFeed.type === 'feed'
+    : (uri !== 'timeline' && !uri.includes('app.bsky.graph.list'));
+
+  // Group the feed picker: chronological sources (Following + Lists) above
+  // algorithmic feed generators. Empty groups drop out.
+  const toOption = (f) => ({
+    value: f.uri,
+    label: f.type === 'list' ? `List: ${f.name}` : f.name,
+  });
+  const groups = [
+    { label: 'Chronological', options: feeds.filter((f) => f.type === 'timeline' || f.type === 'list').map(toOption) },
+    { label: 'Algorithmic', options: feeds.filter((f) => f.type === 'feed').map(toOption) },
+  ].filter((g) => g.options.length > 0);
 
   const applyFeed = (v) => { setBlueskyFeedUri(v); loadBlueskyFeed(); };
   const applyWindow = (v) => { setBlueskyTimeWindow(v); loadBlueskyFeed(); };
@@ -118,10 +144,7 @@ export function BlueskyFilterBar() {
         <ChipSelect
           label={feedLabel}
           value={uri}
-          options={feeds.map((f) => ({
-            value: f.uri,
-            label: f.type === 'list' ? `List: ${f.name}` : f.name,
-          }))}
+          groups={groups}
           onSelect={applyFeed}
           title="Feed source"
         />
@@ -129,9 +152,13 @@ export function BlueskyFilterBar() {
         <span class="bsky-chip bsky-chip-static">Following</span>
       )}
 
-      <Segmented label="Time window" options={WINDOWS} value={win} onChange={applyWindow} />
+      {!algorithmic && (
+        <Segmented label="Time window" options={WINDOWS} value={win} onChange={applyWindow} />
+      )}
 
-      <Segmented label="Sort" options={SORT_OPTIONS} value={weighted} onChange={applySort} />
+      {!algorithmic && (
+        <Segmented label="Sort" options={SORT_OPTIONS} value={weighted} onChange={applySort} />
+      )}
 
       <label class="bsky-toggle">
         <span>Reposts</span>

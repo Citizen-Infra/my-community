@@ -180,7 +180,11 @@
   top: calc(100% + 6px);
   left: 0;
   z-index: 20;
-  min-width: 168px;
+  /* Size to the widest feed/list name so names never wrap; cap so a very long
+     one truncates with an ellipsis instead of running off-screen. */
+  width: max-content;
+  min-width: 176px;
+  max-width: 340px;
   padding: var(--space-xs);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -199,9 +203,17 @@
   font-family: inherit;
   color: var(--color-text-secondary);
   text-align: left;
+  white-space: nowrap;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+/* The name label: never wrap; ellipsis only if it exceeds the menu's max-width. */
+.bsky-chip-menu-item > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bsky-chip-menu-item:hover {
@@ -218,6 +230,22 @@
   width: 12px;
   flex-shrink: 0;
   color: var(--color-primary);
+}
+
+/* Grouped feed menu: chronological sources above algorithmic feeds */
+.bsky-chip-group + .bsky-chip-group {
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.bsky-chip-group-label {
+  padding: 5px 10px 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 
 /* Post card */
