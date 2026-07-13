@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.6 — July 2026
+- **The Network feed shows its filters, and you can change them in place.** The feed now opens with the rule it is using across the top: which feed, how far back, whether reposts show, and how posts are ranked. Adjust any of them right there instead of opening Settings. The ranking reads "most liked" or "most discussed" so it is clear what each does. (Disconnecting Bluesky moved to Settings, under Network.)
+- **Your saved tabs are marked private.** A small lock sits beside "Collections" as a reminder, and the Tab Manager tab in Settings explains it in full: your saved tabs and collections stay on this device and are never shared with your community.
+
 ### 0.3.5 — July 2026
 - **The consent loop closes.** Objected decisions now show the objection itself (who raised it stays private), you can change your response any time while the window is open, and amended re-posts link back to the version they replace.
 - **You can see there's something to decide.** The Community Input tab shows a badge with the number of open decisions you haven't responded to.
