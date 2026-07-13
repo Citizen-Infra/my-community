@@ -80,11 +80,12 @@ Signals-based stores in `src/store/`:
 - `TopBar.jsx` -- branding + settings gear
 - `TabBar.jsx` -- horizontal tab navigation (Network / Digest / Participation)
 - `Dashboard.jsx` -- renders the community feed tabs; always mounts `BlueskyFeed` for the Network tab (it owns both the connected + not-connected states)
-- `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline; owns the not-connected connect / legacy-reconnect empty state and the feed Disconnect
+- `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline; owns the not-connected connect / legacy-reconnect empty state. Disconnect now lives in Settings > Network.
+- `BlueskyFilterBar.jsx` -- the Network feed's inline filter controls: feed-source dropdown, segmented time window (24h/7d/30d) + sort (most liked / most discussed), reposts toggle. Applies changes immediately via `setBluesky*` + `loadBlueskyFeed`.
 - `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
 - `JamBanner.jsx` + `jam.css` -- live jam room banners with animated equalizer bars, shown atop SessionsPanel
 - `SessionsPanel.jsx` -- participation opportunities (events from /api/events + Supabase sessions, with source badges)
-- `SettingsModal.jsx` -- two-door community account (email + Bluesky, equal), Network feed prefs (connected only; connect/disconnect live at the feed), communities, tab toggles, theme
+- `SettingsModal.jsx` -- two-door community account (email + Bluesky, equal), Network (Bluesky connect status + Disconnect; the feed's filters live at the feed, not here), communities, tab toggles, theme, tab-manager save/backup + a local/private note
 
 ### Design system
 

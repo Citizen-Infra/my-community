@@ -6,11 +6,11 @@ A Chrome extension that turns your new tab into a community dashboard and a tab 
 
 **Community Digest** — Curated links shared by your communities, with thumbnails and descriptions. No algorithmic noise, just what your people are reading.
 
-**Bluesky Network** — Popular posts from people you follow, sorted by engagement. See what resonated in the last 24 hours, week, or month. Connect your Bluesky account to enable this feed.
+**Bluesky Network** — Popular posts from people you follow. Tune the feed right at the top: choose the source and time window, show or hide reposts, and rank by most liked or most discussed. Connect your Bluesky account to enable this feed.
 
 **Participation** — Upcoming sessions, deliberations, and events from your communities. Never miss an opportunity to join the conversation.
 
-**Saved Tabs** — A built-in tab manager. Save the current tab with the toolbar button or Alt+S, organize tabs into collections, drag to reorder, search across everything, and import from Toby or your bookmarks. Everything stays local with automatic daily backups.
+**Saved Tabs** — A built-in tab manager. Save the current tab with the toolbar button or Alt+S, organize tabs into collections, drag to reorder, search across everything, and import from Toby or your bookmarks. Everything stays local and private to this device, never shared with your community, with automatic daily backups.
 
 Toggle any feed on or off. Choose light, dark, or system theme. The extension works without Bluesky — digest and participation are always available.
 
