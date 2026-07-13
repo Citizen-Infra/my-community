@@ -18,69 +18,206 @@
   margin-bottom: var(--space-md);
 }
 
-/* Time window controls */
+/* Feed filter bar (#26): the active rule, legible and adjustable inline.
+   Left to right: source (dropdown), time window + sort (segmented), reposts
+   (toggle). Disconnect is not a filter, it lives in Settings > Network. */
 .bsky-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
   padding-bottom: var(--space-md);
 }
 
-/* Quiet feed disconnect (mild-destructive: danger tint on hover only) */
-.bsky-disconnect {
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: transparent;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: color 0.2s var(--ease-out), background 0.2s var(--ease-out);
-}
-
-.bsky-disconnect:hover {
-  color: var(--color-danger);
-  background: var(--color-surface-hover);
-}
-
-.bsky-window-btns {
+.bsky-filters {
   display: flex;
-  gap: var(--space-sm);
-  margin-left: auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
 }
 
-.bsky-window-btn {
-  padding: 6px 16px;
+/* Filter chips */
+.bsky-chip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.bsky-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  font-family: inherit;
+  line-height: 1.2;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s var(--ease-out);
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
 }
 
-.bsky-window-btn:hover {
+.bsky-chip-select:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-subtle);
 }
 
-.bsky-window-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
+.bsky-chip-caret {
+  opacity: 0.6;
+  margin-right: -2px;
 }
 
-.bsky-feed-label {
-  font-size: 13px;
+/* Static source chip: shown when Following is the only feed (not adjustable).
+   Keeps the legible secondary text (AA); the transparent fill + lighter border
+   and absent caret mark it as fixed rather than a control. */
+.bsky-chip-static {
+  cursor: default;
+  background: transparent;
+  border-color: var(--color-border-light);
+}
+
+/* Reposts: a genuine on/off, so a toggle switch (mirrors MC's settings switch,
+   scaled to the chip row). The knob slides and the track greens on checked. */
+.bsky-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  padding: 6px 0;
+  cursor: pointer;
+}
+
+.bsky-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.bsky-toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.bsky-toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  transition: background 0.25s var(--ease-out);
+}
+
+.bsky-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-control-knob);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.18);
+  transition: transform 0.25s var(--ease-out);
+}
+
+.bsky-toggle-switch input:checked + .bsky-toggle-track {
+  background: var(--color-primary);
+}
+
+.bsky-toggle-switch input:checked + .bsky-toggle-track::after {
+  transform: translateX(14px);
+}
+
+.bsky-toggle-switch input:focus-visible + .bsky-toggle-track {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Sort: a choice between two equal modes, so a segmented control that shows both.
+   Active segment fills forest green with inverse text (theme-safe in light+dark). */
+.bsky-segment {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.bsky-segment-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1.2;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color 0.18s var(--ease-out), background 0.18s var(--ease-out);
+}
+
+.bsky-segment-btn:hover:not(.active) {
+  color: var(--color-primary);
+}
+
+.bsky-segment-btn.active {
+  color: var(--text-inverse);
+  background: var(--color-primary);
+}
+
+.bsky-segment-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Chip dropdown menu */
+.bsky-chip-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 168px;
+  padding: var(--space-xs);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  animation: card-enter 0.16s var(--ease-out) both;
+}
+
+.bsky-chip-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  text-align: left;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.bsky-chip-menu-item:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.bsky-chip-menu-item.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.bsky-chip-check {
+  width: 12px;
+  flex-shrink: 0;
+  color: var(--color-primary);
 }
 
 /* Post card */
