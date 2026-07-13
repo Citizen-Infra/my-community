@@ -447,6 +447,21 @@ export function SettingsModal({ onClose }) {
 
           {activeSettingsTab === 'tab-manager' && (
             <>
+              {/* #27 — the full local/private explanation for the tab manager.
+                  Mirrors the lock cue beside the Collections label in the sidebar. */}
+              <div class="settings-privacy">
+                <svg class="settings-privacy-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <div>
+                  <p class="settings-privacy-title">Only on this device</p>
+                  <p class="settings-privacy-desc">
+                    Your saved tabs and collections stay in this browser. They are never uploaded or shared with your community.
+                  </p>
+                </div>
+              </div>
+
               {/* Save Behavior Section (tab manager) */}
               <section class="settings-section">
                 <h4 class="settings-section-title">Save Behavior</h4>

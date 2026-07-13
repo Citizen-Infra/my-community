@@ -175,25 +175,18 @@
   opacity: 1;
 }
 
-/* #27 — quiet colophon marking the tab manager as local + private.
-   Lives in the persistent sidebar footer so it labels the Collections list on
-   every tab-manager view (has-tabs, empty collection, and no-collections).
-   Uses --text-secondary rather than --text-muted: at 11px, muted fails the AA
-   contrast target (PRODUCT.md) in dark mode. Secondary stays quiet but legible. */
-.sidebar-privacy-note {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  margin-top: var(--space-xs);
-  padding: var(--space-xs) var(--space-md);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.45;
-  color: var(--text-secondary);
+/* #27 — compact privacy cue: a lock beside the Collections label. Zero added
+   vertical space (the sidebar's is scarce); the full explanation lives at the
+   top of Settings > Tab Manager. Muted to sit with the label, tooltip + the
+   Settings note carry the meaning. */
+.sidebar-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.sidebar-privacy-icon {
-  flex-shrink: 0;
-  margin-top: 2px;
-  opacity: 0.7;
+.sidebar-title-lock {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
 }
