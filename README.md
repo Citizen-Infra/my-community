@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.7 — July 2026
+- **The Network feed now respects each feed's nature.** Curated feeds like "Popular With Friends" are shown the way the feed itself ranks them, instead of being reshuffled by engagement and trimmed to a time window that never applied. The feed picker groups your sources into Chronological (Following, Lists) and Algorithmic, and the time window and sort controls now appear only where they mean something.
+- **"Most discussed" actually sorts by discussion.** It now ranks posts by how many replies they drew, so it surfaces genuinely different posts from "Most liked" instead of a near-identical list.
+
 ### 0.3.6 — July 2026
 - **The Network feed shows its filters, and you can change them in place.** The feed now opens with the rule it is using across the top: which feed, how far back, whether reposts show, and how posts are ranked. Adjust any of them right there instead of opening Settings. The ranking reads "most liked" or "most discussed" so it is clear what each does. (Disconnecting Bluesky moved to Settings, under Network.)
 - **Your saved tabs are marked private.** A small lock sits beside "Collections" as a reminder, and the Tab Manager tab in Settings explains it in full: your saved tabs and collections stay on this device and are never shared with your community.
