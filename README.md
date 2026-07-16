@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.8 — July 2026
+- **Network posts show what they actually contain.** Links, @mentions, and #hashtags in a post are now clickable, link posts show a preview card, and quoted posts render inline instead of vanishing. Posts with several images show all of them, up to four. Video and galleries show a marker for now and open on Bluesky.
+- **Clearer, more accessible cards.** Each post card is now a proper link you can open with the keyboard, and every embedded link or quote is its own target, so you land exactly where you clicked.
+
 ### 0.3.7 — July 2026
 - **The Network feed now respects each feed's nature.** Curated feeds like "Popular With Friends" are shown the way the feed itself ranks them, instead of being reshuffled by engagement and trimmed to a time window that never applied. The feed picker groups your sources into Chronological (Following, Lists) and Algorithmic, and the time window and sort controls now appear only where they mean something.
 - **"Most discussed" actually sorts by discussion.** It now ranks posts by how many replies they drew, so it surfaces genuinely different posts from "Most liked" instead of a near-identical list.
