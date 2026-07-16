@@ -65,6 +65,7 @@ function mapPost(item) {
       avatar: item.post.author.avatar || null,
     },
     text: item.post.record?.text || '',
+    facets: item.post.record?.facets || null,
     createdAt: item.post.record?.createdAt || item.post.indexedAt,
     likeCount: item.post.likeCount || 0,
     repostCount: item.post.repostCount || 0,
