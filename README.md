@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.11 — July 2026
+- **Community knowledge sits in the same feed as decisions.** The Community Input tab now shows sources your community is weighing for the wiki, right alongside decisions to ratify. Support, pass, or oppose a source, watch it move from gathering support to ready for the wiki, and the tab badge now counts both decisions and sources awaiting your input.
+
 ### 0.3.10 — July 2026
 - **The Network feed now respects your Bluesky content settings.** Posts containing words you have muted, posts you have hidden, and replies or quote posts you have chosen to hide on Bluesky no longer show up here. Your reposts preference is picked up from Bluesky too, and you can still change it in the feed's controls.
 
