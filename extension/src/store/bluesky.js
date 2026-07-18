@@ -2,13 +2,31 @@ import { signal } from '@preact/signals';
 import { blueskySession } from './auth';
 import { bskyFetch, bskyPost } from '../lib/atproto';
 
+// Bluesky's own feed generators that already do "popular posts from people you
+// follow" server-side, over the whole graph, in one getFeed call. We offer them
+// as first-class options regardless of whether the user has saved them, and
+// Best of Follows is the default Network feed (it is our tagline, verbatim).
+// These are ordinary community feeds with no uptime SLA, so a failed load falls
+// back to the Following timeline — see loadBlueskyFeed.
+const CURATED_FEEDS = [
+  { uri: 'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/best-of-follows', name: 'Best of Follows', type: 'feed' },
+  { uri: 'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/with-friends', name: 'Popular With Friends', type: 'feed' },
+];
+const DEFAULT_FEED_URI = CURATED_FEEDS[0].uri;
+
+// The always-available feed sources: the Following timeline plus the curated
+// generators. loadSavedFeeds augments this with the user's own saved feeds/lists.
+function baseFeeds() {
+  return [{ uri: 'timeline', name: 'Following', type: 'timeline' }, ...CURATED_FEEDS.map((f) => ({ ...f }))];
+}
+
 export const blueskyPosts = signal([]);
 export const blueskyLoading = signal(false);
-export const blueskyFeedUri = signal(localStorage.getItem('mc_bluesky_feed') || 'timeline');
+export const blueskyFeedUri = signal(localStorage.getItem('mc_bluesky_feed') || DEFAULT_FEED_URI);
 export const blueskyTimeWindow = signal(localStorage.getItem('mc_bluesky_window') || '24h');
 export const blueskyShowReposts = signal(localStorage.getItem('mc_bluesky_reposts') !== 'false');
 export const blueskyWeightedSort = signal(localStorage.getItem('mc_bluesky_weighted') === 'true');
-export const blueskyAvailableFeeds = signal([]);
+export const blueskyAvailableFeeds = signal(baseFeeds());
 
 const CACHE_KEY = 'mc_bluesky_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -76,6 +94,66 @@ function mapPost(item) {
   };
 }
 
+// A feed generator (getFeed) is algorithmic; the Following timeline and Lists
+// (getListFeed) are reverse-chronological.
+function isAlgorithmicFeed(uri) {
+  return uri !== 'timeline' && !uri.includes('app.bsky.graph.list');
+}
+
+// Fetch and shape posts for one feed source. Chronological feeds get the
+// time-window filter, age-based pagination, and engagement re-sort; algorithmic
+// feed generators are returned in the order the feed served, at whatever ages.
+async function fetchFeedPosts(session, uri) {
+  const isTimeline = uri === 'timeline';
+  const isAlgorithmic = isAlgorithmicFeed(uri);
+
+  const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
+  const maxPages = isAlgorithmic ? ALGO_MAX_PAGES : (MAX_PAGES[blueskyTimeWindow.value] || 2);
+  let cursor = undefined;
+  const posts = [];
+
+  for (let page = 0; page < maxPages; page++) {
+    const res = await bskyFetch(feedUrl(session, uri, cursor));
+    if (!res || !res.ok) break;
+
+    const data = await res.json();
+    const items = data.feed || [];
+    if (items.length === 0) break;
+
+    for (const item of items) {
+      const isRepost = !!item.reason;
+      if (isRepost && !blueskyShowReposts.value) continue;
+      // The Following timeline mixes in non-followed context posts; keep only
+      // followed authors (reposts already passed the toggle above).
+      if (isTimeline && !isRepost && !item.post.author.viewer?.following) continue;
+      // Chronological feeds honour the selected time window; algorithmic feeds
+      // keep whatever the feed served, regardless of age.
+      if (!isAlgorithmic) {
+        const createdAt = item.post.record?.createdAt || item.post.indexedAt;
+        if (new Date(createdAt).getTime() < cutoff) continue;
+      }
+      posts.push(mapPost(item));
+    }
+
+    // A chronological feed is time-ordered, so once a page ends before the
+    // window there is nothing older worth fetching. That test is meaningless
+    // for an algorithmic feed (its posts are not in time order), so those page
+    // straight to the budget instead.
+    if (!isAlgorithmic) {
+      const lastItem = items[items.length - 1];
+      const lastTime = new Date(lastItem.post.record?.createdAt || lastItem.post.indexedAt).getTime();
+      if (lastTime < cutoff) break;
+    }
+    cursor = data.cursor;
+    if (!cursor) break;
+  }
+
+  // Chronological feeds re-rank by the active sort; algorithmic feeds keep the
+  // feed's own ranking.
+  if (!isAlgorithmic) sortPosts(posts);
+  return posts;
+}
+
 export async function loadBlueskyFeed() {
   const session = blueskySession.value;
   if (!session) return;
@@ -93,70 +171,32 @@ export async function loadBlueskyFeed() {
 
   try {
     const uri = blueskyFeedUri.value;
-    const isTimeline = uri === 'timeline';
-    const isList = uri.includes('app.bsky.graph.list');
-    // Feed generators (getFeed) rank algorithmically; the Following timeline and
-    // Lists (getListFeed) are reverse-chronological. Only chronological feeds get
-    // the time-window filter, age-based pagination, and engagement re-sort. An
-    // algorithmic feed is shown in its own order, at whatever ages it served.
-    const isAlgorithmic = !isTimeline && !isList;
+    let posts = await fetchFeedPosts(session, uri);
 
-    const cutoff = Date.now() - getTimeWindowMs(blueskyTimeWindow.value);
-    const maxPages = isAlgorithmic ? ALGO_MAX_PAGES : (MAX_PAGES[blueskyTimeWindow.value] || 2);
-    let cursor = undefined;
-    const posts = [];
-
-    for (let page = 0; page < maxPages; page++) {
-      const res = await bskyFetch(feedUrl(session, uri, cursor));
-      if (!res || !res.ok) break;
-
-      const data = await res.json();
-      const items = data.feed || [];
-      if (items.length === 0) break;
-
-      for (const item of items) {
-        const isRepost = !!item.reason;
-        if (isRepost && !blueskyShowReposts.value) continue;
-        // The Following timeline mixes in non-followed context posts; keep only
-        // followed authors (reposts already passed the toggle above).
-        if (isTimeline && !isRepost && !item.post.author.viewer?.following) continue;
-        // Chronological feeds honour the selected time window; algorithmic feeds
-        // keep whatever the feed served, regardless of age.
-        if (!isAlgorithmic) {
-          const createdAt = item.post.record?.createdAt || item.post.indexedAt;
-          if (new Date(createdAt).getTime() < cutoff) continue;
-        }
-        posts.push(mapPost(item));
-      }
-
-      // A chronological feed is time-ordered, so once a page ends before the
-      // window there is nothing older worth fetching. That test is meaningless
-      // for an algorithmic feed (its posts are not in time order), so those page
-      // straight to the budget instead.
-      if (!isAlgorithmic) {
-        const lastItem = items[items.length - 1];
-        const lastTime = new Date(lastItem.post.record?.createdAt || lastItem.post.indexedAt).getTime();
-        if (lastTime < cutoff) break;
-      }
-      cursor = data.cursor;
-      if (!cursor) break;
+    // Curated/community feed generators have no uptime SLA and can be renamed or
+    // retired. If one is unavailable (errored or empty) — and it may be the
+    // default view — fall back to the Following timeline so the feed never
+    // renders blank. Don't cache the fallback, so a transient outage recovers on
+    // the next refresh rather than being pinned for the cache TTL.
+    let servedFallback = false;
+    if (isAlgorithmicFeed(uri) && posts.length === 0) {
+      console.warn('[MC feed] feed generator returned nothing; falling back to the Following timeline');
+      posts = await fetchFeedPosts(session, 'timeline');
+      servedFallback = true;
     }
-
-    // Chronological feeds re-rank by the active sort; algorithmic feeds keep the
-    // feed's own ranking.
-    if (!isAlgorithmic) sortPosts(posts);
 
     blueskyPosts.value = posts;
 
-    // Cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      posts,
-      feedUri: blueskyFeedUri.value,
-      window: blueskyTimeWindow.value,
-      showReposts: blueskyShowReposts.value,
-      weightedSort: blueskyWeightedSort.value,
-      timestamp: Date.now(),
-    }));
+    if (!servedFallback) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        posts,
+        feedUri: blueskyFeedUri.value,
+        window: blueskyTimeWindow.value,
+        showReposts: blueskyShowReposts.value,
+        weightedSort: blueskyWeightedSort.value,
+        timestamp: Date.now(),
+      }));
+    }
   } catch (err) {
     console.error('Failed to load Bluesky feed:', err);
   }
@@ -217,8 +257,11 @@ export async function loadSavedFeeds() {
       listUris = savedFeedsPref.saved.filter(uri => uri.includes('app.bsky.graph.list'));
     }
 
-    // Build base list with Following timeline
-    const feeds = [{ uri: 'timeline', name: 'Following', type: 'timeline' }];
+    // Start from the always-available sources (Following + curated generators),
+    // then append the user's own saved feeds. Skip any saved feed we already
+    // offer as a curated one so it never appears twice.
+    const feeds = baseFeeds();
+    const curatedUris = new Set(CURATED_FEEDS.map((f) => f.uri));
 
     if (feedUris.length > 0) {
       // Get feed generator details for display names
@@ -230,6 +273,7 @@ export async function loadSavedFeeds() {
       if (feedsRes && feedsRes.ok) {
         const feedsData = await feedsRes.json();
         for (const feed of feedsData.feeds || []) {
+          if (curatedUris.has(feed.uri)) continue;
           feeds.push({
             uri: feed.uri,
             name: feed.displayName || feed.uri.split('/').pop(),
@@ -265,8 +309,8 @@ export async function loadSavedFeeds() {
     }
   } catch (err) {
     console.error('Failed to load saved feeds:', err);
-    // Set default on error
-    blueskyAvailableFeeds.value = [{ uri: 'timeline', name: 'Following', type: 'timeline' }];
+    // Fall back to the always-available sources on error.
+    blueskyAvailableFeeds.value = baseFeeds();
   }
 }
 
@@ -336,7 +380,7 @@ export async function toggleLike(post) {
 
 export function clearBlueskyState() {
   blueskyPosts.value = [];
-  blueskyAvailableFeeds.value = [];
-  blueskyFeedUri.value = 'timeline';
-  localStorage.setItem('mc_bluesky_feed', 'timeline');
+  blueskyAvailableFeeds.value = baseFeeds();
+  blueskyFeedUri.value = DEFAULT_FEED_URI;
+  localStorage.setItem('mc_bluesky_feed', DEFAULT_FEED_URI);
 }
