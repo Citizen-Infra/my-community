@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { blueskyPosts, blueskyLoading } from '../store/bluesky';
+import { blueskyVisiblePosts, blueskyLoading } from '../store/bluesky';
 import { isConnected, connectBluesky, legacyBlueskySession } from '../store/auth';
 import { BlueskyPostCard } from './BlueskyPostCard';
 import { BlueskyFilterBar } from './BlueskyFilterBar';
@@ -67,10 +67,10 @@ export function BlueskyFeed() {
       <div class="bsky-controls">
         <BlueskyFilterBar />
       </div>
-      {blueskyPosts.value.length === 0 ? (
+      {blueskyVisiblePosts.value.length === 0 ? (
         <div class="feed-empty">No posts found in this time window. Try a longer range.</div>
       ) : (
-        blueskyPosts.value.map((post) => (
+        blueskyVisiblePosts.value.map((post) => (
           <BlueskyPostCard key={post.uri} post={post} />
         ))
       )}
