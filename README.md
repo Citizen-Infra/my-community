@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.10 — July 2026
+- **The Network feed now respects your Bluesky content settings.** Posts containing words you have muted, posts you have hidden, and replies or quote posts you have chosen to hide on Bluesky no longer show up here. Your reposts preference is picked up from Bluesky too, and you can still change it in the feed's controls.
+
 ### 0.3.9 — July 2026
 - **The Network feed now opens on the best of your follows.** It defaults to Bluesky's own "Best of Follows" feed, which surfaces the top posts from across everyone you follow, instead of our own reshuffle of your most recent posts. "Popular With Friends" sits next to it, both under Algorithmic in the feed picker. If a feed is ever unavailable, the view falls back to your Following timeline so it never comes up empty. Following and Lists still rank by most liked or most discussed, exactly as before.
 
