@@ -102,7 +102,7 @@ All keys prefixed with `mc_`:
 | `mc_ca_session` | `store/caAuth.js` | community-admin session token (email or Bluesky-DID identity) |
 | `mc_ca_bluesky_handle` | `store/caAuth.js` | cached `@handle` for a Bluesky (DID) community identity |
 | `mc_bluesky_session` | (legacy) | retired app-password session; detected as `legacyBlueskySession`, prompts a reconnect. The live Bluesky OAuth session (DPoP key + tokens) lives in **IndexedDB** (`mc-atproto-oauth`), not localStorage |
-| `mc_bluesky_feed` | `store/bluesky.js` | Selected feed URI (default: `timeline`) |
+| `mc_bluesky_feed` | `store/bluesky.js` | Selected feed URI (default: the Best of Follows feed generator; falls back to the Following timeline if it is unavailable) |
 | `mc_bluesky_window` | `store/bluesky.js` | Time window filter (default: `24h`) |
 | `mc_bluesky_reposts` | `store/bluesky.js` | Show reposts toggle (default: `true`) |
 | `mc_bluesky_weighted` | `store/bluesky.js` | Weighted engagement sort (default: `false`) |
