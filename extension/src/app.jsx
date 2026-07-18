@@ -6,6 +6,7 @@ import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
 import { initCaAuth, caSignedIn } from './store/caAuth';
 import { loadProposals } from './store/proposals';
+import { loadWikiQueue } from './store/knowledge';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
@@ -82,6 +83,7 @@ export function App() {
     if (!ready) return;
     const ids = selectedCommunityIds.value;
     loadProposals(caSignedIn.value ? ids : []);
+    loadWikiQueue(caSignedIn.value ? ids : []);
     if (ids.length > 0) startJamPolling(ids);
     else stopJamPolling();
     return () => stopJamPolling();
