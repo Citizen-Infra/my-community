@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.9 — July 2026
+- **The Network feed now opens on the best of your follows.** It defaults to Bluesky's own "Best of Follows" feed, which surfaces the top posts from across everyone you follow, instead of our own reshuffle of your most recent posts. "Popular With Friends" sits next to it, both under Algorithmic in the feed picker. If a feed is ever unavailable, the view falls back to your Following timeline so it never comes up empty. Following and Lists still rank by most liked or most discussed, exactly as before.
+
 ### 0.3.8 — July 2026
 - **Network posts show what they actually contain.** Links, @mentions, and #hashtags in a post are now clickable, link posts show a preview card, and quoted posts render inline instead of vanishing. Posts with several images show all of them, up to four. Video and galleries show a marker for now and open on Bluesky.
 - **Clearer, more accessible cards.** Each post card is now a proper link you can open with the keyboard, and every embedded link or quote is its own target, so you land exactly where you clicked.
