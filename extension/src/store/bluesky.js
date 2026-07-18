@@ -1,6 +1,7 @@
-import { signal } from '@preact/signals';
+import { signal, computed } from '@preact/signals';
 import { blueskySession } from './auth';
 import { bskyFetch, bskyPost } from '../lib/atproto';
+import { parseModerationPrefs, isPostHidden, EMPTY_PREFS } from '../lib/moderation';
 
 // Bluesky's own feed generators that already do "popular posts from people you
 // follow" server-side, over the whole graph, in one getFeed call. We offer them
@@ -30,6 +31,35 @@ export const blueskyAvailableFeeds = signal(baseFeeds());
 
 const CACHE_KEY = 'mc_bluesky_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const PREFS_CACHE_KEY = 'mc_bluesky_prefs';
+
+// The user's Bluesky content preferences (muted words, hidden posts, per-feed
+// view settings). Seeded synchronously from the localStorage cache so filtering
+// applies on the very first paint of a return visit; loadSavedFeeds refreshes it
+// from getPreferences (the same call it makes for the feed picker).
+function loadCachedPrefs() {
+  try {
+    return JSON.parse(localStorage.getItem(PREFS_CACHE_KEY) || 'null') || EMPTY_PREFS;
+  } catch {
+    return EMPTY_PREFS;
+  }
+}
+export const blueskyPrefs = signal(loadCachedPrefs());
+
+// The posts actually shown: raw feed posts minus reposts (when the toggle hides
+// them) and anything the user's Bluesky preferences hide. A computed, so it
+// re-filters reactively when the feed, the toggle, or the preferences change —
+// preferences that arrive after the posts self-correct without a refetch.
+export const blueskyVisiblePosts = computed(() => {
+  const prefs = blueskyPrefs.value;
+  const uri = blueskyFeedUri.value;
+  const showReposts = blueskyShowReposts.value;
+  const now = Date.now();
+  return blueskyPosts.value.filter((p) => {
+    if (!showReposts && p.reason) return false;
+    return !isPostHidden(p, prefs, uri, now);
+  });
+});
 
 function getTimeWindowMs(window) {
   const map = { '24h': 24 * 60 * 60 * 1000, '7d': 7 * 24 * 60 * 60 * 1000, '30d': 30 * 24 * 60 * 60 * 1000 };
@@ -73,6 +103,7 @@ function feedUrl(session, uri, cursor) {
 
 // Map a raw feed item into the post shape the UI renders.
 function mapPost(item) {
+  const embedType = item.post.embed?.$type || '';
   return {
     uri: item.post.uri,
     cid: item.post.cid,
@@ -91,6 +122,9 @@ function mapPost(item) {
     embed: item.post.embed || null,
     reason: item.reason || null,
     viewer: item.post.viewer || null,
+    // Flags for the user's feed-view preferences (hide replies / quote posts).
+    isReply: !!item.post.record?.reply,
+    isQuote: embedType === 'app.bsky.embed.record#view' || embedType === 'app.bsky.embed.recordWithMedia#view',
   };
 }
 
@@ -122,9 +156,9 @@ async function fetchFeedPosts(session, uri) {
 
     for (const item of items) {
       const isRepost = !!item.reason;
-      if (isRepost && !blueskyShowReposts.value) continue;
       // The Following timeline mixes in non-followed context posts; keep only
-      // followed authors (reposts already passed the toggle above).
+      // followed authors. Reposts are kept here regardless (a repost by someone
+      // you follow is legitimate); the Reposts toggle hides them at render time.
       if (isTimeline && !isRepost && !item.post.author.viewer?.following) continue;
       // Chronological feeds honour the selected time window; algorithmic feeds
       // keep whatever the feed served, regardless of age.
@@ -161,7 +195,7 @@ export async function loadBlueskyFeed() {
   // Check cache
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.showReposts === blueskyShowReposts.value && cached.weightedSort === blueskyWeightedSort.value) {
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value) {
       blueskyPosts.value = cached.posts;
       return;
     }
@@ -192,7 +226,6 @@ export async function loadBlueskyFeed() {
         posts,
         feedUri: blueskyFeedUri.value,
         window: blueskyTimeWindow.value,
-        showReposts: blueskyShowReposts.value,
         weightedSort: blueskyWeightedSort.value,
         timestamp: Date.now(),
       }));
@@ -235,6 +268,22 @@ export async function loadSavedFeeds() {
 
     const prefsData = await prefsRes.json();
     const prefs = prefsData.preferences || [];
+
+    // Parse + cache the user's content preferences (muted words, hidden posts,
+    // per-feed view settings) from the same getPreferences response the feed
+    // picker uses. The render-time computed applies them.
+    const mod = parseModerationPrefs(prefs);
+    blueskyPrefs.value = mod;
+    try { localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(mod)); } catch {}
+
+    // Seed the Reposts toggle from the user's Bluesky "hide reposts" setting for
+    // the home feed, but only until they set it themselves in MC. Set the signal
+    // only (not localStorage) so it stays "unset" and re-seeds each session;
+    // toggling it in MC writes mc_bluesky_reposts and MC wins from then on.
+    if (localStorage.getItem('mc_bluesky_reposts') === null) {
+      const home = mod.feedViews.find((f) => f.feed === 'home');
+      if (home) blueskyShowReposts.value = !home.hideReposts;
+    }
 
     // Find savedFeedsPrefV2 (newer format) or fall back to savedFeedsPref
     const savedFeedsPrefV2 = prefs.find(p => p.$type === 'app.bsky.actor.defs#savedFeedsPrefV2');
@@ -383,4 +432,6 @@ export function clearBlueskyState() {
   blueskyAvailableFeeds.value = baseFeeds();
   blueskyFeedUri.value = DEFAULT_FEED_URI;
   localStorage.setItem('mc_bluesky_feed', DEFAULT_FEED_URI);
+  blueskyPrefs.value = EMPTY_PREFS;
+  localStorage.removeItem(PREFS_CACHE_KEY);
 }

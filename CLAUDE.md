@@ -61,7 +61,7 @@ git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
 Signals-based stores in `src/store/`:
 - `auth.js` -- Bluesky feed identity from the in-extension OAuth session (`connectBluesky`/`disconnectBluesky`, `blueskyUser`/`isConnected`/`legacyBlueskySession`)
 - `caAuth.js` -- community account (the IdP session): two-door sign-in (email magic link + Bluesky `getServiceAuth` -> `/auth/atproto/assert`); `caSubject`/`caType`/`caHandle`/`caSignedIn`, `requestSignIn`/`requestBlueskySignIn`/`signOut`. Backfills `@handle` from the DID doc so the account never shows a raw DID.
-- `bluesky.js` -- timeline fetching with pagination, follow-only filter, reposts toggle, sort by likes or weighted engagement
+- `bluesky.js` -- timeline fetching with pagination, follow-only filter, reposts toggle, sort by likes or weighted engagement; honors the user's Bluesky content preferences (muted words, hidden posts, feed-view settings) via a render-time `blueskyVisiblePosts` computed (`lib/moderation.js`)
 - `communities.js` -- community selection from scenius-digest /api/groups (includes city, event_topics, event_apis)
 - `digest.js` -- digest links from scenius-digest API, cached
 - `sessions.js` -- events from scenius-digest /api/events per selected community + Supabase sessions, merged and deduped
@@ -106,6 +106,7 @@ All keys prefixed with `mc_`:
 | `mc_bluesky_window` | `store/bluesky.js` | Time window filter (default: `24h`) |
 | `mc_bluesky_reposts` | `store/bluesky.js` | Show reposts toggle (default: `true`) |
 | `mc_bluesky_weighted` | `store/bluesky.js` | Weighted engagement sort (default: `false`) |
+| `mc_bluesky_prefs` | `store/bluesky.js` | Cached Bluesky content preferences (muted words, hidden posts, feed-view settings) from `getPreferences`, so filtering applies on first paint |
 | `mc_communities` | `store/communities.js` | Selected community slugs (JSON array) |
 | `mc_visible_tabs` | `store/tabs.js` | Tab visibility toggles (JSON object) |
 | `mc_active_tab` | `store/tabs.js` | Currently active tab (default: `digest`) |
@@ -116,7 +117,7 @@ All keys prefixed with `mc_`:
 - `base: ''` in vite.config.js -- Chrome extensions need relative paths
 - Supabase env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set at build time
 - Communities fetched from scenius-digest API at https://scenius-digest.vercel.app/api/groups
-- Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL (cache key includes feed URI, time window, reposts, and sort settings)
+- Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL (cache key includes feed URI, time window, and sort; reposts + content-preference filtering are applied at render, not baked into the cache)
 - Bluesky timeline filtered to followed users only (`author.viewer.following`); reposts kept or hidden based on user setting
 - Bluesky pagination: 2 pages for 24h, 6 for 7d, 10 for 30d — stops early when posts fall outside window
 - DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available
