@@ -396,6 +396,45 @@
   color: var(--color-text-muted);
 }
 
+/* --- Knowledge kind (federated wiki_queue sources, rendered in the same feed) --- */
+
+/* Positive end-states for a source: ready to promote (active green), or already
+   settled into the wiki (quiet, done). Mirrors the decision status family. */
+.decision-status--ready {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-subtle);
+}
+.decision-status--added {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-light);
+}
+
+/* The source title links out to the original. */
+.knowledge-link { color: inherit; text-decoration: none; }
+.knowledge-link:hover { color: var(--color-primary); text-decoration: underline; }
+
+.knowledge-progress { color: var(--color-primary); font-weight: 500; }
+
+/* Oppose is the mirror of Support (agree): Support (green) / Pass (quiet) /
+   Oppose (soft danger) read as one calm sentiment trio. Unlike a decision's amber
+   block, opposing a source is an ordinary vote, so it is not set apart, and the
+   subtle tint stays calm rather than alarming. */
+.decision-vote--oppose {
+  color: var(--color-danger);
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger-subtle);
+}
+.decision-vote--oppose:hover:not(:disabled) {
+  border-color: var(--color-danger);
+}
+.decision-vote--oppose.is-selected {
+  color: #fff;
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .decision-card { animation: none; }
 }
