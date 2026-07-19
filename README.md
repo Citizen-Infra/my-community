@@ -34,6 +34,12 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.15 — July 2026
+- **The dashboard feeds are easier to read, in both light and dark themes.** Buttons and badges that were hard to read on the dark theme now meet contrast standards, the community objection button is legible everywhere, and the option chips throughout Settings announce their selected state to screen readers.
+- **Feeds now tell you when something failed to load.** If the Digest, Participation, or Community Input feed can't reach its source, you see a calm "Something didn't load, try again" instead of an empty page that looked like there was simply nothing there.
+- **Signed-out Community Input shows what it is for.** Instead of a bare sign-in form, the tab previews the kinds of decisions and sources your community weighs in on, then invites you to sign in.
+- **Small refinements.** Consistent loading messages across feeds, tidier titles, and source labels that use the app's own palette instead of third-party brand colors.
+
 ### 0.3.14 — July 2026
 - **Choose where wiki suggestions go, right where you pick your communities.** The "Wiki suggestions go to" setting moved next to your community list in Settings, so it is always visible instead of tucked under the tab-saving options. Follow more than one community and you pick the target; with a single community it is automatic.
 - **Turning the toolbar button into a wiki-suggest button is now a clear on/off toggle.** It replaces the look-alike "save" option that used to sit beside "Saved Tabs", and it spells out that suggesting leaves the tab open, unlike saving, which closes it.
