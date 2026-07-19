@@ -112,9 +112,10 @@
   transition: all 0.2s var(--ease-out);
 }
 
+/* Keep the resting light-tint / dark-text pairing (which passes AA) on hover;
+   inverting to white text failed contrast for most community colors. The card's
+   accent-bar widen + lift carry the hover cue. */
 .digest-card:hover .digest-card-community {
-  background: var(--community-border, var(--color-primary));
-  color: #fff;
   border-color: var(--community-border, var(--color-primary));
 }
 
@@ -213,15 +214,17 @@
   transition: opacity 0.2s ease;
 }
 
-.digest-card:hover .digest-card-share {
+.digest-card:hover .digest-card-share,
+.digest-card:focus-within .digest-card-share,
+.digest-card-share:focus-visible {
   opacity: 1;
   transform: translateX(0);
 }
 
 .digest-card-share:hover {
-  background: rgba(17, 133, 254, 0.08);
-  border-color: rgba(17, 133, 254, 0.2);
-  color: #1185fe;
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .digest-card-share:hover .share-icon {
@@ -230,12 +233,6 @@
 
 .digest-card-share:active {
   transform: scale(0.96);
-}
-
-/* Dark mode adjustments */
-[data-theme="dark"] .digest-card-share:hover {
-  background: rgba(17, 133, 254, 0.15);
-  border-color: rgba(17, 133, 254, 0.3);
 }
 
 /* Empty state */

@@ -21,6 +21,10 @@
   --color-accent-hover: #b45309;
   --color-accent-light: #fef3c7;
   --color-accent-subtle: rgba(217, 119, 6, 0.08);
+  /* Ink text sits ON amber fills. Dark ink clears WCAG AA on amber in both
+     themes (5.4:1 on #d97706, 12.6:1 on the brighter dark-mode #fbbf24);
+     white text fails on both. Inherited by dark mode (same value works). */
+  --color-on-accent: #1c1917;
 
   --color-session-active: #16a34a;
   --color-session-upcoming: #457b9d;

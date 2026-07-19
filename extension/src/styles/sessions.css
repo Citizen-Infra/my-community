@@ -200,9 +200,9 @@
 }
 
 .session-source-badge.source-telegram {
-  background: rgba(42, 171, 238, 0.06);
-  color: #2aabee;
-  border-color: rgba(42, 171, 238, 0.12);
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
 }
 
 .session-community-badge {
