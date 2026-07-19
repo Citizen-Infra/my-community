@@ -83,3 +83,41 @@ input, select, textarea {
     transform: translateY(0);
   }
 }
+
+/* Shared feed error state (FeedError.jsx). Mirrors the calm centering of the
+   empty states; a quiet retry rather than an alarm. */
+.feed-error {
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.feed-error-text {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 var(--space-md);
+}
+
+.feed-error-retry {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), border-color 0.18s var(--ease-out);
+}
+
+.feed-error-retry:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+}
+
+.feed-error-retry:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}

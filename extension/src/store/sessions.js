@@ -9,6 +9,12 @@ const CACHE_TTL = 5 * 60 * 1000; // 5min
 
 export const sessions = signal([]);
 export const sessionsLoading = signal(false);
+// Set when the fetches genuinely failed and left nothing to show, so an outage
+// reads as an outage rather than "no sessions".
+export const sessionsError = signal(false);
+
+let lastSessionsArgs = [];
+export function retrySessions() { return loadSessions(lastSessionsArgs); }
 
 export const activeSessions = computed(() =>
   sessions.value.filter((s) => s.status === 'active')
@@ -38,11 +44,17 @@ function isBareUrl(title) {
 }
 
 export async function loadSessions(communities) {
+  lastSessionsArgs = communities;
+  sessionsError.value = false;
   const selector = communityKey(communities.map((c) => c.id));
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
   if (cached) { sessions.value = cached; return; }
 
   sessionsLoading.value = true;
+
+  // Tracks whether any source genuinely failed (network / 5xx / Supabase error),
+  // as opposed to just returning no rows. Drives the error state below.
+  let anyFailure = false;
 
   try {
     const results = [];
@@ -52,8 +64,8 @@ export async function loadSessions(communities) {
     const headers = await authHeader();
     const eventPromises = communityKeys.map((key) =>
       fetch(`${EVENTS_API}?community=${key}`, { headers })
-        .then((r) => r.ok ? r.json() : { events: [] })
-        .catch(() => ({ events: [] }))
+        .then((r) => r.ok ? r.json() : (anyFailure = true, { events: [] }))
+        .catch(() => (anyFailure = true, { events: [] }))
     );
     const eventResults = await Promise.all(eventPromises);
     for (const result of eventResults) {
@@ -66,10 +78,11 @@ export async function loadSessions(communities) {
     }
 
     // Fetch Supabase sessions (Harmonica sessions, kept as fallback)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('sessions_with_topics')
       .select('*')
       .order('starts_at', { ascending: true });
+    if (error) anyFailure = true;
     if (data) {
       results.push(...data.map((s) => ({ ...s, source: 'session' })));
     }
@@ -98,9 +111,13 @@ export async function loadSessions(communities) {
     });
 
     sessions.value = deduped;
-    setCached(CACHE_KEY, deduped, selector);
+    // Don't cache a partial/failed result as authoritative; let the next open retry.
+    if (!anyFailure) setCached(CACHE_KEY, deduped, selector);
+    // Only an outage that also left nothing to show is an error; partial results render.
+    sessionsError.value = anyFailure && deduped.length === 0;
   } catch (err) {
     console.error('Failed to load sessions:', err);
+    sessionsError.value = true;
   }
 
   sessionsLoading.value = false;

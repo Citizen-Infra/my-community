@@ -12,6 +12,12 @@ const CACHE_TTL = 90 * 1000; // 90s — short, keeps the consent badge fresh
 // and the caller's own my_vote. Status is computed server-side at read time.
 export const proposals = signal([]);
 export const proposalsLoading = signal(false);
+// Set when the fetch genuinely failed (network / 5xx) and left nothing to show.
+// A 403 (not a member of that community) is not a failure, it is expected.
+export const proposalsError = signal(false);
+
+let lastProposalsArgs = [];
+export function retryProposals() { return loadProposals(lastProposalsArgs); }
 
 // Open decisions the member has not responded to — the Community Input tab badge.
 export const openUnvotedCount = computed(() =>
@@ -33,6 +39,8 @@ function byUrgency(a, b) {
 // given community 403 there; those are skipped so the rest of the feed still renders
 // (degrade gracefully). Clears when signed out or nothing is selected.
 export async function loadProposals(communityIds) {
+  lastProposalsArgs = communityIds;
+  proposalsError.value = false;
   const headers = caSessionHeader();
   if (!headers.Authorization || !communityIds || communityIds.length === 0) {
     proposals.value = [];
@@ -44,26 +52,32 @@ export async function loadProposals(communityIds) {
   if (cached) { proposals.value = cached; resolveHandles(cached.map((p) => p.created_by)); return; }
 
   proposalsLoading.value = true;
+  let anyFailure = false;
   try {
     const all = [];
     await Promise.all(
       communityIds.map(async (id) => {
         try {
           const res = await fetch(`${CA_URL}/communities/${id}/proposals`, { headers });
-          if (!res.ok) return; // 403 (not a member here), 401, etc. — skip this one
+          if (!res.ok) {
+            if (res.status >= 500) anyFailure = true; // 403/401 = not a member, expected
+            return;
+          }
           const rows = await res.json();
           for (const p of rows) all.push({ ...p, community_id: id });
         } catch {
-          /* network error for this community — skip, keep the rest */
+          anyFailure = true; // network error for this community — keep the rest, flag it
         }
       })
     );
     all.sort(byUrgency);
     proposals.value = all;
     resolveHandles(all.map((p) => p.created_by));
-    setCached(CACHE_KEY, all, selector);
+    if (!anyFailure) setCached(CACHE_KEY, all, selector);
+    proposalsError.value = anyFailure && all.length === 0;
   } catch (err) {
     console.error('Failed to load decisions:', err);
+    proposalsError.value = true;
   }
   proposalsLoading.value = false;
 }

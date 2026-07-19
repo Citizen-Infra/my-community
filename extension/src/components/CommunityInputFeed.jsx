@@ -1,10 +1,11 @@
-import { proposals, proposalsLoading } from '../store/proposals';
-import { wikiItems, wikiLoading, isVotableKnowledge } from '../store/knowledge';
+import { proposals, proposalsLoading, proposalsError, retryProposals } from '../store/proposals';
+import { wikiItems, wikiLoading, wikiError, retryWikiQueue, isVotableKnowledge } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
 import { selectedCommunityIds } from '../store/communities';
 import { DecisionCard } from './DecisionCard';
 import { KnowledgeCard } from './KnowledgeCard';
 import { CommunityInputConnect } from './CommunityInputConnect';
+import { FeedError } from './FeedError';
 import '../styles/community-input.css';
 
 // Priority tier for the merged feed: items needing your response first, then other
@@ -57,6 +58,10 @@ export function CommunityInputFeed() {
 
   if ((proposalsLoading.value || wikiLoading.value) && total === 0) {
     return <div class="feed-empty">Loading what your communities are weighing in on…</div>;
+  }
+
+  if ((proposalsError.value || wikiError.value) && total === 0) {
+    return <FeedError onRetry={() => { retryProposals(); retryWikiQueue(); }} />;
   }
 
   if (total === 0) {

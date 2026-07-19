@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
-import { activeSessions, upcomingSessions, completedSessions, sessionsLoading } from '../store/sessions';
+import { activeSessions, upcomingSessions, completedSessions, sessionsLoading, sessionsError, retrySessions } from '../store/sessions';
 import { getCommunityColors } from '../lib/community-colors';
 import { AvailsBanner } from './AvailsBanner';
+import { FeedError } from './FeedError';
 import '../styles/sessions.css';
 
 export function SessionsPanel() {
@@ -22,7 +23,9 @@ export function SessionsPanel() {
     <div class="sessions-panel">
       <AvailsBanner />
 
-      {!hasAny ? (
+      {sessionsError.value && !hasAny ? (
+        <FeedError onRetry={retrySessions} />
+      ) : !hasAny ? (
         <div class="sessions-empty">
           No sessions or events right now. Check back soon.
         </div>
