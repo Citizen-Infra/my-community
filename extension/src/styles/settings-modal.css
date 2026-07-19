@@ -139,6 +139,27 @@
   transform: translateX(16px);
 }
 
+/* Inline toggle inside a settings-card: label left, switch right, no nested border
+   (avoids the nested-card look of .settings-toggle-row within a .settings-card). */
+.settings-toggle-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  cursor: pointer;
+}
+
+.settings-toggle-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* The control a toggle discloses, sitting just below its toggle row. */
+.settings-subfield {
+  margin-top: var(--space-md);
+}
+
 /* Settings card - groups related controls */
 .settings-card {
   background: var(--color-bg);

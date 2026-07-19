@@ -29,7 +29,11 @@ export function SettingsModal({ onClose }) {
   const [caLinkSent, setCaLinkSent] = useState(false);
 
   // Tab-manager save behavior (persisted in chrome.storage.local, read by the worker)
-  const [toolbarTarget, setToolbarTarget] = useState('saved-tabs');
+  // The worker reads a single 'tab-hoarder-toolbar-target': a collection id, or
+  // 'wiki-queue' when wiki-suggest mode is on. We keep the collection choice separately
+  // ('tab-hoarder-toolbar-collection') so toggling wiki mode off restores it.
+  const [toolbarCollection, setToolbarCollection] = useState('saved-tabs');
+  const [toolbarWikiMode, setToolbarWikiMode] = useState(false);
   const [shortcutTarget, setShortcutTarget] = useState('most-recent');
   const [suggestCommunity, setSuggestCommunity] = useState(null); // { id, name } | null
   const [dailyBackup, setDailyBackup] = useState(true);
@@ -39,12 +43,18 @@ export function SettingsModal({ onClose }) {
   useEffect(() => {
     chrome.storage?.local?.get([
       'tab-hoarder-toolbar-target',
+      'tab-hoarder-toolbar-collection',
       'tab-hoarder-shortcut-target',
       'mc_wiki_suggest_community',
       'tab-hoarder-daily-backup',
       'tab-hoarder-backup-interval',
     ], (result) => {
-      if (result['tab-hoarder-toolbar-target']) setToolbarTarget(result['tab-hoarder-toolbar-target']);
+      const target = result['tab-hoarder-toolbar-target'] || 'saved-tabs';
+      setToolbarWikiMode(target === 'wiki-queue');
+      setToolbarCollection(
+        result['tab-hoarder-toolbar-collection']
+        ?? (target !== 'wiki-queue' ? target : 'saved-tabs'),
+      );
       if (result['tab-hoarder-shortcut-target']) setShortcutTarget(result['tab-hoarder-shortcut-target']);
       if (result['mc_wiki_suggest_community']) setSuggestCommunity(result['mc_wiki_suggest_community']);
       if (result['tab-hoarder-daily-backup'] !== undefined) setDailyBackup(result['tab-hoarder-daily-backup'] !== false);
@@ -52,9 +62,15 @@ export function SettingsModal({ onClose }) {
     });
   }, []);
 
-  const updateToolbarTarget = (val) => {
-    setToolbarTarget(val);
-    chrome.storage?.local?.set({ 'tab-hoarder-toolbar-target': val });
+  const updateToolbarCollection = (val) => {
+    setToolbarCollection(val);
+    chrome.storage?.local?.set({ 'tab-hoarder-toolbar-collection': val });
+    // Only steer the live target when we're in save mode; wiki mode owns it otherwise.
+    if (!toolbarWikiMode) chrome.storage?.local?.set({ 'tab-hoarder-toolbar-target': val });
+  };
+  const updateToolbarWikiMode = (on) => {
+    setToolbarWikiMode(on);
+    chrome.storage?.local?.set({ 'tab-hoarder-toolbar-target': on ? 'wiki-queue' : toolbarCollection });
   };
   const updateShortcutTarget = (val) => {
     setShortcutTarget(val);
@@ -272,10 +288,11 @@ export function SettingsModal({ onClose }) {
                 <h4 class="settings-section-title">Communities</h4>
                 {communitiesStatus.value === 'ready' && allCommunities.value.length > 0 ? (
                   <div class="settings-card">
-                    <div class="topic-grid">
+                    <div class="topic-grid" role="group" aria-label="Your communities">
                       {allCommunities.value.map((c) => (
                         <button
                           key={c.id}
+                          aria-pressed={selectedCommunityIds.value.includes(c.id)}
                           class={`topic-grid-chip ${selectedCommunityIds.value.includes(c.id) ? 'active' : ''}`}
                           onClick={() => toggleCommunity(c.id)}
                         >
@@ -283,6 +300,31 @@ export function SettingsModal({ onClose }) {
                         </button>
                       ))}
                     </div>
+                    {caSignedIn.value && selectedCommunities.value.length > 1 && (
+                      <div class="settings-field" style="margin-top: var(--space-md);">
+                        <label class="settings-label" id="mc-suggest-target-label">Wiki suggestions go to</label>
+                        {!selectedCommunities.value.some((c) => c.id === suggestCommunity?.id) && (
+                          <p class="settings-hint" style="margin-top: 0; margin-bottom: var(--space-sm);">
+                            Choose where suggestions go.
+                          </p>
+                        )}
+                        <div class="theme-picker" role="group" aria-labelledby="mc-suggest-target-label">
+                          {selectedCommunities.value.map((c) => (
+                            <button
+                              key={c.id}
+                              aria-pressed={suggestCommunity?.id === c.id}
+                              class={`topic-grid-chip ${suggestCommunity?.id === c.id ? 'active' : ''}`}
+                              onClick={() => updateSuggestCommunity({ id: c.id, name: c.name })}
+                            >
+                              {c.name}
+                            </button>
+                          ))}
+                        </div>
+                        <p class="settings-hint">
+                          Where the toolbar button and the Alt+Shift+S shortcut send pages you suggest to the wiki.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div class="settings-card settings-card-empty">
@@ -416,11 +458,12 @@ export function SettingsModal({ onClose }) {
 
               {/* Appearance Section */}
               <section class="settings-section">
-                <h4 class="settings-section-title">Appearance</h4>
-                <div class="theme-picker">
+                <h4 class="settings-section-title" id="mc-theme-label">Appearance</h4>
+                <div class="theme-picker" role="group" aria-labelledby="mc-theme-label">
                   {['light', 'dark', 'system'].map((val) => (
                     <button
                       key={val}
+                      aria-pressed={theme.value === val}
                       class={`topic-grid-chip ${theme.value === val ? 'active' : ''}`}
                       onClick={() => setTheme(val)}
                     >
@@ -453,26 +496,56 @@ export function SettingsModal({ onClose }) {
               <section class="settings-section">
                 <h4 class="settings-section-title">Save Behavior</h4>
                 <div class="settings-card">
+                  {/* Toolbar button: the suggest-to-wiki mode switch sits above the behavior it governs */}
                   <div class="settings-field">
-                    <label class="settings-label">Toolbar icon saves to</label>
-                    <div class="theme-picker">
-                      {[['saved-tabs', 'Saved Tabs'], ['most-recent', 'Most recent'], ['wiki-queue', 'Community wiki queue']].map(([val, label]) => (
-                        <button
-                          key={val}
-                          class={`topic-grid-chip ${toolbarTarget === val ? 'active' : ''}`}
-                          onClick={() => updateToolbarTarget(val)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
+                    <label class="settings-toggle-field">
+                      <span class="settings-toggle-field-label">Suggest to community wiki</span>
+                      <span class="settings-toggle-inline">
+                        <input
+                          type="checkbox"
+                          checked={toolbarWikiMode}
+                          onChange={(e) => updateToolbarWikiMode(e.target.checked)}
+                        />
+                        <span class="settings-toggle-track-sm" />
+                      </span>
+                    </label>
+                    {toolbarWikiMode ? (
+                      <div class="settings-subfield">
+                        <p class="settings-hint" style="margin-top: 0;">
+                          The toolbar button suggests the current page to your community wiki and leaves the tab open; the Alt+Shift+S shortcut does the same. Pick which community under{' '}
+                          <button
+                            class="settings-link-btn"
+                            onClick={() => setActiveSettingsTab('dashboard')}
+                          >
+                            Communities
+                          </button>.
+                        </p>
+                      </div>
+                    ) : (
+                      <div class="settings-subfield">
+                        <label class="settings-label" id="mc-toolbar-target-label">Toolbar button saves to</label>
+                        <div class="theme-picker" role="group" aria-labelledby="mc-toolbar-target-label">
+                          {[['saved-tabs', 'Saved Tabs'], ['most-recent', 'Most recent']].map(([val, label]) => (
+                            <button
+                              key={val}
+                              aria-pressed={toolbarCollection === val}
+                              class={`topic-grid-chip ${toolbarCollection === val ? 'active' : ''}`}
+                              onClick={() => updateToolbarCollection(val)}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div class="settings-field" style="margin-top: var(--space-md);">
-                    <label class="settings-label">Alt+S shortcut saves to</label>
-                    <div class="theme-picker">
+                    <label class="settings-label" id="mc-shortcut-target-label">Alt+S shortcut saves to</label>
+                    <div class="theme-picker" role="group" aria-labelledby="mc-shortcut-target-label">
                       {[['most-recent', 'Most recent'], ['saved-tabs', 'Saved Tabs']].map(([val, label]) => (
                         <button
                           key={val}
+                          aria-pressed={shortcutTarget === val}
                           class={`topic-grid-chip ${shortcutTarget === val ? 'active' : ''}`}
                           onClick={() => updateShortcutTarget(val)}
                         >
@@ -481,29 +554,6 @@ export function SettingsModal({ onClose }) {
                       ))}
                     </div>
                   </div>
-                  {caSignedIn.value && selectedCommunities.value.length > 0 && (
-                    <div class="settings-field" style="margin-top: var(--space-md);">
-                      <label class="settings-label">Suggest sources to</label>
-                      <div class="theme-picker">
-                        {selectedCommunities.value.map((c) => {
-                          const effectiveId = suggestCommunity?.id
-                            ?? (selectedCommunities.value.length === 1 ? selectedCommunities.value[0].id : null);
-                          return (
-                            <button
-                              key={c.id}
-                              class={`topic-grid-chip ${effectiveId === c.id ? 'active' : ''}`}
-                              onClick={() => updateSuggestCommunity({ id: c.id, name: c.name })}
-                            >
-                              {c.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p class="settings-hint">
-                        The toolbar button (set to Community wiki queue) and the Alt+Shift+S shortcut suggest the current page to this community's wiki, where members vote it toward the wiki.
-                      </p>
-                    </div>
-                  )}
                   <p class="settings-hint">
                     Set the keyboard shortcut at{' '}
                     <button
@@ -565,11 +615,12 @@ export function SettingsModal({ onClose }) {
                 {dailyBackup ? (
                   <div class="settings-card">
                     <div class="settings-field">
-                      <label class="settings-label">Frequency</label>
-                      <div class="theme-picker">
+                      <label class="settings-label" id="mc-backup-interval-label">Frequency</label>
+                      <div class="theme-picker" role="group" aria-labelledby="mc-backup-interval-label">
                         {[['720', '12h'], ['1440', 'Daily'], ['4320', '3 days'], ['10080', 'Weekly']].map(([val, label]) => (
                           <button
                             key={val}
+                            aria-pressed={backupInterval === val}
                             class={`topic-grid-chip ${backupInterval === val ? 'active' : ''}`}
                             onClick={() => updateBackupInterval(val)}
                           >
