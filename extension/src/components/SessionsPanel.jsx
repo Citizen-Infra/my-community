@@ -9,7 +9,7 @@ export function SessionsPanel() {
   if (sessionsLoading.value) {
     return (
       <div class="sessions-panel">
-        <div class="sessions-empty">Loading...</div>
+        <div class="sessions-empty">Loading sessions and events…</div>
       </div>
     );
   }

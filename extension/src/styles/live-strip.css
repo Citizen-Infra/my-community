@@ -142,9 +142,9 @@
 
 /* ---- Label (serif italic editorial voice) ---- */
 .live-strip-label {
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--font-body);
   font-size: 14px;
-  font-style: italic;
+  font-weight: 500;
   color: var(--color-text-secondary);
   flex-shrink: 0;
   white-space: nowrap;

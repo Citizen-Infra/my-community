@@ -57,7 +57,7 @@ export function CommunityInputFeed() {
   const total = decisions.length + knowledge.length;
 
   if ((proposalsLoading.value || wikiLoading.value) && total === 0) {
-    return <div class="feed-empty">Loading what your communities are weighing in on…</div>;
+    return <div class="feed-empty">Loading decisions and sources…</div>;
   }
 
   if ((proposalsError.value || wikiError.value) && total === 0) {

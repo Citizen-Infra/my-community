@@ -349,7 +349,7 @@
 .topic-grid-chip.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
 }
 
