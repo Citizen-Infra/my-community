@@ -112,6 +112,8 @@ A warm, low-chroma neutral field with one confident green and one rationed amber
 
 **The Community-Color Rule.** The 4px left accent bar on a card encodes that item's community identity (`var(--community-border)`), and is the system's *only* sanctioned colored side-stripe. It is semantic, never decoration. No other element may use a `border-left`/`border-right` greater than 1px as a colored accent.
 
+**The On-Fill Rule.** Text on a saturated fill (`--color-primary`, `--color-accent`) uses `--color-on-primary` / `--color-on-accent`, never `#fff`. These flip per theme (warm near-white in light, warm near-black in dark) because the dark-mode primary (`#4ade80`) and accent (`#fbbf24`) are bright, and white text on them fails WCAG AA (~1.4:1). Light needs near-white, dark needs dark ink.
+
 ## 3. Typography
 
 **Display Font:** Instrument Serif (with Georgia, serif fallback)
