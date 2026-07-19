@@ -166,6 +166,59 @@ function flashBadge(text, color) {
   setTimeout(() => chrome.action.setBadgeText({ text: '' }), 1800);
 }
 
+// The tooltip reflects what the toolbar button does, which depends on its target.
+function applyToolbarTitle(target) {
+  chrome.action.setTitle({
+    title: target === 'wiki-queue' ? 'Suggest page to the community wiki' : 'Save & close tab',
+  });
+}
+
+// Injected into the active page (runs in the PAGE context, so it must be
+// self-contained). A brief top-right toast — the suggest action does not close
+// the tab, so it needs visible confirmation. Colors carry meaning: green done,
+// slate already-there, amber a setup step you still owe, red a real failure. A
+// confirmation clears in 2s; the actionable amber/red messages linger longer so
+// there is time to read and act. Announced to assistive tech via role/aria-live.
+function pageToast(message, kind) {
+  const id = '__mc_wiki_toast__';
+  const prev = document.getElementById(id);
+  if (prev) prev.remove();
+  const el = document.createElement('div');
+  el.id = id;
+  el.textContent = message;
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
+  // Darker-than-token shades so white text clears WCAG AA on each fill.
+  const colors = { success: '#2d6a4f', info: '#3d6d8c', warn: '#b45309', error: '#b91c1c' };
+  const bg = colors[kind] || colors.error;
+  Object.assign(el.style, {
+    position: 'fixed', top: '16px', right: '16px', zIndex: '2147483647',
+    background: bg, color: '#ffffff', padding: '11px 16px', borderRadius: '10px',
+    font: '600 14px/1.4 system-ui, -apple-system, sans-serif',
+    boxShadow: '0 8px 28px rgba(0,0,0,0.28)', maxWidth: '340px',
+    opacity: '0', transform: 'translateY(-8px)',
+    transition: 'opacity .2s ease, transform .2s ease', pointerEvents: 'none',
+  });
+  document.documentElement.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
+  const life = (kind === 'warn' || kind === 'error') ? 4000 : 2000;
+  setTimeout(() => {
+    el.style.opacity = '0'; el.style.transform = 'translateY(-8px)';
+    setTimeout(() => el.remove(), 220);
+  }, life);
+}
+
+// Show the toast in a tab. Best-effort: restricted pages (web store, pdf viewer,
+// etc.) reject injection, and the badge still fired as a fallback.
+async function showToast(tabId, message, kind) {
+  if (tabId == null) return;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, func: pageToast, args: [message, kind] });
+  } catch (err) {
+    /* page disallows injection — badge covers it */
+  }
+}
+
 // Which community a suggestion goes to: the member's explicit setting if it still
 // matches a selected community, else the sole selected community, else none.
 function resolveSuggestCommunity(communities, setting) {
@@ -179,24 +232,42 @@ async function suggestToWiki(tab) {
   if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
   const store = await chrome.storage.local.get(['mc_ca_session_bg', 'mc_communities_bg', 'mc_wiki_suggest_community']);
   const token = store['mc_ca_session_bg'];
-  if (!token) { flashBadge('!', '#d97706'); return; } // not signed in to My Community
+  if (!token) {
+    flashBadge('!', '#d97706');
+    showToast(tab.id, 'Sign in to My Community to suggest sources.', 'warn');
+    return;
+  }
   const community = resolveSuggestCommunity(store['mc_communities_bg'], store['mc_wiki_suggest_community']);
-  if (!community) { flashBadge('?', '#d97706'); return; } // no target community resolvable
+  if (!community) {
+    flashBadge('?', '#d97706');
+    showToast(tab.id, 'Pick a target community in Settings first.', 'warn');
+    return;
+  }
   try {
     const res = await fetch(`${CA_URL}/communities/${community.id}/wiki/queue`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: tab.url, title: tab.title || null, source: 'browser' }),
     });
-    if (res.status === 201) flashBadge('✓', '#3d8c40');           // suggested
-    else if (res.status === 409) flashBadge('=', '#457b9d');       // already in the queue
-    else if (res.status === 403) flashBadge('✗', '#dc2626');       // not a member of that community
-    else flashBadge('✗', '#dc2626');
+    if (res.status === 201) {
+      flashBadge('✓', '#3d8c40');
+      showToast(tab.id, `Suggested to ${community.name}.`, 'success');
+    } else if (res.status === 409) {
+      flashBadge('=', '#457b9d');
+      showToast(tab.id, `Already in ${community.name}'s wiki queue.`, 'info');
+    } else if (res.status === 403) {
+      flashBadge('✗', '#dc2626');
+      showToast(tab.id, `You're not a member of ${community.name}.`, 'error');
+    } else {
+      flashBadge('✗', '#dc2626');
+      showToast(tab.id, 'Could not suggest this page. Try again.', 'error');
+    }
     // Nudge an open new-tab feed to refresh so the source appears.
     chrome.runtime.sendMessage({ type: 'WIKI_QUEUE_CHANGED' }).catch(() => {});
   } catch (err) {
     console.error('Suggest to wiki failed', err);
     flashBadge('✗', '#dc2626');
+    showToast(tab.id, `Couldn't reach ${community.name} right now. Try again.`, 'error');
   }
 }
 
@@ -318,11 +389,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Update alarm when backup interval setting changes
+// Sync the toolbar tooltip with what the button currently does, on worker start.
+chrome.storage.local.get('tab-hoarder-toolbar-target').then((s) => {
+  applyToolbarTitle(s['tab-hoarder-toolbar-target'] || 'saved-tabs');
+});
+
+// React to setting changes: backup interval -> reschedule; toolbar target -> retitle.
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes['tab-hoarder-backup-interval']) {
+  if (area !== 'local') return;
+  if (changes['tab-hoarder-backup-interval']) {
     const minutes = parseInt(changes['tab-hoarder-backup-interval'].newValue) || 1440;
     chrome.alarms.create('daily-backup', { periodInMinutes: minutes });
+  }
+  if (changes['tab-hoarder-toolbar-target']) {
+    applyToolbarTitle(changes['tab-hoarder-toolbar-target'].newValue || 'saved-tabs');
   }
 });
 
