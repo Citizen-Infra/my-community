@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.12 — July 2026
+- **Suggest any page for your community's wiki.** Send the page you're on to your community's wiki queue, either with the toolbar button (set it to "Community wiki queue" in Settings) or the new Alt+Shift+S shortcut. It appears in the Community Input tab for members to support, so good sources rise to the wiki together. Pick which community suggestions go to under Settings, Save Behavior.
+
 ### 0.3.11 — July 2026
 - **Community knowledge sits in the same feed as decisions.** The Community Input tab now shows sources your community is weighing for the wiki, right alongside decisions to ratify. Support, pass, or oppose a source, watch it move from gathering support to ready for the wiki, and the tab badge now counts both decisions and sources awaiting your input.
 
