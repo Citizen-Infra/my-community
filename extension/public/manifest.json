@@ -4,7 +4,7 @@
   "name": "My Community",
   "version": "0.3.5",
   "description": "Your new tab: a community dashboard and a tab manager — digests, network, participation, and your saved tabs.",
-  "permissions": ["tabs", "storage", "alarms", "downloads", "bookmarks", "identity"],
+  "permissions": ["tabs", "storage", "alarms", "downloads", "bookmarks", "identity", "scripting", "activeTab"],
   "host_permissions": [
     "https://eeidclmhfkndimghdyuq.supabase.co/*",
     "https://scenius-digest.vercel.app/*",
