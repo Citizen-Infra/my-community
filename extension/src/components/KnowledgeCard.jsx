@@ -1,14 +1,8 @@
 import { useState } from 'preact/hooks';
 import { castKnowledgeVote, isVotableKnowledge } from '../store/knowledge';
 import { allCommunities } from '../store/communities';
+import { subjectLabel } from '../store/handles';
 import { getCommunityColors } from '../lib/community-colors';
-
-// The submitter is an email or a DID. Show a light, non-sensitive label: the
-// local-part of an email, or a generic term for a DID (no raw address in the feed).
-function submitterLabel(who) {
-  if (who && who.includes('@') && !who.startsWith('did:')) return who.split('@')[0];
-  return 'a member';
-}
 
 function hostOf(url) {
   try {
@@ -76,7 +70,7 @@ export function KnowledgeCard({ item: k }) {
         <p class="decision-card-source">{hostOf(k.url)}</p>
 
         <p class="decision-card-meta">
-          Wiki source · suggested by {submitterLabel(k.submitted_by)}
+          Wiki source · suggested by {subjectLabel(k.submitted_by, 'a member')}
           {k.status === 'candidate' && <> · <span class="knowledge-progress">gathering support</span></>}
         </p>
 

@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { castVote, proposals } from '../store/proposals';
 import { allCommunities } from '../store/communities';
+import { subjectLabel } from '../store/handles';
 import { getCommunityColors } from '../lib/community-colors';
 
 // "closes in 2 days" / "closes in 4 hours" / "closes in about an hour".
@@ -10,15 +11,6 @@ function relTime(ms) {
   const hrs = Math.round(mins / 60);
   if (hrs < 48) return hrs <= 1 ? 'in about an hour' : `in ${hrs} hours`;
   return `in ${Math.round(hrs / 24)} days`;
-}
-
-// The organizer's subject is an email or a DID. Show a light, non-sensitive label:
-// the local-part of an email, or a generic term for a DID (no raw address in the feed).
-function proposerLabel(createdBy) {
-  if (createdBy && createdBy.includes('@') && !createdBy.startsWith('did:')) {
-    return createdBy.split('@')[0];
-  }
-  return 'an organizer';
 }
 
 const CAST_LABEL = { agree: 'agreed', pass: 'passed', block: 'objected', disagree: 'disagreed' };
@@ -80,7 +72,7 @@ export function DecisionCard({ proposal: p }) {
         {p.body && <p class="decision-card-text">{p.body}</p>}
 
         <p class="decision-card-meta">
-          Proposed by {proposerLabel(p.created_by)}
+          Proposed by {subjectLabel(p.created_by, 'an organizer')}
           {' · '}
           {windowOpen
             ? <span class="decision-card-window">closes {relTime(ms)}</span>

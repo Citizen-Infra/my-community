@@ -1,5 +1,6 @@
 import { signal, computed } from '@preact/signals';
 import { caSessionHeader } from './caAuth';
+import { resolveHandles } from './handles';
 import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
@@ -40,7 +41,7 @@ export async function loadProposals(communityIds) {
 
   const selector = communityKey(communityIds);
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
-  if (cached) { proposals.value = cached; return; }
+  if (cached) { proposals.value = cached; resolveHandles(cached.map((p) => p.created_by)); return; }
 
   proposalsLoading.value = true;
   try {
@@ -59,6 +60,7 @@ export async function loadProposals(communityIds) {
     );
     all.sort(byUrgency);
     proposals.value = all;
+    resolveHandles(all.map((p) => p.created_by));
     setCached(CACHE_KEY, all, selector);
   } catch (err) {
     console.error('Failed to load decisions:', err);
