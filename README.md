@@ -34,6 +34,11 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.13 — July 2026
+- **Suggesting a page now tells you what happened.** When you send a page to your community's wiki, a message appears naming the outcome and community ("Suggested to Scenius"), and the toolbar tooltip reflects the action, so you are not left guessing when the tab stays open.
+- **The Community Input feed is organized into sections.** Decisions and sources are grouped into Needs your response, In progress, and Resolved, so what needs your attention sits up top and settled items move out of the way.
+- **People show up by their Bluesky handle.** Suggestions and proposals from Bluesky members now show their @handle instead of a generic "a member" or "an organizer."
+
 ### 0.3.12 — July 2026
 - **Suggest any page for your community's wiki.** Send the page you're on to your community's wiki queue, either with the toolbar button (set it to "Community wiki queue" in Settings) or the new Alt+Shift+S shortcut. It appears in the Community Input tab for members to support, so good sources rise to the wiki together. Pick which community suggestions go to under Settings, Save Behavior.
 
