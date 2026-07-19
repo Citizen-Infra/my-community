@@ -13,6 +13,12 @@ const CACHE_TTL = 90 * 1000; // 90s — matches the proposals feed cadence
 // alongside consent decisions in the one feed, it does not migrate the table.
 export const wikiItems = signal([]);
 export const wikiLoading = signal(false);
+// Set when the fetch genuinely failed (network / 5xx) and left nothing to show.
+// A 403 (not a member of that community) is expected, not a failure.
+export const wikiError = signal(false);
+
+let lastWikiArgs = [];
+export function retryWikiQueue() { return loadWikiQueue(lastWikiArgs); }
 
 // Statuses surfaced in the feed. 'rejected' is dropped.
 const FEED_STATUSES = new Set(['candidate', 'ready', 'approved', 'processed']);
@@ -46,6 +52,8 @@ function byKnowledgeUrgency(a, b) {
 // aggregate, and sort. Non-members 403 per community and are skipped so the rest of
 // the feed still renders. Clears when signed out or nothing is selected.
 export async function loadWikiQueue(communityIds) {
+  lastWikiArgs = communityIds;
+  wikiError.value = false;
   const headers = caSessionHeader();
   if (!headers.Authorization || !communityIds || communityIds.length === 0) {
     wikiItems.value = [];
@@ -57,28 +65,34 @@ export async function loadWikiQueue(communityIds) {
   if (cached) { wikiItems.value = cached; resolveHandles(cached.map((k) => k.submitted_by)); return; }
 
   wikiLoading.value = true;
+  let anyFailure = false;
   try {
     const all = [];
     await Promise.all(
       communityIds.map(async (id) => {
         try {
           const res = await fetch(`${CA_URL}/communities/${id}/wiki/queue`, { headers });
-          if (!res.ok) return; // 403 (not a member here), 401, etc. — skip this one
+          if (!res.ok) {
+            if (res.status >= 500) anyFailure = true; // 403/401 = not a member, expected
+            return;
+          }
           const rows = await res.json();
           for (const k of rows) {
             if (FEED_STATUSES.has(k.status)) all.push({ ...k, community_id: id });
           }
         } catch {
-          /* network error for this community — skip, keep the rest */
+          anyFailure = true; // network error for this community — keep the rest, flag it
         }
       })
     );
     all.sort(byKnowledgeUrgency);
     wikiItems.value = all;
     resolveHandles(all.map((k) => k.submitted_by));
-    setCached(CACHE_KEY, all, selector);
+    if (!anyFailure) setCached(CACHE_KEY, all, selector);
+    wikiError.value = anyFailure && all.length === 0;
   } catch (err) {
     console.error('Failed to load knowledge sources:', err);
+    wikiError.value = true;
   }
   wikiLoading.value = false;
 }

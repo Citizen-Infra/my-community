@@ -7,6 +7,12 @@ const CACHE_TTL = 60 * 60 * 1000;
 
 export const digestLinks = signal([]);
 export const digestLoading = signal(false);
+// Set when a fetch genuinely fails, so the feed can distinguish an outage from
+// an honest "no links". Only surfaced by the UI when there is nothing to show.
+export const digestError = signal(false);
+
+let lastDigestArgs = [];
+export function retryDigest() { return loadDigest(lastDigestArgs); }
 
 const TOPIC_EMOJI = {
   links: '\uD83D\uDCDA',
@@ -20,6 +26,8 @@ export function topicEmoji(topic) {
 }
 
 export async function loadDigest(communityIds) {
+  lastDigestArgs = communityIds;
+  digestError.value = false;
   if (communityIds.length === 0) {
     digestLinks.value = [];
     return;
@@ -60,6 +68,7 @@ export async function loadDigest(communityIds) {
     }));
   } catch (err) {
     console.error('Failed to load digest:', err);
+    digestError.value = true;
   }
 
   digestLoading.value = false;
