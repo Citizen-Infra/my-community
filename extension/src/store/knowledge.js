@@ -81,6 +81,13 @@ export async function loadWikiQueue(communityIds) {
   wikiLoading.value = false;
 }
 
+// Force a fresh load (bypassing the 90s cache), e.g. after the worker reports a
+// just-suggested source via WIKI_QUEUE_CHANGED.
+export function refreshWikiQueue(communityIds) {
+  clearCached(CACHE_KEY);
+  return loadWikiQueue(communityIds);
+}
+
 // Cast (or change) the caller's vote on a source. Support / Pass / Oppose map to the
 // wiki_votes agree / pass / disagree set (no block). The server upserts one vote per
 // member and returns the updated row (recomputed tallies + status, e.g. flipped to

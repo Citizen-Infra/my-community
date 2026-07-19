@@ -153,12 +153,61 @@ async function saveAndCloseTab(tab, collection) {
   chrome.runtime.sendMessage({ type: 'DATA_CHANGED' }).catch(() => {});
 }
 
-// Toolbar icon click: save based on setting (default: "Saved Tabs")
+// --- Suggest to the community wiki (Sub-project C) ---
+// Submit the current page to a community's wiki_queue, where it surfaces as a
+// knowledge card in the Community Input feed (Sub-project E) and gets voted toward
+// the wiki. The worker can't read the page's localStorage, so it uses the CA session
+// + community list the new-tab page mirrors into chrome.storage.local.
+const CA_URL = 'https://community-admin-server-production.up.railway.app';
+
+function flashBadge(text, color) {
+  chrome.action.setBadgeBackgroundColor({ color });
+  chrome.action.setBadgeText({ text });
+  setTimeout(() => chrome.action.setBadgeText({ text: '' }), 1800);
+}
+
+// Which community a suggestion goes to: the member's explicit setting if it still
+// matches a selected community, else the sole selected community, else none.
+function resolveSuggestCommunity(communities, setting) {
+  if (!communities || communities.length === 0) return null;
+  if (setting && communities.some((c) => c.id === setting.id)) return setting;
+  if (communities.length === 1) return communities[0];
+  return null;
+}
+
+async function suggestToWiki(tab) {
+  if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
+  const store = await chrome.storage.local.get(['mc_ca_session_bg', 'mc_communities_bg', 'mc_wiki_suggest_community']);
+  const token = store['mc_ca_session_bg'];
+  if (!token) { flashBadge('!', '#d97706'); return; } // not signed in to My Community
+  const community = resolveSuggestCommunity(store['mc_communities_bg'], store['mc_wiki_suggest_community']);
+  if (!community) { flashBadge('?', '#d97706'); return; } // no target community resolvable
+  try {
+    const res = await fetch(`${CA_URL}/communities/${community.id}/wiki/queue`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: tab.url, title: tab.title || null, source: 'browser' }),
+    });
+    if (res.status === 201) flashBadge('✓', '#3d8c40');           // suggested
+    else if (res.status === 409) flashBadge('=', '#457b9d');       // already in the queue
+    else if (res.status === 403) flashBadge('✗', '#dc2626');       // not a member of that community
+    else flashBadge('✗', '#dc2626');
+    // Nudge an open new-tab feed to refresh so the source appears.
+    chrome.runtime.sendMessage({ type: 'WIKI_QUEUE_CHANGED' }).catch(() => {});
+  } catch (err) {
+    console.error('Suggest to wiki failed', err);
+    flashBadge('✗', '#dc2626');
+  }
+}
+
+// Toolbar icon click: suggest to the wiki when that is the chosen target, otherwise
+// save based on setting (default: "Saved Tabs").
 chrome.action.onClicked.addListener(async (tab) => {
   if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
   try {
     const settings = await chrome.storage.local.get('tab-hoarder-toolbar-target');
     const target = settings['tab-hoarder-toolbar-target'] || 'saved-tabs';
+    if (target === 'wiki-queue') { await suggestToWiki(tab); return; }
     const db = await openDB();
     await restoreIfEmpty(db);
     const collection = target === 'most-recent'
@@ -171,8 +220,15 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
-// Alt+S shortcut: save based on setting (default: most recent collection)
+// Keyboard shortcuts. Alt+S (save-to-recent) saves to a collection; the dedicated
+// suggest-to-wiki shortcut always suggests the current page, regardless of the
+// toolbar target setting.
 chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'suggest-to-wiki') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    await suggestToWiki(tab);
+    return;
+  }
   if (command !== 'save-to-recent') return;
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

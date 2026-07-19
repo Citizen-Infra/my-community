@@ -27,6 +27,10 @@
     "save-to-recent": {
       "suggested_key": { "default": "Alt+S" },
       "description": "Save tab to most recent collection"
+    },
+    "suggest-to-wiki": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Suggest current page to the community wiki"
     }
   },
   "action": {
