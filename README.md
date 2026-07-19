@@ -34,6 +34,11 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.14 — July 2026
+- **Choose where wiki suggestions go, right where you pick your communities.** The "Wiki suggestions go to" setting moved next to your community list in Settings, so it is always visible instead of tucked under the tab-saving options. Follow more than one community and you pick the target; with a single community it is automatic.
+- **Turning the toolbar button into a wiki-suggest button is now a clear on/off toggle.** It replaces the look-alike "save" option that used to sit beside "Saved Tabs", and it spells out that suggesting leaves the tab open, unlike saving, which closes it.
+- **Settings controls are more accessible.** The option chips throughout Settings now announce their selected state to screen readers.
+
 ### 0.3.13 — July 2026
 - **Suggesting a page now tells you what happened.** When you send a page to your community's wiki, a message appears naming the outcome and community ("Suggested to Scenius"), and the toolbar tooltip reflects the action, so you are not left guessing when the tab stays open.
 - **The Community Input feed is organized into sections.** Decisions and sources are grouped into Needs your response, In progress, and Resolved, so what needs your attention sits up top and settled items move out of the way.
