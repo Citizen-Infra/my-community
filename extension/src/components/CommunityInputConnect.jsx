@@ -54,11 +54,30 @@ export function CommunityInputConnect() {
 
   return (
     <div class="ci-connect">
-      <h2 class="ci-connect-title">Add your voice</h2>
+      <h2 class="ci-connect-title">What your communities decide, together</h2>
       <p class="ci-connect-desc">
-        Consent decisions need a verified member. Sign in to see what your communities are
-        weighing and to agree or raise an objection.
+        Members ratify decisions by consent and raise good sources toward the shared wiki.
+        Sign in to see yours and add your voice.
       </p>
+
+      <div class="ci-teaser-preview">
+        <p class="ci-teaser-label">A glimpse of what shows up here</p>
+        <ul class="ci-teaser-list">
+          <li class="ci-teaser-row">
+            <span class="ci-teaser-row-title">Adopt a shared code of conduct</span>
+            <span class="ci-teaser-pill is-open">Open</span>
+          </li>
+          <li class="ci-teaser-row">
+            <span class="ci-teaser-row-title">Ratify last month's budget</span>
+            <span class="ci-teaser-pill is-done">Ratified</span>
+          </li>
+          <li class="ci-teaser-row">
+            <span class="ci-teaser-row-title">Add a local resource list to the wiki</span>
+            <span class="ci-teaser-pill is-rising">Rising</span>
+          </li>
+        </ul>
+        <p class="ci-teaser-note">Illustrative examples. Sign in to see your community's.</p>
+      </div>
 
       {linkSent ? (
         <p class="ci-connect-sent">Check your email for a sign-in link.</p>

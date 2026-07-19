@@ -377,6 +377,75 @@
 }
 .ci-connect .auth-or { margin: var(--space-md) 0; }
 
+/* Pre-auth teaser: an illustrative glimpse of the tab's content, so the signed-out
+   state shows what Community Input is rather than a bare form. Not live data (decisions
+   are member-gated); a flat list on the connect card, never a nested card. */
+.ci-teaser-preview {
+  margin: var(--space-lg) 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-light);
+  text-align: left;
+}
+.ci-teaser-label {
+  margin: 0 0 var(--space-sm);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+.ci-teaser-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ci-teaser-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.ci-teaser-row:last-child { border-bottom: none; }
+.ci-teaser-row-title {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+.ci-teaser-pill {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.ci-teaser-pill.is-open {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-subtle);
+}
+.ci-teaser-pill.is-done {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+}
+.ci-teaser-pill.is-rising {
+  color: var(--color-accent-hover);
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent-subtle);
+}
+.ci-teaser-note {
+  margin: var(--space-sm) 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
 /* --- Slice C: lineage, member-visible objections, change-your-vote --- */
 .decision-card-lineage {
   margin: 2px 0 0;
