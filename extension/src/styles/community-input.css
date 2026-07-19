@@ -8,13 +8,24 @@
   gap: var(--space-md);
 }
 
-.ci-intro {
-  margin: 0 0 var(--space-xs);
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--color-text-muted);
-  max-width: 60ch;
+/* --- Feed sections (mirrors the Participation group dividers) --- */
+.ci-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
+.ci-group-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid;
+}
+.ci-group-title.status-active { color: var(--color-session-active); border-color: var(--color-session-active); }
+.ci-group-title.status-upcoming { color: var(--color-session-upcoming); border-color: var(--color-session-upcoming); }
+.ci-group-title.status-done { color: var(--color-session-completed); border-color: var(--color-session-completed); }
 
 /* --- Card shell (sibling of .digest-card) --- */
 .decision-card {
