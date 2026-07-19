@@ -155,6 +155,11 @@
   color: var(--color-text);
 }
 
+/* The control a toggle discloses, sitting just below its toggle row. */
+.settings-subfield {
+  margin-top: var(--space-md);
+}
+
 /* Settings card - groups related controls */
 .settings-card {
   background: var(--color-bg);
