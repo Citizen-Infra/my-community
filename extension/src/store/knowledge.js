@@ -1,5 +1,6 @@
 import { signal, computed } from '@preact/signals';
 import { caSessionHeader } from './caAuth';
+import { resolveHandles } from './handles';
 import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
 
 const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
@@ -53,7 +54,7 @@ export async function loadWikiQueue(communityIds) {
 
   const selector = communityKey(communityIds);
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
-  if (cached) { wikiItems.value = cached; return; }
+  if (cached) { wikiItems.value = cached; resolveHandles(cached.map((k) => k.submitted_by)); return; }
 
   wikiLoading.value = true;
   try {
@@ -74,6 +75,7 @@ export async function loadWikiQueue(communityIds) {
     );
     all.sort(byKnowledgeUrgency);
     wikiItems.value = all;
+    resolveHandles(all.map((k) => k.submitted_by));
     setCached(CACHE_KEY, all, selector);
   } catch (err) {
     console.error('Failed to load knowledge sources:', err);
