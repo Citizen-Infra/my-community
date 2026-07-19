@@ -30,6 +30,17 @@ function sessionToken() {
   return localStorage.getItem(SESSION_KEY);
 }
 
+// Mirror the CA session token into chrome.storage.local so the service worker
+// (which cannot read this page's localStorage) can authenticate wiki-suggest POSTs
+// for Sub-project C. Reads the live token, so it both sets and clears.
+function mirrorSessionToBg() {
+  try {
+    const t = sessionToken();
+    if (t) chrome.storage?.local?.set({ mc_ca_session_bg: t });
+    else chrome.storage?.local?.remove('mc_ca_session_bg');
+  } catch {}
+}
+
 function decodeExp(jwt) {
   try {
     const part = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -51,6 +62,7 @@ export async function initCaAuth() {
       clearCached(IDENTITY_KEY);
     }
   } catch {}
+  mirrorSessionToBg(); // keep the worker's copy fresh on every open
   if (sessionToken()) {
     const cached = getCached(IDENTITY_KEY, IDENTITY_TTL);
     if (cached) {
@@ -110,6 +122,7 @@ export async function requestBlueskySignIn() {
   if (!res.ok) throw new Error('Could not verify your Bluesky identity with the community server.');
   const { session } = await res.json();
   localStorage.setItem(SESSION_KEY, session);
+  mirrorSessionToBg();
   _jwt = null; _jwtExp = 0;
   clearCached(JWT_KEY);
   clearCached(IDENTITY_KEY);
@@ -151,6 +164,7 @@ export function signOut() {
   localStorage.removeItem(HANDLE_KEY);
   localStorage.removeItem(JWT_KEY);
   localStorage.removeItem(IDENTITY_KEY);
+  mirrorSessionToBg(); // token gone -> clears the worker's copy
   _jwt = null; _jwtExp = 0;
   caSubject.value = null;
   caType.value = null;

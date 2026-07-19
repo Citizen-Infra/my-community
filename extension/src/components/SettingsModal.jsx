@@ -31,6 +31,7 @@ export function SettingsModal({ onClose }) {
   // Tab-manager save behavior (persisted in chrome.storage.local, read by the worker)
   const [toolbarTarget, setToolbarTarget] = useState('saved-tabs');
   const [shortcutTarget, setShortcutTarget] = useState('most-recent');
+  const [suggestCommunity, setSuggestCommunity] = useState(null); // { id, name } | null
   const [dailyBackup, setDailyBackup] = useState(true);
   const [backupInterval, setBackupInterval] = useState('1440');
   const [showClear, setShowClear] = useState(false);
@@ -39,11 +40,13 @@ export function SettingsModal({ onClose }) {
     chrome.storage?.local?.get([
       'tab-hoarder-toolbar-target',
       'tab-hoarder-shortcut-target',
+      'mc_wiki_suggest_community',
       'tab-hoarder-daily-backup',
       'tab-hoarder-backup-interval',
     ], (result) => {
       if (result['tab-hoarder-toolbar-target']) setToolbarTarget(result['tab-hoarder-toolbar-target']);
       if (result['tab-hoarder-shortcut-target']) setShortcutTarget(result['tab-hoarder-shortcut-target']);
+      if (result['mc_wiki_suggest_community']) setSuggestCommunity(result['mc_wiki_suggest_community']);
       if (result['tab-hoarder-daily-backup'] !== undefined) setDailyBackup(result['tab-hoarder-daily-backup'] !== false);
       if (result['tab-hoarder-backup-interval']) setBackupInterval(result['tab-hoarder-backup-interval']);
     });
@@ -56,6 +59,10 @@ export function SettingsModal({ onClose }) {
   const updateShortcutTarget = (val) => {
     setShortcutTarget(val);
     chrome.storage?.local?.set({ 'tab-hoarder-shortcut-target': val });
+  };
+  const updateSuggestCommunity = (community) => {
+    setSuggestCommunity(community);
+    chrome.storage?.local?.set({ 'mc_wiki_suggest_community': community });
   };
   const updateDailyBackup = (val) => {
     setDailyBackup(val);
@@ -449,7 +456,7 @@ export function SettingsModal({ onClose }) {
                   <div class="settings-field">
                     <label class="settings-label">Toolbar icon saves to</label>
                     <div class="theme-picker">
-                      {[['saved-tabs', 'Saved Tabs'], ['most-recent', 'Most recent']].map(([val, label]) => (
+                      {[['saved-tabs', 'Saved Tabs'], ['most-recent', 'Most recent'], ['wiki-queue', 'Community wiki queue']].map(([val, label]) => (
                         <button
                           key={val}
                           class={`topic-grid-chip ${toolbarTarget === val ? 'active' : ''}`}
@@ -474,6 +481,29 @@ export function SettingsModal({ onClose }) {
                       ))}
                     </div>
                   </div>
+                  {caSignedIn.value && selectedCommunities.value.length > 0 && (
+                    <div class="settings-field" style="margin-top: var(--space-md);">
+                      <label class="settings-label">Suggest sources to</label>
+                      <div class="theme-picker">
+                        {selectedCommunities.value.map((c) => {
+                          const effectiveId = suggestCommunity?.id
+                            ?? (selectedCommunities.value.length === 1 ? selectedCommunities.value[0].id : null);
+                          return (
+                            <button
+                              key={c.id}
+                              class={`topic-grid-chip ${effectiveId === c.id ? 'active' : ''}`}
+                              onClick={() => updateSuggestCommunity({ id: c.id, name: c.name })}
+                            >
+                              {c.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p class="settings-hint">
+                        The toolbar button (set to Community wiki queue) and the Alt+Shift+S shortcut suggest the current page to this community's wiki, where members vote it toward the wiki.
+                      </p>
+                    </div>
+                  )}
                   <p class="settings-hint">
                     Set the keyboard shortcut at{' '}
                     <button

@@ -6,7 +6,7 @@ import { loadDigest } from './store/digest';
 import { loadSessions } from './store/sessions';
 import { initCaAuth, caSignedIn } from './store/caAuth';
 import { loadProposals } from './store/proposals';
-import { loadWikiQueue } from './store/knowledge';
+import { loadWikiQueue, refreshWikiQueue } from './store/knowledge';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
@@ -44,6 +44,9 @@ export function App() {
         loadCollections();
         loadTabs();
       }
+      if (message?.type === 'WIKI_QUEUE_CHANGED') {
+        refreshWikiQueue(caSignedIn.value ? selectedCommunityIds.value : []);
+      }
     };
     chrome.runtime?.onMessage?.addListener(listener);
 
@@ -75,6 +78,17 @@ export function App() {
       stopAvailsPolling();
     };
   }, []);
+
+  // Mirror the member's selected communities for the service worker, so the
+  // suggest-to-wiki action (Sub-project C) can resolve a target community without
+  // reading this page's localStorage.
+  useEffect(() => {
+    try {
+      chrome.storage?.local?.set({
+        mc_communities_bg: selectedCommunities.value.map((c) => ({ id: c.id, name: c.name })),
+      });
+    } catch {}
+  }, [selectedCommunities.value]);
 
   // Always-on feeds: the consent badge (proposals) and the global jam strip.
   // These load on mount and on community / sign-in change regardless of the
