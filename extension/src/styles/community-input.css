@@ -220,7 +220,7 @@
 .decision-objection-trigger:active { transform: scale(0.97); }
 .decision-objection-trigger:disabled { opacity: 0.55; cursor: default; }
 .decision-objection-trigger.is-selected {
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
@@ -289,13 +289,15 @@
   font-weight: 600;
   padding: 7px 16px;
   border-radius: var(--radius-full);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   border: 1px solid var(--color-accent);
   cursor: pointer;
-  transition: background 0.18s var(--ease-out), transform 0.18s var(--ease-out);
+  transition: box-shadow 0.18s var(--ease-out), transform 0.18s var(--ease-out);
 }
-.decision-objection-submit:hover:not(:disabled) { background: var(--color-accent-hover); }
+/* Lift on hover rather than darkening the fill: darkening amber would drop the
+   dark-ink contrast below AA. */
+.decision-objection-submit:hover:not(:disabled) { box-shadow: 0 2px 8px rgba(180, 83, 9, 0.28); }
 .decision-objection-submit:active { transform: scale(0.97); }
 .decision-objection-submit:disabled { opacity: 0.55; cursor: default; }
 
