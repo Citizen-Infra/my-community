@@ -8,7 +8,6 @@ export function SessionsPanel() {
   if (sessionsLoading.value) {
     return (
       <div class="sessions-panel">
-        <h2 class="section-title">Participation</h2>
         <div class="sessions-empty">Loading...</div>
       </div>
     );
@@ -21,7 +20,6 @@ export function SessionsPanel() {
 
   return (
     <div class="sessions-panel">
-      <h2 class="section-title">Participation</h2>
       <AvailsBanner />
 
       {!hasAny ? (

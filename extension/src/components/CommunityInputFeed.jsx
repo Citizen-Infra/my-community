@@ -66,9 +66,6 @@ export function CommunityInputFeed() {
 
   return (
     <div class="ci-feed">
-      <p class="ci-intro">
-        What your communities are weighing in on: decisions to ratify, and sources rising toward the wiki.
-      </p>
       {rows.map((row) =>
         row.kind === 'decision' ? (
           <DecisionCard key={`d-${row.p.community_id}-${row.p.id}`} proposal={row.p} />

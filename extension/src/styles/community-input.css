@@ -8,14 +8,6 @@
   gap: var(--space-md);
 }
 
-.ci-intro {
-  margin: 0 0 var(--space-xs);
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--color-text-muted);
-  max-width: 60ch;
-}
-
 /* --- Card shell (sibling of .digest-card) --- */
 .decision-card {
   position: relative;
