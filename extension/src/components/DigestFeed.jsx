@@ -5,7 +5,7 @@ import '../styles/digest.css';
 
 export function DigestFeed() {
   if (digestLoading.value) {
-    return <div class="feed-empty">Loading digest...</div>;
+    return <div class="feed-empty">Loading the digest…</div>;
   }
 
   if (digestError.value && digestLinks.value.length === 0) {

@@ -16,6 +16,10 @@
   --color-primary-hover: #1b4d3e;
   --color-primary-light: #e8f5e9;
   --color-primary-subtle: rgba(45, 106, 79, 0.08);
+  /* Text on a --color-primary fill. Must flip per theme: the light primary is
+     dark enough for near-white text; the dark-mode primary (#4ade80) is bright
+     and needs dark ink. White on #4ade80 is ~1.4:1 and fails AA. */
+  --color-on-primary: #faf8f4;
 
   --color-accent: #d97706;
   --color-accent-hover: #b45309;
@@ -106,6 +110,7 @@
   --color-primary-hover: #22c55e;
   --color-primary-light: #1a2e1e;
   --color-primary-subtle: rgba(74, 222, 128, 0.06);
+  --color-on-primary: #14130f;
 
   --color-accent: #fbbf24;
   --color-accent-hover: #f59e0b;

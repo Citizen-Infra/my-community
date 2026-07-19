@@ -36,7 +36,7 @@
 }
 
 /* Community Input badge: count of open decisions the member hasn't answered.
-   White on primary green, matching the selected Agree vote's fill treatment. */
+   On-primary text on the primary-green fill, matching the selected Agree vote. */
 .tab-badge {
   display: inline-block;
   margin-left: 6px;
@@ -44,7 +44,7 @@
   padding: 1px 5px;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 11px;
   font-weight: 600;
   line-height: 16px;
