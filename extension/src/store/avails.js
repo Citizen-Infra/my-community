@@ -10,7 +10,7 @@ let pollTimer = null;
 export async function loadAvailsPolls(communityIds) {
   try {
     const promises = communityIds.map((id) =>
-      fetch(`${AVAILS_API}?community=${encodeURIComponent(id)}&status=open`)
+      fetch(`${AVAILS_API}?community=${encodeURIComponent(id)}&status=open&published=1`)
         .then((r) => (r.ok ? r.json() : { polls: [] }))
         .catch(() => ({ polls: [] }))
     );

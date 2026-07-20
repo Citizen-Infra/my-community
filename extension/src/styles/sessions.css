@@ -281,3 +281,62 @@
   font-weight: 500;
   color: var(--color-text-secondary);
 }
+
+/* --- Participation poll cards (#5 sub-project F) ---
+   A poll wants the member's input, so it carries amber, DESIGN.md's rationed
+   emphasis accent. Amber text fails WCAG AA on light (#d97706 ~3.2:1), so the
+   "Poll open" badge is a FILLED amber chip using the on-accent ink token
+   (5.4:1 light / 12.6:1 dark), and amber text uses the deeper accent-hover. */
+.poll-group-title {
+  color: var(--color-accent-hover);
+  border-color: var(--color-accent);
+}
+
+.poll-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.poll-card-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.poll-responses {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.poll-cta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-hover);
+  white-space: nowrap;
+}
+
+.poll-cta-arrow {
+  display: inline-block;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.poll-card:hover .poll-cta-arrow {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poll-cta-arrow,
+  .poll-card:hover .poll-cta-arrow {
+    transition: none;
+    transform: none;
+  }
+}
