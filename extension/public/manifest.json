@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjb14QkeDYvdwnOlCdgkeeRuuzlvINmKfcb3+hLgHbCG/ICkt7DWQh99qVQL2rdTSvxdR43DkNSqfA5fFp8EZNgOhqaqz4k9PSr+ZHw11Btt10Tvl3MBpG9qpbUERpmmyjVmuOlpWRYQr7/9XEkDe2byEKljXhWPMeHwO3iTiaHZ8putlZvk5pvmneI1sqmNyzVlf0b60D7JHAL92i746hNT4QWe9IvnN+tatmBRqgHpUonC66i+oC6naAu5ojkCIQ8nrVE0Lf2+lkC3iGHhoC61uI8oAGQ/CU0R4DtBGwBy4M/25Ajj3JR7H5fCglWQ7z8+NN+8VPTr7ex1E5W6ZwIDAQAB",
   "name": "My Community",
-  "version": "0.3.5",
+  "version": "0.3.16",
   "description": "Your new tab: a community dashboard and a tab manager — digests, network, participation, and your saved tabs.",
   "permissions": ["tabs", "storage", "alarms", "downloads", "bookmarks", "identity", "scripting", "activeTab"],
   "host_permissions": [

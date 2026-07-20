@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.16 — July 2026
+- **Scheduling polls now appear in your Participation feed.** When someone opens an Avails poll to find a time for your community, it shows up as a card in a new "Finding a time" group, so you can add your availability without opening a chat app. The response count, which used to always read zero, now shows the real number.
+
 ### 0.3.15 — July 2026
 - **The dashboard feeds are easier to read, in both light and dark themes.** Buttons and badges that were hard to read on the dark theme now meet contrast standards, the community objection button is legible everywhere, and the option chips throughout Settings announce their selected state to screen readers.
 - **Feeds now tell you when something failed to load.** If the Digest, Participation, or Community Input feed can't reach its source, you see a calm "Something didn't load, try again" instead of an empty page that looked like there was simply nothing there.
