@@ -27,6 +27,11 @@
   border-bottom: 2px solid;
 }
 
+.session-group-title.status-open {
+  color: var(--color-session-open);
+  border-color: var(--color-session-open);
+}
+
 .session-group-title.status-active {
   color: var(--color-session-active);
   border-color: var(--color-session-active);
@@ -96,6 +101,12 @@
   background: var(--color-session-active);
 }
 
+/* Deliberately no equivalent for .status-open: the accent bar encodes community
+   identity (DESIGN.md, Community-Color Rule), and inside the Open to Join group
+   every card shares the state anyway, so overriding it would trade a signal that
+   still varies for one the group title already carries. State is conveyed by the
+   group heading and the badge, which is two non-colour cues. */
+
 /* Cover variant — horizontal layout, mirrors DigestCard's has-thumb */
 .session-card.has-cover {
   display: flex;
@@ -159,6 +170,11 @@
   letter-spacing: 0.5px;
   padding: 3px 10px;
   border-radius: var(--radius-full);
+}
+
+.session-status-badge.status-open {
+  background: var(--color-accent-subtle);
+  color: var(--color-session-open);
 }
 
 .session-status-badge.status-active {

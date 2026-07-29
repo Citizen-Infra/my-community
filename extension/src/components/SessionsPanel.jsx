@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { activeSessions, upcomingSessions, completedSessions, sessionsLoading, sessionsError, retrySessions } from '../store/sessions';
+import { openSessions, activeSessions, upcomingSessions, completedSessions, sessionsLoading, sessionsError, retrySessions } from '../store/sessions';
 import { getCommunityColors } from '../lib/community-colors';
 import { availsPolls } from '../store/avails';
 import { AvailsPollCards } from './AvailsPollCards';
@@ -15,10 +15,11 @@ export function SessionsPanel() {
     );
   }
 
+  const open = openSessions.value;
   const active = activeSessions.value;
   const upcoming = upcomingSessions.value;
   const completed = completedSessions.value;
-  const hasAny = active.length + upcoming.length + completed.length > 0;
+  const hasAny = open.length + active.length + upcoming.length + completed.length > 0;
   const hasPolls = availsPolls.value.length > 0;
 
   return (
@@ -33,6 +34,9 @@ export function SessionsPanel() {
         </div>
       ) : (
         <>
+          {open.length > 0 && (
+            <SessionGroup title="Open to Join" sessions={open} status="open" />
+          )}
           {active.length > 0 && (
             <SessionGroup title="Happening Now" sessions={active} status="active" />
           )}
@@ -67,6 +71,29 @@ const SOURCE_LABELS = {
   session: 'Session',
 };
 
+const STATUS_LABELS = {
+  open: 'Open',
+  active: 'Live',
+  upcoming: 'Upcoming',
+  completed: 'Done',
+};
+
+// Where a card points depends on where its session is in its life: join it
+// while open, read it once results land. A published session's own `url` is
+// null, so without this the card renders unclickable.
+function cardHref(session) {
+  if (session.session_state === 'open' && session.session_join_url) {
+    return session.session_join_url;
+  }
+  if (session.session_state === 'ready' && session.session_results_url) {
+    return session.session_results_url;
+  }
+  if (session.source === 'session') {
+    return `https://harmonica.chat/session/${session.harmonica_session_id}`;
+  }
+  return session.url;
+}
+
 function SessionCard({ session, status }) {
   const [imgError, setImgError] = useState(false);
 
@@ -79,9 +106,7 @@ function SessionCard({ session, status }) {
       })
     : '';
 
-  const href = session.source === 'session'
-    ? `https://harmonica.chat/session/${session.harmonica_session_id}`
-    : session.url;
+  const href = cardHref(session);
 
   const sourceLabel = SOURCE_LABELS[session.source] || session.source;
   const colors = session.community ? getCommunityColors(session.community) : null;
@@ -100,7 +125,7 @@ function SessionCard({ session, status }) {
         <div class="session-card-header">
           <div class="session-card-meta">
             <span class={`session-status-badge status-${status}`}>
-              {status === 'active' ? 'Live' : status === 'upcoming' ? 'Upcoming' : 'Done'}
+              {STATUS_LABELS[status] || 'Done'}
             </span>
             {session.source && session.source !== 'session' && (
               <span class={`session-source-badge source-${session.source}`}>{sourceLabel}</span>
