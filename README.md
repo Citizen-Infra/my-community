@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.17 — July 2026
+- **Sessions your community opens now appear in your Participation feed.** When an organizer publishes a Harmonica session, a retrospective for instance, it arrives in a new "Open to Join" group with a link straight into the conversation, and moves to Recently Completed with a link to the results once it closes. These sessions carry no start time because you take part whenever suits you, which is exactly why they never showed up before.
+
 ### 0.3.16 — July 2026
 - **Scheduling polls now appear in your Participation feed.** When someone opens an Avails poll to find a time for your community, it shows up as a card in a new "Finding a time" group, so you can add your availability without opening a chat app. The response count, which used to always read zero, now shows the real number.
 
