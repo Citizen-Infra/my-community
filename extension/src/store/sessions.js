@@ -16,6 +16,9 @@ export const sessionsError = signal(false);
 let lastSessionsArgs = [];
 export function retrySessions() { return loadSessions(lastSessionsArgs); }
 
+export const openSessions = computed(() =>
+  sessions.value.filter((s) => s.status === 'open')
+);
 export const activeSessions = computed(() =>
   sessions.value.filter((s) => s.status === 'active')
 );
@@ -26,8 +29,18 @@ export const completedSessions = computed(() =>
   sessions.value.filter((s) => s.status === 'completed')
 );
 
-function getEventStatus(startsAt, endsAt) {
-  if (!startsAt) return 'upcoming';
+// A Harmonica session published through community-admin V8 carries no start
+// time, and that is correct rather than missing: an open async session is not
+// scheduled for a moment, it is joinable now for as long as it stays open.
+// `session_state` places such an item in time where a date cannot. Only these
+// two states are placeable; pending / private / gone / null are not, and stay
+// filtered out below.
+const SESSION_STATE_STATUS = { open: 'open', ready: 'completed' };
+
+function getEventStatus(startsAt, endsAt, sessionState) {
+  // The state only rescues the undated case; a dated session keeps its
+  // date-derived status.
+  if (!startsAt) return SESSION_STATE_STATUS[sessionState] || 'upcoming';
   const now = new Date();
   const start = new Date(startsAt);
   const end = endsAt ? new Date(endsAt) : new Date(start.getTime() + 2 * 60 * 60 * 1000);
@@ -72,7 +85,7 @@ export async function loadSessions(communities) {
       for (const event of result.events || []) {
         results.push({
           ...event,
-          status: getEventStatus(event.starts_at, event.ends_at),
+          status: getEventStatus(event.starts_at, event.ends_at, event.session_state),
         });
       }
     }
@@ -92,10 +105,15 @@ export async function loadSessions(communities) {
     const deduped = [];
     for (const item of results) {
       // Only show events we can place in time; also skip bare-link junk.
-      // An undated item defaults to 'upcoming' and sticks there forever (past
-      // events shown as Coming Up). Real fix is date parsing at the source:
-      // scenius-digest#12.
-      if (!item.starts_at || isBareUrl(item.title)) continue;
+      // Undated Telegram link-posts would otherwise default to 'upcoming' and
+      // stick there forever, showing past events as Coming Up. Real fix is date
+      // parsing at the source: scenius-digest#12.
+      //
+      // A published Harmonica session is the one undated item we CAN place, via
+      // session_state (see getEventStatus). Admitting it does not readmit the
+      // junk this guard was built for, which carries no session state at all.
+      const placeable = item.starts_at || SESSION_STATE_STATUS[item.session_state];
+      if (!placeable || isBareUrl(item.title)) continue;
       const key = item.url || item.id;
       if (!seen.has(key)) {
         seen.add(key);

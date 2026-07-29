@@ -33,6 +33,12 @@
   --color-session-active: #16a34a;
   --color-session-upcoming: #457b9d;
   --color-session-completed: #a8a29e;
+  /* Open async sessions (community-admin V8): the rationed amber accent, spent
+     on the one feed item a member can act on in their own time. Deep amber, not
+     --color-accent (#d97706), which measures 2.92:1 on --color-accent-subtle and
+     fails WCAG AA for the 10px badge; #b45309 measures 4.61:1 there and 4.65:1
+     as the group title on paper. */
+  --color-session-open: #b45309;
 
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
@@ -120,6 +126,9 @@
   --color-session-active: #4ade80;
   --color-session-upcoming: #7dd3fc;
   --color-session-completed: #6b6560;
+  /* Dark amber is already bright enough: 9.02:1 on the badge tint, 11.10:1 on
+     the page background. */
+  --color-session-open: #fbbf24;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
