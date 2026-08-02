@@ -57,11 +57,25 @@ function pdsFromDidDoc(doc) {
 async function discoverAuthServer(pds) {
   const pr = await fetch(`${pds}/.well-known/oauth-protected-resource`);
   if (!pr.ok) throw new Error(`oauth-protected-resource ${pr.status}`);
-  const authServer = (await pr.json()).authorization_servers?.[0];
-  if (!authServer) throw new Error('no authorization_servers');
+  const declared = (await pr.json()).authorization_servers?.[0];
+  if (!declared) throw new Error('no authorization_servers');
+  // Normalise one trailing slash so a PDS that lists "https://as.example/" is
+  // not rejected by the identity comparison below over punctuation.
+  const authServer = declared.replace(/\/$/, '');
   const md = await fetch(`${authServer}/.well-known/oauth-authorization-server`);
   if (!md.ok) throw new Error(`oauth-authorization-server ${md.status}`);
-  return md.json();
+  const meta = await md.json();
+  // RFC 8414 section 3.3: the issuer in the metadata MUST be identical to the
+  // URL the metadata was retrieved from, and the document MUST NOT be used
+  // otherwise. This is what authenticates the issuer identifier, and the iss
+  // check in loginWithBluesky rests on it: comparing a callback's iss against
+  // a self-declared issuer nobody verified would prove nothing, because an
+  // attacker-run authorization server could simply declare an honest server's
+  // identifier as its own and then send that value back.
+  if (meta.issuer !== authServer) {
+    throw new Error(`authorization server metadata at ${authServer} declares issuer ${meta.issuer}`);
+  }
+  return meta;
 }
 
 async function resolveIdentity(handle) {
@@ -185,6 +199,27 @@ export async function loginWithBluesky(handle) {
   if (rt.searchParams.get('state') !== state) throw new Error('state mismatch');
   const code = rt.searchParams.get('code');
   if (!code) throw new Error(rt.searchParams.get('error_description') || 'sign-in cancelled');
+  // RFC 9207 (adopted by MCP as SEP-2468): bind the response to the
+  // authorization server we resolved, not merely to this browser session.
+  // state already covers the latter. Only iss covers the former, and ATProto
+  // is the multi-authorization-server case the RFC was written for: every
+  // handle can resolve to a different PDS and entryway, so "the client only
+  // ever talks to one AS" — the assumption that makes state alone sufficient
+  // for most apps — is false here on the normal path, not in an edge case.
+  //
+  // Strictness is taken from the server's own metadata rather than chosen:
+  // an AS that advertises support has promised to send iss, so its absence is
+  // a rejection per RFC 9207 section 2.4 (bsky.social advertises it today).
+  // An AS that never advertised support is allowed to omit it, which keeps a
+  // self-hosted PDS on an older authorization server working.
+  //
+  // Checked here, immediately before redemption, rather than beside the state
+  // check: a cancelled sign-in should keep reporting itself as cancelled.
+  const iss = rt.searchParams.get('iss');
+  if (md.authorization_response_iss_parameter_supported && !iss) {
+    throw new Error('authorization response is missing iss');
+  }
+  if (iss && iss !== md.issuer) throw new Error(`issuer mismatch: got ${iss}, expected ${md.issuer}`);
   const tokenForm = new URLSearchParams({ client_id: CLIENT_ID, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code', code, code_verifier: verifier });
   const { res } = await dpopPost(md.token_endpoint, tokenForm, key, { nonce });
   if (!res.ok) throw new Error(`token exchange ${res.status}`);
