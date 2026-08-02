@@ -3,7 +3,7 @@ import { caSessionHeader } from './caAuth';
 import { resolveHandles } from './handles';
 import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
 
-const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
+const CA_URL = import.meta.env.VITE_CA_URL || 'https://admin.citizeninfra.org';
 const CACHE_KEY = 'mc_proposals_cache';
 const CACHE_TTL = 90 * 1000; // 90s — short, keeps the consent badge fresh
 
