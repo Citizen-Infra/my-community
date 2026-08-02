@@ -25,7 +25,9 @@ No linting or test framework configured.
 
 ### Releasing
 
-Bump version in `extension/package.json`, update changelog in `README.md`, commit, tag `v*`, push tag. GitHub Actions (`package.yml`) builds a `.zip` and attaches it to the GitHub Release. The release body is auto-generated from the matching `### <version>` block of the README changelog, so keep that heading format (`### X.Y.Z — Month Year`).
+Bump version in `extension/package.json`, update changelog in `README.md`, commit, tag `v*`, push tag.
+
+`extension/package.json` is the **only** place a version is bumped. `public/manifest.json` carries a `0.0.0` placeholder and the real value is stamped into `dist/manifest.json` at build time by `stampManifestVersion` in `vite.config.js` (#67) — do not edit it by hand. GitHub Actions (`package.yml`) builds a `.zip` and attaches it to the GitHub Release. The release body is auto-generated from the matching `### <version>` block of the README changelog, so keep that heading format (`### X.Y.Z — Month Year`).
 
 ```bash
 git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
