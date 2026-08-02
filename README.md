@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.18 — August 2026
+- **Sign-in works again.** Community Admin moved to a new web address and the extension was still looking for it at the old one, which broke the Bluesky and email sign-in paths at the same time. Both are restored.
+- **Bluesky sign-in now checks which server sent you back.** Every Bluesky account can live on a different server, and the extension talks to whichever one your handle points at. It already confirmed that a sign-in response belonged to your session; it now also confirms the response came from the server it expected, and refuses it otherwise.
+
 ### 0.3.17 — July 2026
 - **Sessions your community opens now appear in your Participation feed.** When an organizer publishes a Harmonica session, a retrospective for instance, it arrives in a new "Open to Join" group with a link straight into the conversation, and moves to Recently Completed with a link to the results once it closes. These sessions carry no start time because you take part whenever suits you, which is exactly why they never showed up before.
 
