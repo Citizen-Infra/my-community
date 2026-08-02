@@ -7,14 +7,10 @@
 
 import { openDB } from 'idb';
 import { SignJWT } from 'jose';
+import { CA_URL } from './config';
 
-// CA_URL is not just where we send requests: it IS this client's OAuth identity.
-// ATProto requires the client-metadata document to declare a client_id equal to
-// the URL it was served from, and CA generates that document from its own
-// API_URL. So this constant must track CA's domain exactly — when they diverge,
-// every authorization server rejects PAR with invalid_client_metadata before
-// sign-in can start.
-const CA_URL = import.meta.env.VITE_CA_URL || 'https://admin.citizeninfra.org';
+// CA_URL is this client's OAuth identity, not merely where we send requests —
+// see the note in lib/config.js, which now owns the constant.
 const CLIENT_ID = `${CA_URL}/oauth/client-metadata.json`;
 const REDIRECT_URI = `${CA_URL}/oauth/callback`;
 const SCOPE = 'atproto transition:generic';

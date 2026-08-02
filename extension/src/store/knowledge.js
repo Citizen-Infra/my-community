@@ -2,8 +2,8 @@ import { signal, computed } from '@preact/signals';
 import { caSessionHeader } from './caAuth';
 import { resolveHandles } from './handles';
 import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
+import { CA_URL } from '../lib/config';
 
-const CA_URL = import.meta.env.VITE_CA_URL || 'https://admin.citizeninfra.org';
 const CACHE_KEY = 'mc_wiki_queue_cache';
 const CACHE_TTL = 90 * 1000; // 90s — matches the proposals feed cadence
 

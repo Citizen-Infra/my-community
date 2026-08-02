@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "check-hosts": "node scripts/check-hosts.mjs",
+    "prebuild": "node scripts/check-hosts.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

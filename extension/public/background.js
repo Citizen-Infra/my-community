@@ -158,6 +158,12 @@ async function saveAndCloseTab(tab, collection) {
 // knowledge card in the Community Input feed (Sub-project E) and gets voted toward
 // the wiki. The worker can't read the page's localStorage, so it uses the CA session
 // + community list the new-tab page mirrors into chrome.storage.local.
+//
+// MUST match CA_URL in src/lib/config.js. This file lives in public/, so Vite
+// copies it verbatim and `import.meta.env` never applies here — it cannot import
+// the config module and cannot read VITE_CA_URL. `npm run build` runs
+// scripts/check-hosts.mjs, which fails the build if this literal drifts from
+// config.js or from manifest.json's host_permissions (#85).
 const CA_URL = 'https://admin.citizeninfra.org';
 
 function flashBadge(text, color) {
@@ -428,7 +434,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // /auth/extension-callback#session=<token>. Chrome blocks external→extension
 // redirects, so catch the callback here, stash the session token, and navigate
 // the tab back to the dashboard. Mirrors the dear-neighbors auth redirect-stash.
-const CA_CALLBACK_HOST = 'admin.citizeninfra.org';
+const CA_CALLBACK_HOST = new URL(CA_URL).hostname; // derived, not restated (#85)
 const CA_CALLBACK_PATH = '/auth/extension-callback';
 const CA_STASH_KEY = 'mc_ca_auth_redirect';
 

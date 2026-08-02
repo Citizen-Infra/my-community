@@ -16,6 +16,7 @@
     "https://public.api.bsky.app/*",
     "https://plc.directory/*",
     "https://navidrome-jam-production.up.railway.app/*",
+    "https://avails.citizeninfra.org/*",
     "https://avails.zhgnv.com/*"
   ],
   "background": {
