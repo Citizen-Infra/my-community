@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.19 — August 2026
+- **Nothing changes for you in this one.** It is groundwork so the sign-in breakage in 0.3.18 cannot repeat: Community Admin's web address used to be written down in six separate places that nothing kept in agreement, and updating only some of them left the extension half-working with no error explaining why. It is now recorded once, and a release where the remaining copies disagree fails to build instead of shipping.
+
 ### 0.3.18 — August 2026
 - **Sign-in works again.** Community Admin moved to a new web address and the extension was still looking for it at the old one, which broke the Bluesky and email sign-in paths at the same time. Both are restored.
 - **Bluesky sign-in now checks which server sent you back.** Every Bluesky account can live on a different server, and the extension talks to whichever one your handle points at. It already confirmed that a sign-in response belonged to your session; it now also confirms the response came from the server it expected, and refuses it otherwise.
