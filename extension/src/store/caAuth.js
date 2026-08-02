@@ -1,12 +1,11 @@
 import { signal, computed } from '@preact/signals';
 import { getServiceAuth, resolveHandleFromDid } from '../lib/oauth-atproto';
 import { getCached, setCached, clearCached } from '../lib/cache';
+import { CA_URL, CA_DID } from '../lib/config';
 
-const CA_URL = import.meta.env.VITE_CA_URL || 'https://admin.citizeninfra.org';
 const SESSION_KEY = 'mc_ca_session';
 const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
 const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
-const CA_DID = import.meta.env.VITE_CA_DID || 'did:web:community-admin-server-production.up.railway.app';
 const JWT_KEY = 'mc_ca_jwt';           // persisted { token, exp } so the 15-min JWT survives page loads
 const IDENTITY_KEY = 'mc_ca_identity'; // cached { subject, type } to skip /auth/me on warm reopens
 const IDENTITY_TTL = 5 * 60 * 1000;
