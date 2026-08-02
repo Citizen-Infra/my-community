@@ -8,6 +8,7 @@
   "host_permissions": [
     "https://eeidclmhfkndimghdyuq.supabase.co/*",
     "https://scenius-digest.vercel.app/*",
+    "https://admin.citizeninfra.org/*",
     "https://community-admin-server-production.up.railway.app/*",
     "https://api.lu.ma/*",
     "https://*.bsky.network/*",

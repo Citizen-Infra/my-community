@@ -2,7 +2,7 @@ import { signal, computed } from '@preact/signals';
 import { getServiceAuth, resolveHandleFromDid } from '../lib/oauth-atproto';
 import { getCached, setCached, clearCached } from '../lib/cache';
 
-const CA_URL = import.meta.env.VITE_CA_URL || 'https://community-admin-server-production.up.railway.app';
+const CA_URL = import.meta.env.VITE_CA_URL || 'https://admin.citizeninfra.org';
 const SESSION_KEY = 'mc_ca_session';
 const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
 const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
