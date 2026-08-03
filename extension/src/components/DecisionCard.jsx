@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { castVote, proposals } from '../store/proposals';
+import { castVote, decisionProposals } from '../store/proposals';
 import { allCommunities } from '../store/communities';
 import { subjectLabel } from '../store/handles';
 import { getCommunityColors } from '../lib/community-colors';
@@ -27,7 +27,7 @@ export function DecisionCard({ proposal: p }) {
 
   // Lineage is derived from the feed itself: another card in the same community
   // that names this one as its supersedes_id is this decision's amended re-post.
-  const supersededBy = proposals.value.find(
+  const supersededBy = decisionProposals.value.find(
     (q) => q.community_id === p.community_id && q.supersedes_id === p.id
   );
 

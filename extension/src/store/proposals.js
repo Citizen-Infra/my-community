@@ -19,9 +19,45 @@ export const proposalsError = signal(false);
 let lastProposalsArgs = [];
 export function retryProposals() { return loadProposals(lastProposalsArgs); }
 
+// This endpoint carries every artifact on community-admin's shared backbone, not
+// just consent decisions: a call-proposal ("should we meet about X?", resolved by
+// schedule-on-threshold, community-admin#54) arrives on the same list with a
+// different `kind`. It has no tallies and no my_vote, because its votes are
+// Bluesky likes. So it must never reach DecisionCard, which would offer Agree /
+// Pass / Raise objection on it and get a 400 back from the vote endpoint, and it
+// must never reach openUnvotedCount, where a permanently-absent my_vote pinned
+// the Community Input badge open forever.
+//
+// The two filters are deliberately asymmetric: call-proposals are matched
+// POSITIVELY and everything else falls through to decisions. A kind this build
+// has never heard of therefore keeps rendering where it renders today, instead of
+// disappearing from both surfaces.
+export const KIND_CALL = 'call-proposal';
+
+export const decisionProposals = computed(() =>
+  proposals.value.filter((p) => p.kind !== KIND_CALL)
+);
+
+// Sorted for the Participation tab: still-gathering first (soonest to close at the
+// top, the ones a click can still change), then resolved ones most-recent-first.
+// `outcome` is the authority, not closes_at — a proposal that booked early is
+// settled while its window is still open.
+export const callProposals = computed(() =>
+  proposals.value
+    .filter((p) => p.kind === KIND_CALL)
+    .sort((a, b) => {
+      const aLive = !a.outcome;
+      const bLive = !b.outcome;
+      if (aLive !== bLive) return aLive ? -1 : 1;
+      return aLive
+        ? new Date(a.closes_at) - new Date(b.closes_at)
+        : new Date(b.closes_at) - new Date(a.closes_at);
+    })
+);
+
 // Open decisions the member has not responded to — the Community Input tab badge.
 export const openUnvotedCount = computed(() =>
-  proposals.value.filter((p) => new Date(p.closes_at).getTime() > Date.now() && !p.my_vote).length
+  decisionProposals.value.filter((p) => new Date(p.closes_at).getTime() > Date.now() && !p.my_vote).length
 );
 
 // Sort: open decisions first (soonest-closing at the top), then closed ones

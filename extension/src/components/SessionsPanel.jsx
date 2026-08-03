@@ -2,7 +2,9 @@ import { useState } from 'preact/hooks';
 import { openSessions, activeSessions, upcomingSessions, completedSessions, sessionsLoading, sessionsError, retrySessions } from '../store/sessions';
 import { getCommunityColors } from '../lib/community-colors';
 import { availsPolls } from '../store/avails';
+import { callProposals } from '../store/proposals';
 import { AvailsPollCards } from './AvailsPollCards';
+import { CallProposalCards } from './CallProposalCards';
 import { FeedError } from './FeedError';
 import '../styles/sessions.css';
 
@@ -21,14 +23,19 @@ export function SessionsPanel() {
   const completed = completedSessions.value;
   const hasAny = open.length + active.length + upcoming.length + completed.length > 0;
   const hasPolls = availsPolls.value.length > 0;
+  const hasCalls = callProposals.value.length > 0;
+  const hasScheduling = hasPolls || hasCalls;
 
   return (
     <div class="sessions-panel">
+      {/* Whether before when: a proposal asks if a call is worth holding, a poll
+          asks when to hold it. */}
+      <CallProposalCards />
       <AvailsPollCards />
 
-      {sessionsError.value && !hasAny && !hasPolls ? (
+      {sessionsError.value && !hasAny && !hasScheduling ? (
         <FeedError onRetry={retrySessions} />
-      ) : !hasAny && !hasPolls ? (
+      ) : !hasAny && !hasScheduling ? (
         <div class="sessions-empty">
           No sessions or events right now. Check back soon.
         </div>

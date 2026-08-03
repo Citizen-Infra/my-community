@@ -1,4 +1,6 @@
-import { proposals, proposalsLoading, proposalsError, retryProposals } from '../store/proposals';
+// decisionProposals, not proposals: the same endpoint also carries call-proposals,
+// which have no tallies and no my_vote and belong in Participation (#100).
+import { decisionProposals, proposalsLoading, proposalsError, retryProposals } from '../store/proposals';
 import { wikiItems, wikiLoading, wikiError, retryWikiQueue, isVotableKnowledge } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
 import { selectedCommunityIds } from '../store/communities';
@@ -52,7 +54,7 @@ export function CommunityInputFeed() {
     return <div class="feed-empty">Choose your communities in Settings to see what they're weighing in on.</div>;
   }
 
-  const decisions = proposals.value;
+  const decisions = decisionProposals.value;
   const knowledge = wikiItems.value;
   const total = decisions.length + knowledge.length;
 
