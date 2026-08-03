@@ -28,7 +28,7 @@ Your browsing history is not collected, stored, or transmitted. The extension re
 
 **Other community services** — the scheduling tool (`avails.citizeninfra.org`), the listening-room service, and a database that stores community sessions. These are read-only requests for content to display. They do not receive your identity.
 
-**Google Fonts.** The dashboard currently loads two typefaces from Google each time you open a new tab, which means Google receives your IP address and browser version. We are removing this by shipping the fonts with the extension instead.
+That is the complete list. The extension makes no other outbound request during normal use — the typefaces and site icons it displays are served from the extension itself and from your browser's own cache.
 
 ## What we do not do
 
@@ -69,8 +69,6 @@ This policy will be updated when the extension's behaviour changes. The date at 
 
 ## Contact
 
-<!-- REPLACE BEFORE PUBLISHING: a monitored address on citizeninfra.org.
-     noreply@citizeninfra.org is send-only and must not be used here. -->
-Questions about this policy: **[contact address to be confirmed]**
+Questions about this policy: **hello@citizen-infra.org**
 
 Source code: <https://github.com/Citizen-Infra/my-community>
