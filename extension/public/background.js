@@ -120,10 +120,12 @@ async function saveAndCloseTab(tab, collection) {
   }
 
   const maxOrder = await getMaxTabOrder(db, collection.id);
-  const hostname = new URL(tab.url).hostname.replace(/^www\./, '');
-  const favicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
 
-  await saveTab(db, collection.id, tab.title, tab.url, favicon, maxOrder + 1);
+  // No favicon URL is stored (#92). The new-tab page derives it from tab.url
+  // via Chrome's local favicon cache; this worker cannot import that helper
+  // (it lives in public/ and is copied verbatim), and duplicating it here would
+  // be a second place to get wrong.
+  await saveTab(db, collection.id, tab.title, tab.url, '', maxOrder + 1);
 
   // Update collection's updatedAt (equivalent of touchCollection in app context)
   const updated = { ...collection, updatedAt: Date.now() };
