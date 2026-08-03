@@ -69,6 +69,6 @@ This policy will be updated when the extension's behaviour changes. The date at 
 
 ## Contact
 
-Questions about this policy: **hello@citizen-infra.org**
+Questions about this policy: **hello@citizeninfra.org**
 
 Source code: <https://github.com/Citizen-Infra/my-community>
