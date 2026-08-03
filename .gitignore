@@ -4,3 +4,6 @@ dist/
 
 # local-only per-session process log (not for the repo)
 docs/process-notes.md
+
+# Packaged release artifacts (scripts/package-zip.sh)
+*.zip
