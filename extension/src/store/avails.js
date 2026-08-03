@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
+import { AVAILS_URL } from '../lib/config';
 
-const AVAILS_API = 'https://avails.zhgnv.com/api/polls';
+const AVAILS_API = `${AVAILS_URL}/api/polls`;
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export const availsPolls = signal([]);

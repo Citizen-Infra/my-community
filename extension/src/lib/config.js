@@ -31,3 +31,15 @@ export const CA_HOST = new URL(CA_URL).hostname;
 // carrying an older value keeps working until CA clears its grace list. There
 // is no lockstep requirement between this file and CA's CA_DID.
 export const CA_DID = import.meta.env.VITE_CA_DID || 'did:web:admin.citizeninfra.org';
+
+// Avails, the ecosystem's scheduling tool.
+//
+// On citizeninfra.org since #90: the old `avails.zhgnv.com` is a personal
+// domain, and a store build lists every host it requests where each installer
+// reads it (cibc-brain#30). Both hosts serve the same service, verified
+// returning identical payloads for a real query before the switch.
+//
+// This grant genuinely is required, unlike the PDS wildcard #90 removed: avails
+// answers an extension-origin request with `access-control-allow-origin:
+// https://avails.zhgnv.com` rather than `*`, so CORS alone would block it.
+export const AVAILS_URL = import.meta.env.VITE_AVAILS_URL || 'https://avails.citizeninfra.org';

@@ -10,14 +10,11 @@
     "https://scenius-digest.vercel.app/*",
     "https://admin.citizeninfra.org/*",
     "https://community-admin-server-production.up.railway.app/*",
-    "https://api.lu.ma/*",
-    "https://*.bsky.network/*",
     "https://bsky.social/*",
     "https://public.api.bsky.app/*",
     "https://plc.directory/*",
     "https://navidrome-jam-production.up.railway.app/*",
-    "https://avails.citizeninfra.org/*",
-    "https://avails.zhgnv.com/*"
+    "https://avails.citizeninfra.org/*"
   ],
   "background": {
     "service_worker": "background.js"
