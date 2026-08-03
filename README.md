@@ -34,6 +34,11 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.20 — August 2026
+- **Calls your community is proposing now have their own card in Participation.** When someone asks whether the community should meet about something, it appears above "Finding a time", showing how many people have said they would be there, and you answer by liking the Bluesky post straight from the card. Until now these arrived in Community Input dressed as consent decisions: they offered Agree, Pass and Raise objection, showed a tally permanently stuck at zero, and answered a click with a raw server error. They also left a count on the Community Input tab that nothing you did could clear.
+- **The extension no longer sends anything to Google.** Two things had been reporting back quietly. Every new tab loaded its fonts from Google's servers, and every saved tab sent that site's web address to Google to fetch its icon, on every render rather than once when you saved it. The fonts now ship inside the extension and icons come from the browser's own cache, so neither happens at all.
+- **It asks for access to fewer websites.** Three of the twelve website permissions were either never used or no longer needed, and are gone.
+
 ### 0.3.19 — August 2026
 - **Nothing changes for you in this one.** It is groundwork so the sign-in breakage in 0.3.18 cannot repeat: Community Admin's web address used to be written down in six separate places that nothing kept in agreement, and updating only some of them left the extension half-working with no error explaining why. It is now recorded once, and a release where the remaining copies disagree fails to build instead of shipping.
 
