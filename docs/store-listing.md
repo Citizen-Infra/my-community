@@ -120,17 +120,35 @@ Structured after DN's, which passed review.
 
 ## Two things to decide before submitting
 
-**1. Which developer account.** DN's listing reads **"Offered by Artem
-Zhiganov"** with `artem.zhiganov@newspeak.house` as the developer email. So the
-one CIBC extension already on the store is publicly attributed to a person, not
-to the club.
+**1. Publisher identity — probably a profile setting, not a second account.**
 
-That is the same shape as the personal-domain problem in
-[cibc-brain#30](https://github.com/Citizen-Infra/cibc-brain/issues/30), on a
-surface every installer reads. Publishing My Community under the same account is
-the cheap path and repeats it; a CIBC group publisher account costs another
-one-off fee and leaves DN behind unless it is transferred too. Worth deciding
-once, for both.
+DN's listing reads **"Offered by Artem Zhiganov"** with only an email in the
+developer section. So the one CIBC extension already on the store is publicly
+attributed to a person rather than the club — the
+[cibc-brain#30](https://github.com/Citizen-Infra/cibc-brain/issues/30) shape, on
+a surface every installer reads.
+
+The obvious framing is "personal account vs. a CIBC account, costing another
+fee and stranding DN unless transferred." **That framing is probably wrong.**
+
+Compare a published organisation listing — Grammarly has **no "Offered by
+<person>" line at all**. It has a publisher page carrying a name, website,
+postal address and trader status. The difference from DN is not two kinds of
+account; it is a **filled-in publisher profile versus a bare one**. The
+[chromium-extensions list](https://groups.google.com/a/chromium.org/g/chromium-extensions/c/RKkcnA6UWtE/m/zuopmx1kGAAJ)
+describes "offered by" as the *verified publisher* field, populated from domains
+verified on the Google account.
+
+CIBC now owns `citizeninfra.org`. So the likely path is: **verify that domain on
+the existing developer account and set the publisher display name** — no new
+account, no second fee, and it fixes DN's attribution at the same time rather
+than leaving it behind.
+
+**Confidence: good, not confirmed.** This is inferred from two live listings plus
+a Chromium list post; Chrome's own doc pages for it 404 at the URLs I tried, so
+nobody has read the authoritative page. **Check the developer dashboard's account
+settings before acting on it** — if a publisher display name and domain
+verification are there, this is ten minutes and the dilemma disappears.
 
 **2. The privacy policy URL.** DN uses a **GitHub blob URL** —
 `https://github.com/Citizen-Infra/dear-neighbors/blob/master/PRIVACY.md` — and
