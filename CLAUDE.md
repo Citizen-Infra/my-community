@@ -124,6 +124,7 @@ All keys prefixed with `mc_`:
 - Bluesky pagination: 2 pages for 24h, 6 for 7d, 10 for 30d — stops early when posts fall outside window
 - DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available
 - All feeds degrade gracefully -- the Network feed requires Bluesky OAuth (connect at the Network tab) but digest and participation work without it; broken OG images are hidden via `onError` handler
+- **Every host and identity in `src/lib/config.js` is baked in at build time, and this extension is sideload-only** -- an install updates when its user rebuilds by hand, which may be never. So a value here going stale is not a deploy away from fixed: `CA_URL`, `CA_HOST`, `CA_DID`, `AVAILS_URL`. When community-admin flipped `API_URL`, both sign-in doors broke for every installed copy (#84) because the `client_id` in its metadata document stopped matching. Treat these as **pinned by contract**: change them only alongside a server-side grace list (`CA_ACCEPTED_DIDS`, the `MC_EXTENSION_REDIRECT` allowlist) that keeps the old value working, and never assume "the server moved so we move too" -- the server can accept both, this cannot. Rule + episodes: cibc-brain `decisions/2026-08-03-identifiers-accept-a-set-during-migration.md` (D-08).
 
 ## Related Projects
 
