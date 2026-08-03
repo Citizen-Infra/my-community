@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { createCollection } from '../store/collections';
 import { addTabs, allTabs } from '../store/tabs';
-import { getFaviconUrl } from '../lib/favicon';
 
 function flattenBookmarkTree(nodes, depth = 0, result = []) {
   for (const node of nodes) {
@@ -71,10 +70,11 @@ export function BookmarkImportModal({ onClose }) {
         if (newBookmarks.length === 0) continue;
 
         const col = await createCollection(folder.title);
+        // No favicon stored (#92) — TabCard derives it from the url.
         const tabsData = newBookmarks.map((b) => ({
           title: b.title,
           url: b.url,
-          favicon: getFaviconUrl(b.url),
+          favicon: '',
         }));
         await addTabs(col.id, tabsData);
 

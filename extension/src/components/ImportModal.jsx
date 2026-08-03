@@ -2,7 +2,6 @@ import { useState, useRef } from 'preact/hooks';
 import { parseTobyExport } from '../lib/toby-import';
 import { collections, createCollection, getOrCreateArchive } from '../store/collections';
 import { allTabs, addTabs } from '../store/tabs';
-import { getFaviconUrl } from '../lib/favicon';
 
 export function ImportModal({ onClose }) {
   const [status, setStatus] = useState(null);
@@ -40,10 +39,11 @@ export function ImportModal({ onClose }) {
         const newTabs = list.tabs.filter((t) => !existingUrls.has(t.url));
         skippedTabs += list.tabs.length - newTabs.length;
 
+        // No favicon stored (#92) — TabCard derives it from the url.
         const tabsData = newTabs.map((t) => ({
           title: t.title,
           url: t.url,
-          favicon: getFaviconUrl(t.url),
+          favicon: '',
           createdAt: t.createdAt,
         }));
         if (tabsData.length > 0) {

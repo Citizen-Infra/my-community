@@ -5,7 +5,11 @@ import { tabSort } from '../store/sort';
 import { getFaviconUrl, getDomain } from '../lib/favicon';
 
 export function TabCard({ tab, tabDrag }) {
-  const favicon = tab.favicon || getFaviconUrl(tab.url);
+  // Derived, never read from the record. Tabs saved before #92 have a
+  // google.com/s2 URL stored on them, and honouring it would keep leaking their
+  // hostname for the life of the collection. Deriving also makes the stored
+  // field redundant, so nothing has to migrate.
+  const favicon = getFaviconUrl(tab.url);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState(null);
   const menuRef = useRef(null);
