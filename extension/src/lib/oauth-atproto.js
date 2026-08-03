@@ -8,6 +8,7 @@
 import { openDB } from 'idb';
 import { SignJWT } from 'jose';
 import { CA_URL } from './config';
+import { oauthState } from './oauth-state';
 
 // CA_URL is this client's OAuth identity, not merely where we send requests —
 // see the note in lib/config.js, which now owns the constant.
@@ -187,7 +188,10 @@ export async function loginWithBluesky(handle) {
   const key = await makeDpopKey();
   const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
   const codeChallenge = b64url(await sha256(verifier));
-  const state = b64url(crypto.getRandomValues(new Uint8Array(16)));
+  // Carries our extension id so CA's relay knows which chromiumapp.org URL to
+  // bounce the response to (#79). The whole string is compared on return below,
+  // so the prefix is covered by the same check as the random half.
+  const state = oauthState(chrome.runtime?.id, b64url(crypto.getRandomValues(new Uint8Array(16))));
   const { request_uri, nonce } = await doPar(md, handle, { codeChallenge, state }, key);
   const authorizeUrl = `${md.authorization_endpoint}?client_id=${encodeURIComponent(CLIENT_ID)}&request_uri=${encodeURIComponent(request_uri)}`;
   const redirect = await chrome.identity.launchWebAuthFlow({ url: authorizeUrl, interactive: true });
