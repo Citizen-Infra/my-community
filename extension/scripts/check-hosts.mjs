@@ -49,6 +49,10 @@ const configCaDid = extract(
   config, 'src/lib/config.js', "CA_DID's default",
   /export const CA_DID = import\.meta\.env\.VITE_CA_DID \|\| '([^']+)'/,
 );
+const configAvailsUrl = extract(
+  config, 'src/lib/config.js', "AVAILS_URL's default",
+  /export const AVAILS_URL = import\.meta\.env\.VITE_AVAILS_URL \|\| '([^']+)'/,
+);
 const backgroundCaUrl = extract(
   background, 'public/background.js', 'the CA_URL literal',
   /^const CA_URL = '([^']+)';$/m,
@@ -67,11 +71,15 @@ if (configCaUrl && backgroundCaUrl && configCaUrl !== backgroundCaUrl) {
 // 2. The manifest must grant the host the app actually calls, or every request
 //    from the service worker fails with an opaque network error.
 const permissions = manifest.host_permissions || [];
-if (configCaUrl && !permissions.includes(`${configCaUrl}/*`)) {
-  fail(
-    `public/manifest.json host_permissions does not grant ${configCaUrl}/*\n` +
-    `  granted: ${permissions.join(', ') || '(none)'}`,
-  );
+for (const [label, url] of [['CA_URL', configCaUrl], ['AVAILS_URL', configAvailsUrl]]) {
+  if (url && !permissions.includes(`${url}/*`)) {
+    fail(
+      `public/manifest.json host_permissions does not grant ${url}/* (${label})\n` +
+      `  granted: ${permissions.join(', ') || '(none)'}\n` +
+      `  Avails in particular answers extension-origin requests without a permissive\n` +
+      `  Access-Control-Allow-Origin, so the grant is load-bearing, not paperwork (#90).`,
+    );
+  }
 }
 
 // 3. The DID and the host must correspond. They are separate facts — CA answers

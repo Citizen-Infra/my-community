@@ -1,5 +1,6 @@
 import { availsPolls } from '../store/avails';
 import { getCommunityColors } from '../lib/community-colors';
+import { AVAILS_URL } from '../lib/config';
 
 // Scheduling polls published to the community feed (#5 sub-project F), rendered
 // as first-class cards in the SessionCard idiom. A poll is an action request, so
@@ -31,7 +32,7 @@ function PollCard({ poll }) {
   return (
     <a
       class="session-card poll-card"
-      href={`https://avails.zhgnv.com/p/${poll.did}/${poll.rkey}`}
+      href={`${AVAILS_URL}/p/${poll.did}/${poll.rkey}`}
       target="_blank"
       rel="noopener noreferrer"
       style={colors ? { '--community-border': colors.border, '--community-bg': colors.bg, '--community-text': colors.text } : undefined}
