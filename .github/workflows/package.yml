@@ -13,10 +13,23 @@ jobs:
   package-zip:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # v4 of these ran on Node 20, which GitHub deprecated — every run was
+      # force-migrated to Node 24 and warned. v5/v6 are where each moved to
+      # Node 24 properly; v7 is current (#103).
+      #
+      # setup-node v5 starts auto-caching when package.json carries a
+      # `packageManager` field. Neither package.json here has one, and `cache:`
+      # is set explicitly below in any case — but check both if that changes.
+      # checkout v7 blocks fork checkouts for pull_request_target/workflow_run;
+      # this workflow triggers on workflow_dispatch and v* tags, so it is inert.
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
+          # NOT the action runtime — this is the Node the extension is BUILT
+          # with, and 20 is past end of life. Bumping it changes the shipped
+          # artifact, so it is a separate decision from the action versions
+          # above and deliberately not folded in here. Tracked in #103.
           node-version: 20
           cache: npm
           cache-dependency-path: extension/package-lock.json
@@ -30,7 +43,7 @@ jobs:
           ./scripts/package-zip.sh
 
       - name: Upload zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: my-community-zip
           path: '*.zip'
@@ -53,7 +66,11 @@ jobs:
 
       - name: Attach zip to release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        # v3 is a runtime move to Node 24 and nothing else — "keep the floating
+        # major tag on v3", no API change. Third-party, so it is not covered by
+        # the GitHub-owned actions' analysis above; read its notes before the
+        # next bump rather than assuming.
+        uses: softprops/action-gh-release@v3
         with:
           files: '*.zip'
           body_path: release-notes.md
