@@ -161,7 +161,89 @@ the citizeninfra.org URL; the point is only that nothing was waiting on it.
 
 ---
 
-## Assets still needed
+## The upload artifact
 
-Screenshots (1280×800 or 640×400), a 128px icon, and optionally a small
-promotional tile. DN ships two screenshots, which is enough.
+`My-Community-v0.3.22-store.zip`, built from `master` and verified: `manifest.json`
+at the archive root, the dev `key` stripped, version `0.3.22`, 9 permissions and
+9 host permissions. Regenerate with `./scripts/package-zip.sh --store` after any
+version bump — the ordinary release zip nests its manifest two levels down and
+the store rejects it as missing.
+
+The 128px icon the listing asks for already ships inside the package
+(`icons/icon-128.png`); it is the same file, so nothing new needs drawing.
+
+Fonts and icons are bundled rather than fetched, which is what makes the "no
+third-party requests" claim in the description literally true — the zip listing
+is the evidence for it.
+
+---
+
+## Screenshots
+
+The only asset genuinely still missing. 1280×800 or 640×400, PNG or JPEG, up to
+five. **Screenshots carry no captions on the store**, so each one has to explain
+itself with no text alongside it.
+
+### Shot list
+
+DN ships two. Four is better here, because the single-purpose statement claims
+*two* functions — a community dashboard and a tab manager — and a reviewer
+checking that claim should be able to see both without reading it. Shots 1 and 3
+are the pair that does that; 2 and 4 are supporting.
+
+| # | View | What it has to show | Why this one |
+|---|---|---|---|
+| 1 | **Participation** | Events, sessions, and at least one open decision with its vote control | The differentiating view. Without it this reads as another tab manager. |
+| 2 | **Digest** | Several link cards with OG thumbnails loaded | Visually the richest, and the fastest to understand at thumbnail size. |
+| 3 | **Tab manager** | A populated collection, several saved tabs | Backs the second half of the single-purpose claim. |
+| 4 | **Network** | Bluesky posts with the filter bar visible | Shows the third feed and that filtering is the user's. |
+
+Every shot must be **populated**. An empty state is the usual way an extension
+screenshot ends up looking broken, and three of these four views are empty until
+a community is selected and sign-in has happened.
+
+### Capturing at exactly 1280×800
+
+A browser window sized to 1280×800 does not give a 1280×800 viewport — the
+window chrome takes the difference, and the result is short. Use DevTools
+instead, which captures the viewport at whatever size you set:
+
+1. Open a new tab (the dashboard), then `F12`.
+2. `Ctrl+Shift+M` for the device toolbar.
+3. Set **Responsive**, dimensions **1280 × 800**, **DPR 1**, zoom **100%** — not "Fit".
+4. Device toolbar `⋮` → **Capture screenshot**.
+
+DPR is the one that quietly ruins a batch: at DPR 2 you get a 2560×1600 file,
+which is not one of the accepted sizes.
+
+### Privacy pass before uploading
+
+These go on a public listing, and the dashboard is full of other people's
+content by design. Check each shot for:
+
+- **The signed-in email address**, visible in Settings. It must not appear in any shot.
+- **A private community.** Use CIBC or another public one. v0.3.22 made exactly this distinction load-bearing in the product; a screenshot should not undo it.
+- **Saved tabs**, which are your own URLs and titles. Curate the collection before shooting.
+- **The Network feed**, which shows real posts from real accounts. The posts are already public on Bluesky, but *whose posts you see* discloses who you follow. Defensible either way — decide deliberately rather than by accident.
+
+---
+
+## Submission sequence
+
+Everything above is done and checked in. What remains needs a Google account and
+a card, so it stops at the dashboard.
+
+1. **Chrome Web Store developer account** — one-off fee. Before adding the item, look for **domain verification** and a **publisher display name** in account settings. If both are there, verifying `citizeninfra.org` fixes the "Offered by Artem Zhiganov" line on DN's listing at the same time, and no second account is needed. This is the inference in the section above; the settings page confirms or kills it in ten minutes.
+2. **Add new item**, upload `My-Community-v0.3.22-store.zip`. **Do not publish.**
+3. **Package tab → View public key.** Copy what sits between the BEGIN/END markers and strip the newlines. This is the whole reason the upload comes before publication: it reveals the store-assigned ID while the item is still a draft.
+4. **Paste that key into `extension/public/manifest.json` as `key`.** Sideload and store then share one ID.
+5. **Add the new ID** to community-admin's `MC_EXTENSION_REDIRECT` and `EXTENSION_ORIGINS`. Both are allowlists already (community-admin#110), so old and new IDs work at once and publication stops being an event.
+6. **Fill the listing** from this document, attach the screenshots, and submit.
+
+One open question worth settling before step 6, because it is not recorded
+anywhere. `CLAUDE.md` requires a manual Bluesky sign-in check for any release
+touching `host_permissions`, `oauth-atproto.js`, or `config.js`, and #90 logged
+that check as the sole gate on the v0.3.20 tag. v0.3.21 and v0.3.22 have shipped
+since, and nothing says whether it ran. The procedure is in `CLAUDE.md` under
+*Verifying a real Bluesky sign-in*; step 4 there — signing out first — is the
+one that decides whether the test proves anything.
