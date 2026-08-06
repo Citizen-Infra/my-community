@@ -34,6 +34,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.22 — August 2026
+- **Saying when you are free is now only offered for public communities.** The times you publish are saved to your own Bluesky account, which anyone can read — and because the record names the community it is for, publishing one for a private community would have shown that you are a member of it, to anyone looking, with no way to take it back afterwards. Private communities now say so on the card instead of offering the grid. Nothing you published before is affected: the only community anyone could publish for was already public.
+
 ### 0.3.21 — August 2026
 - **Say once when you are usually free, and your community's calls can find a time without a poll.** When you say you would come to a proposed call, the card now asks when you are generally free — seven days, morning, afternoon or evening, a few taps. Your answer is kept for the whole community rather than that one call, so every later call it proposes costs you nothing. Once enough people have answered, a time gets picked and booked without anyone making a poll or chasing replies. Until now there was nowhere to answer that question at all, which is why every call proposed so far has quietly expired without being scheduled.
 - **Your answer is saved to your own Bluesky account, not to us.** That means it is yours to change or delete, and any tool can read it rather than only this one. It is also readable by anyone, which the card says plainly before you publish it, and it expires after eight weeks unless you update it. Nothing is ever put in your calendar without asking you first.
