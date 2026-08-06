@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
 import { callProposals } from '../store/proposals';
 import { support, syncSupport, toggleSupport } from '../store/callProposals';
+import { syncAvailability } from '../store/availability';
+import { AvailabilityStrip } from './AvailabilityStrip';
 import { isConnected } from '../store/auth';
 import { setActiveTab } from '../store/panels';
 import { allCommunities } from '../store/communities';
@@ -145,6 +147,13 @@ function CallProposalCard({ proposal: p }) {
         </div>
 
         {error && <p class="call-error">{error}</p>}
+
+        {/* Only once they have said yes. Before that the ask is "do you want
+            this call", and stacking "and when are you free, forever" on top of
+            an unanswered question is two decisions where the card had one.
+            After the like it is the same decision continued: they want the
+            call, so the useful next thing is making it bookable. */}
+        {gathering && isConnected.value && isIn && <AvailabilityStrip proposal={p} />}
       </div>
     </article>
   );
@@ -157,7 +166,11 @@ export function CallProposalCards() {
   const key = list.map((p) => p.post_uri).join(',');
 
   useEffect(() => {
-    if (list.length > 0) syncSupport(list);
+    if (list.length === 0) return;
+    syncSupport(list);
+    // One listRecords over the member's own repo covers every proposal here,
+    // so this is a second call for the page, not a second call per card.
+    if (isConnected.value) syncAvailability(list);
   }, [key, isConnected.value]);
 
   if (list.length === 0) return null;
