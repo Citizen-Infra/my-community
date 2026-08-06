@@ -35,6 +35,21 @@ git tag v0.1.3 && git push origin v0.1.3   # Triggers release workflow
 ./scripts/package-zip.sh --skip-build       # Use existing dist/
 ```
 
+**Only the tag ships anything.** Pushing the release commit is safe and reversible; pushing the tag runs `package.yml` and publishes. So stage the commit, run any gate below, then tag.
+
+#### Verifying a real Bluesky sign-in
+
+Needed whenever a release touches `host_permissions`, `src/lib/oauth-atproto.js`, or `src/lib/config.js`. It cannot be automated — it needs a browser, a consent screen, and a real DPoP key — and CORS evidence gathered with curl does **not** substitute (my-community#90 carries what curl does and does not prove).
+
+1. `cd extension && npm run build` — `prebuild` runs `check-hosts.mjs`; a failure here is config drift, not a sign-in problem.
+2. `chrome://extensions` → **Reload** if already loaded unpacked. Do not add a second copy: the pinned `key` means Chrome refuses a duplicate ID.
+3. **Confirm the id reads `cphcgcdbileeagdkdjfmdjiffpidgngg`.** This is the check that prevents a false alarm — community-admin's `MC_EXTENSION_REDIRECT` allowlist expects it, so a different id means a wrong build, not a permission bug. A plain `npm run build` keeps `key`; only `package-zip.sh --store` strips it.
+4. **Sign out first** (Settings → Sign out). A cached session means no OAuth round trip happens and the test proves nothing. This is the step that is easy to skip.
+5. DevTools → Network, filter `bsky.network`, *then* sign in with an account hosted on **bsky.social** — a self-hosted PDS would not exercise the wildcard the permission trim removed.
+6. Exercise the write path too: Participation → support a call-proposal and undo it. That is `createRecord`/`deleteRecord` against your own PDS, the only path that *writes* to a `bsky.network` host.
+
+Failure looks like a consent screen that opens and never returns, with `blocked by CORS policy` or `net::ERR_FAILED` on a `bsky.network` URL in Console.
+
 ## Architecture
 
 ### Stack
