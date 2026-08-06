@@ -34,6 +34,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.21 — August 2026
+- **Say once when you are usually free, and your community's calls can find a time without a poll.** When you say you would come to a proposed call, the card now asks when you are generally free — seven days, morning, afternoon or evening, a few taps. Your answer is kept for the whole community rather than that one call, so every later call it proposes costs you nothing. Once enough people have answered, a time gets picked and booked without anyone making a poll or chasing replies. Until now there was nowhere to answer that question at all, which is why every call proposed so far has quietly expired without being scheduled.
+- **Your answer is saved to your own Bluesky account, not to us.** That means it is yours to change or delete, and any tool can read it rather than only this one. It is also readable by anyone, which the card says plainly before you publish it, and it expires after eight weeks unless you update it. Nothing is ever put in your calendar without asking you first.
+
 ### 0.3.20 — August 2026
 - **Calls your community is proposing now have their own card in Participation.** When someone asks whether the community should meet about something, it appears above "Finding a time", showing how many people have said they would be there, and you answer by liking the Bluesky post straight from the card. Until now these arrived in Community Input dressed as consent decisions: they offered Agree, Pass and Raise objection, showed a tally permanently stuck at zero, and answered a click with a raw server error. They also left a count on the Community Input tab that nothing you did could clear.
 - **The extension no longer sends anything to Google.** Two things had been reporting back quietly. Every new tab loaded its fonts from Google's servers, and every saved tab sent that site's web address to Google to fetch its icon, on every render rather than once when you saved it. The fonts now ship inside the extension and icons come from the browser's own cache, so neither happens at all.
