@@ -26,11 +26,17 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          # NOT the action runtime — this is the Node the extension is BUILT
-          # with, and 20 is past end of life. Bumping it changes the shipped
-          # artifact, so it is a separate decision from the action versions
-          # above and deliberately not folded in here. Tracked in #103.
-          node-version: 20
+          # The Node the extension is BUILT with, not the action runtime.
+          # 20 reached end of life; 24 is LTS until 2028-04 and is what the
+          # actions above now run on. Safe for the artifact because
+          # vite.config.js sets no `build.target`, and Vite's default
+          # ('modules') is a fixed browser list rather than something derived
+          # from the Node version — so the transpilation target cannot move
+          # with this number. Proven, not assumed: the same workflow built on
+          # 20 and on 24 emitted byte-identical bundles (#103).
+          # Root-relative, like cache-dependency-path below — these resolve
+          # from the workspace root, not from extension/.
+          node-version-file: .node-version
           cache: npm
           cache-dependency-path: extension/package-lock.json
 
