@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import {
-  BLOCKS, DAYS, availability, scopeFor, scopeKey,
+  BLOCKS, DAYS, availability, scopeFor, scopeKey, canPublish,
   publishAvailability, selectionFrom, summarize,
 } from '../store/availability';
 
@@ -32,6 +32,20 @@ export function AvailabilityStrip({ proposal }) {
   const [error, setError] = useState(null);
 
   if (existing === undefined) return null;
+
+  // A private community's record would name it in a world-readable repo that is
+  // also on the firehose, so the offer cannot live there and there is nowhere
+  // else to put it yet. Say that, rather than showing nothing: a strip that
+  // silently fails to appear on some cards and not others reads as a bug, and
+  // the member would never learn why.
+  if (!canPublish(proposal)) {
+    return (
+      <p class="avail-blocked">
+        Saying when you’re free isn’t available for a private community yet — the record would
+        live in your public Bluesky account, where it would show that you’re a member.
+      </p>
+    );
+  }
 
   const open = editing || !existing;
 

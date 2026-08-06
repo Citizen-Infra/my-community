@@ -57,6 +57,31 @@ export function scopeFor(proposal) {
 
 export const scopeKey = (scope) => `${scope.type} ${scope.value}`;
 
+// May this proposal's availability be published to the member's own repo?
+//
+// A ca-community record NAMES the community, and the repo is world-readable and
+// on the firehose — so publishing one for a PRIVATE community broadcasts that
+// person's membership of it, permanently, since deletion does not retract what
+// third parties have already archived. avails#102 decided record visibility
+// follows the group's ("private community -> avails' DB, never the PDS"), and
+// #49 called this the hard part of the issue. This is the guard for it; the
+// private-community storage path itself does not exist yet, so for now a
+// private community simply cannot publish here.
+//
+// FAILS CLOSED, and that is the whole point: anything other than an explicit
+// 'public' is refused, including a missing field. An older community-admin that
+// does not send community_visibility yet reads as "cannot prove it is public",
+// which disables the capture rather than leaking. Never invert this to
+// `!== 'private'`.
+//
+// A LIST scope is exempt, and not by oversight: that record names a Bluesky
+// list, which is already public and says nothing about the private community
+// the proposal happens to live in.
+export function canPublish(proposal) {
+  if (scopeFor(proposal).type !== 'ca-community') return true;
+  return proposal.community_visibility === 'public';
+}
+
 // MUST match avails' rkeyForScope (server/src/routes/availability.js):
 // sha256 of `type\nvalue`, hex, first 24 chars. One record per scope is
 // enforced structurally by that derivation — write a random rkey instead and
@@ -163,6 +188,14 @@ export async function syncAvailability(list) {
 // swaps on the prior cid so a concurrent edit fails loudly instead of silently
 // dropping the other write.
 export async function publishAvailability(proposal, selected) {
+  // First, ahead of even the session check: this is the one refusal whose
+  // failure cannot be undone, and it does not depend on being signed in. The
+  // card already hides the strip when this is false, but a guard that only
+  // governs what renders is not a guard on the write.
+  if (!canPublish(proposal)) {
+    throw new Error('Availability cannot be published for a private community yet.');
+  }
+
   const session = blueskySession.value;
   if (!session) throw new Error('Connect Bluesky first.');
 
