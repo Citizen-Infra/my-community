@@ -43,7 +43,11 @@ Needed whenever a release touches `host_permissions`, `src/lib/oauth-atproto.js`
 
 1. `cd extension && npm run build` — `prebuild` runs `check-hosts.mjs`; a failure here is config drift, not a sign-in problem.
 2. `chrome://extensions` → **Reload** if already loaded unpacked. Do not add a second copy: the pinned `key` means Chrome refuses a duplicate ID.
-3. **Confirm the id reads `cphcgcdbileeagdkdjfmdjiffpidgngg`.** This is the check that prevents a false alarm — community-admin's `MC_EXTENSION_REDIRECT` allowlist expects it, so a different id means a wrong build, not a permission bug. A plain `npm run build` keeps `key`; only `package-zip.sh --store` strips it.
+3. **Confirm the id.** This is the check that prevents a false alarm: a wrong id means a wrong build, not a permission bug. **Two are valid**, and which is correct depends on how the copy under test was installed:
+   - `cphcgcdbileeagdkdjfmdjiffpidgngg` — loaded unpacked from a plain `npm run build`, which keeps the `key` field that pins this id.
+   - `ooifhbgkclfdplnkicclfldllldffjco` — installed from the Chrome Web Store. `package-zip.sh --store` strips `key`, which is precisely why the store could assign its own at draft upload (2026-08-07).
+
+   Both are in community-admin's `MC_EXTENSION_REDIRECT` and `EXTENSION_ORIGINS` allowlists, so either can complete a sign-in. Because the ids differ, a store install and an unpacked build **can** coexist and be verified independently — step 2's duplicate-id refusal only applies to two unpacked copies. Verify the store build separately once published: it is a different install, and nothing about a passing unpacked test transfers to it.
 4. **Sign out first** (Settings → Sign out). A cached session means no OAuth round trip happens and the test proves nothing. This is the step that is easy to skip.
 5. DevTools → Network, filter `bsky.network`, *then* sign in with an account hosted on **bsky.social** — a self-hosted PDS would not exercise the wildcard the permission trim removed.
 6. Exercise the write path too: Participation → support a call-proposal and undo it. That is `createRecord`/`deleteRecord` against your own PDS, the only path that *writes* to a `bsky.network` host.
