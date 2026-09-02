@@ -20,10 +20,11 @@ public** — committing a capture here publishes it exactly as attaching it to t
 listing does. Check every shot for the signed-in account, a private community,
 your own saved-tab URLs, and whose Bluesky posts are visible.
 
-`WITHHELD-settings-dashboard.png` is **deliberately not committed** (see
-`.gitignore` in this directory). It shows the signed-in community account, which
-the privacy pass says must not appear in any shot. It is kept locally because it
-is a useful reference for the Settings layout, and it was never one of the four.
+`alt-settings-dashboard.png` shows the signed-in community account. It is
+committed on purpose: the account is the repo owner's own, and the Settings
+layout is worth a reference. **It must not go on the listing** — the privacy
+pass rule stands for anything a stranger sees on the store page, and this shot
+was never one of the four.
 
 **The filenames no longer carry the extension id.** The originals were named
 `chrome-extension___cphcgcd..._src_newtab.html (n).png` — the sideload id. A
