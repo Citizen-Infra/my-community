@@ -21,7 +21,17 @@ cd extension && npm run dev     # Vite dev server
 
 After building, reload at `chrome://extensions` (Developer mode, Load unpacked -> `extension/dist/`).
 
-No linting or test framework configured.
+No linting or test *framework* configured — but three framework-free tests exist and are worth running:
+
+```bash
+cd extension && for f in scripts/*.test.mjs; do node "$f" || break; done
+```
+
+`cache.test.mjs`, `favicon.test.mjs` and `oauth-state.test.mjs` run under plain `node`, need no dependency, and each ends in `process.exit(failures ? 1 : 0)`, so they signal failure by exit code. `oauth-state.test.mjs` is the load-bearing one: it guards the wire format community-admin's `redirectForState` parses, and a disagreement there is a sign-in that opens a consent screen and never returns.
+
+`npm run build` is the other gate — `prebuild` runs `scripts/check-hosts.mjs`, which asserts the manifest grants `CA_URL` and `AVAILS_URL` (the drift that caused #84).
+
+**Nothing runs any of this automatically.** `package.yml` fires only on `workflow_dispatch` and `v*` tags, so there are no PR checks at all — see #109.
 
 ### Releasing
 
