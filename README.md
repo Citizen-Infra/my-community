@@ -34,6 +34,12 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.23 — September 2026
+- **The dashboard is now a community overview rather than a row of feed tabs.** Enabled feeds appear as rearrangeable tiles, with civic priorities such as decisions needing your response and events happening now brought forward. Each tile automatically fits complete preview rows into the available space, can remember an exact item limit, and links each preview directly to its underlying post, source, session, or decision. The full feed remains available from the tile heading or its quiet hover action.
+- **New tabs keep useful previews without reloading every source.** Previously loaded, account-matched previews remain visible while the most recently focused feed refreshes; feeds with no saved preview populate one at a time after first paint. Community and Bluesky caches are separated by account so private content cannot cross identities.
+- **Community Input now reads as one civic workflow.** Decisions and suggested wiki sources are grouped as Needs your response, In progress, or Resolved, while call proposals stay in Participation where they belong.
+- **The extension asks for one fewer website permission.** A legacy Community Admin host entry that the current sign-in and feed paths no longer use has been removed.
+
 ### 0.3.22 — August 2026
 - **Saying when you are free is now only offered for public communities.** The times you publish are saved to your own Bluesky account, which anyone can read — and because the record names the community it is for, publishing one for a private community would have shown that you are a member of it, to anyone looking, with no way to take it back afterwards. Private communities now say so on the card instead of offering the grid. Nothing you published before is affected: the only community anyone could publish for was already public.
 
