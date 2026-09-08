@@ -27,5 +27,13 @@ assert.deepEqual(
   moveDashboardTab(DEFAULT_DASHBOARD_ORDER, 'network', -1),
   DEFAULT_DASHBOARD_ORDER
 );
+assert.deepEqual(
+  moveDashboardTab(DEFAULT_DASHBOARD_ORDER, 'network', 1, ['network', 'participation', 'communityInput']),
+  ['participation', 'digest', 'network', 'communityInput']
+);
+assert.deepEqual(
+  reorderDashboardTab(DEFAULT_DASHBOARD_ORDER, 'communityInput', 'network', ['network', 'participation', 'communityInput']),
+  ['communityInput', 'digest', 'network', 'participation']
+);
 
 console.log('dashboard order tests passed');

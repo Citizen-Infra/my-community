@@ -1,41 +1,15 @@
 // decisionProposals, not proposals: the same endpoint also carries call-proposals,
 // which have no tallies and no my_vote and belong in Participation (#100).
 import { decisionProposals, proposalsLoading, proposalsError, retryProposals } from '../store/proposals';
-import { wikiItems, wikiLoading, wikiError, retryWikiQueue, isVotableKnowledge } from '../store/knowledge';
+import { wikiItems, wikiLoading, wikiError, retryWikiQueue } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
 import { selectedCommunityIds } from '../store/communities';
 import { DecisionCard } from './DecisionCard';
 import { KnowledgeCard } from './KnowledgeCard';
 import { CommunityInputConnect } from './CommunityInputConnect';
 import { FeedError } from './FeedError';
+import { mergeCommunityInputRows } from '../lib/community-input-order';
 import '../styles/community-input.css';
-
-// Priority tier for the merged feed: items needing your response first, then other
-// still-open items, then resolved ones. Each source list is already urgency-sorted,
-// so a stable sort by (tier, kind) preserves that order within each group.
-function decisionTier(p) {
-  const open = new Date(p.closes_at).getTime() > Date.now();
-  if (open && !p.my_vote) return 0;
-  if (open) return 1;
-  return 2;
-}
-function knowledgeTier(k) {
-  const votable = isVotableKnowledge(k.status);
-  if (votable && !k.my_vote) return 0;
-  if (votable) return 1;
-  return 2;
-}
-
-// One list across both kinds. Within a tier, time-boxed decisions sit ahead of
-// deadline-free sources.
-function mergedFeed(decisions, knowledge) {
-  const rows = [
-    ...decisions.map((p) => ({ kind: 'decision', tier: decisionTier(p), p })),
-    ...knowledge.map((k) => ({ kind: 'knowledge', tier: knowledgeTier(k), k })),
-  ];
-  rows.sort((a, b) => a.tier - b.tier || (a.kind === b.kind ? 0 : a.kind === 'decision' ? -1 : 1));
-  return rows;
-}
 
 // The three feed sections, mirroring the Participation group dividers. Tiers come
 // from decisionTier / knowledgeTier; a section with no items does not render.
@@ -77,7 +51,7 @@ export function CommunityInputFeed() {
     );
   }
 
-  const rows = mergedFeed(decisions, knowledge);
+  const rows = mergeCommunityInputRows(decisions, knowledge);
 
   const renderRow = (row) =>
     row.kind === 'decision' ? (

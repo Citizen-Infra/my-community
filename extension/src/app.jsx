@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
 import { initAuth, isConnected } from './store/auth';
 import { loadCommunities, selectedCommunityIds, selectedCommunities } from './store/communities';
 import { hydrateDigest, loadDigest } from './store/digest';
 import { hydrateSessions, loadSessions } from './store/sessions';
 import { initCaAuth, caSignedIn } from './store/caAuth';
-import { loadProposals } from './store/proposals';
-import { loadWikiQueue, refreshWikiQueue } from './store/knowledge';
+import { clearProposals, loadProposals } from './store/proposals';
+import { clearWikiQueue, loadWikiQueue, refreshWikiQueue } from './store/knowledge';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import { hydrateBlueskyFeed, loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
@@ -109,6 +109,17 @@ export function App() {
     return () => stopJamPolling();
   }, [ready, caSignedIn.value, selectedCommunityIds.value]);
 
+  // Community-scoped inactive tiles must never retain a previous selection's
+  // content. Hydrate matching cache snapshots or clear them before the active
+  // feed loader below refreshes its one allowed network source.
+  useLayoutEffect(() => {
+    if (!ready) return;
+    hydrateDigest(selectedCommunityIds.value);
+    hydrateSessions(selectedCommunities.value);
+    clearProposals();
+    clearWikiQueue();
+  }, [ready, caSignedIn.value, selectedCommunityIds.value, selectedCommunities.value]);
+
   // Refresh one feed at a time: the member's most recently focused feed (Digest
   // by default), whether the overview or a focused feed is open. Other overview
   // tiles use valid cache snapshots, preserving the request budget from #32.
@@ -129,7 +140,7 @@ export function App() {
         break;
       // 'communityInput' -> proposals, already loaded by the always-on effect above
     }
-  }, [ready, dashboardMode.value, activeTab.value, selectedCommunityIds.value, isConnected.value]);
+  }, [ready, activeTab.value, selectedCommunityIds.value, isConnected.value]);
 
   // avails polling is scoped to the Participation tab being open (its banners
   // only show there). Starts on activation, stops when you leave.

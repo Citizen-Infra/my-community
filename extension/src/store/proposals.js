@@ -17,7 +17,15 @@ export const proposalsLoading = signal(false);
 export const proposalsError = signal(false);
 
 let lastProposalsArgs = [];
+let loadGeneration = 0;
 export function retryProposals() { return loadProposals(lastProposalsArgs); }
+
+export function clearProposals() {
+  loadGeneration += 1;
+  proposals.value = [];
+  proposalsLoading.value = false;
+  proposalsError.value = false;
+}
 
 // This endpoint carries every artifact on community-admin's shared backbone, not
 // just consent decisions: a call-proposal ("should we meet about X?", resolved by
@@ -75,17 +83,24 @@ function byUrgency(a, b) {
 // given community 403 there; those are skipped so the rest of the feed still renders
 // (degrade gracefully). Clears when signed out or nothing is selected.
 export async function loadProposals(communityIds) {
+  const generation = ++loadGeneration;
   lastProposalsArgs = communityIds;
   proposalsError.value = false;
   const headers = caSessionHeader();
   if (!headers.Authorization || !communityIds || communityIds.length === 0) {
     proposals.value = [];
+    proposalsLoading.value = false;
     return;
   }
 
   const selector = communityKey(communityIds);
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
-  if (cached) { proposals.value = cached; resolveHandles(cached.map((p) => p.created_by)); return; }
+  if (Array.isArray(cached)) {
+    proposals.value = cached;
+    proposalsLoading.value = false;
+    resolveHandles(cached.map((p) => p.created_by));
+    return;
+  }
 
   proposalsLoading.value = true;
   let anyFailure = false;
@@ -106,16 +121,18 @@ export async function loadProposals(communityIds) {
         }
       })
     );
+    if (generation !== loadGeneration) return;
     all.sort(byUrgency);
     proposals.value = all;
     resolveHandles(all.map((p) => p.created_by));
     if (!anyFailure) setCached(CACHE_KEY, all, selector);
     proposalsError.value = anyFailure && all.length === 0;
   } catch (err) {
+    if (generation !== loadGeneration) return;
     console.error('Failed to load decisions:', err);
     proposalsError.value = true;
   }
-  proposalsLoading.value = false;
+  if (generation === loadGeneration) proposalsLoading.value = false;
 }
 
 // Cast (or change) the caller's vote on one decision. The server upserts one vote per

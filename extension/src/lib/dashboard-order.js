@@ -16,26 +16,33 @@ export function normalizeDashboardOrder(value) {
   ];
 }
 
-export function reorderDashboardTab(order, movedTab, targetTab) {
+export function reorderDashboardTab(order, movedTab, targetTab, movableTabs = null) {
   const normalized = normalizeDashboardOrder(order);
-  const from = normalized.indexOf(movedTab);
-  const to = normalized.indexOf(targetTab);
+  const movable = movableTabs
+    ? normalized.filter((tab) => movableTabs.includes(tab))
+    : normalized;
+  const from = movable.indexOf(movedTab);
+  const to = movable.indexOf(targetTab);
   if (from < 0 || to < 0 || from === to) return normalized;
 
-  const next = [...normalized];
-  next.splice(from, 1);
-  next.splice(to, 0, movedTab);
+  const reordered = [...movable];
+  reordered.splice(from, 1);
+  reordered.splice(to, 0, movedTab);
+
+  let movableIndex = 0;
+  const next = normalized.map((tab) =>
+    movable.includes(tab) ? reordered[movableIndex++] : tab
+  );
   return next;
 }
 
-export function moveDashboardTab(order, tab, delta) {
+export function moveDashboardTab(order, tab, delta, movableTabs = null) {
   const normalized = normalizeDashboardOrder(order);
-  const from = normalized.indexOf(tab);
-  const to = Math.max(0, Math.min(normalized.length - 1, from + delta));
+  const movable = movableTabs
+    ? normalized.filter((key) => movableTabs.includes(key))
+    : normalized;
+  const from = movable.indexOf(tab);
+  const to = Math.max(0, Math.min(movable.length - 1, from + delta));
   if (from < 0 || from === to) return normalized;
-
-  const next = [...normalized];
-  next.splice(from, 1);
-  next.splice(to, 0, tab);
-  return next;
+  return reorderDashboardTab(normalized, tab, movable[to], movable);
 }

@@ -15,12 +15,20 @@ export const sessionsLoaded = signal(false);
 export const sessionsError = signal(false);
 
 let lastSessionsArgs = [];
+let loadGeneration = 0;
 export function retrySessions() { return loadSessions(lastSessionsArgs); }
 
 export function hydrateSessions(communities) {
+  loadGeneration += 1;
+  sessionsLoading.value = false;
+  sessionsError.value = false;
   const selector = communityKey(communities.map((c) => c.id));
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
-  if (!cached) return false;
+  if (!Array.isArray(cached)) {
+    sessions.value = [];
+    sessionsLoaded.value = false;
+    return false;
+  }
   sessions.value = cached;
   sessionsLoaded.value = true;
   return true;
@@ -67,10 +75,17 @@ function isBareUrl(title) {
 }
 
 export async function loadSessions(communities) {
+  const generation = ++loadGeneration;
   lastSessionsArgs = communities;
   sessionsError.value = false;
   const selector = communityKey(communities.map((c) => c.id));
-  if (hydrateSessions(communities)) return;
+  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
+  if (Array.isArray(cached)) {
+    sessions.value = cached;
+    sessionsLoading.value = false;
+    sessionsLoaded.value = true;
+    return;
+  }
 
   sessionsLoading.value = true;
 
@@ -137,16 +152,20 @@ export async function loadSessions(communities) {
       return aTime - bTime;
     });
 
+    if (generation !== loadGeneration) return;
     sessions.value = deduped;
     // Don't cache a partial/failed result as authoritative; let the next open retry.
     if (!anyFailure) setCached(CACHE_KEY, deduped, selector);
     // Only an outage that also left nothing to show is an error; partial results render.
     sessionsError.value = anyFailure && deduped.length === 0;
   } catch (err) {
+    if (generation !== loadGeneration) return;
     console.error('Failed to load sessions:', err);
     sessionsError.value = true;
   }
 
-  sessionsLoading.value = false;
-  sessionsLoaded.value = true;
+  if (generation === loadGeneration) {
+    sessionsLoading.value = false;
+    sessionsLoaded.value = true;
+  }
 }

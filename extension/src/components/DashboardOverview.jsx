@@ -20,12 +20,14 @@ import {
   upcomingSessions,
 } from '../store/sessions';
 import {
+  blueskyError,
   blueskyLoaded,
   blueskyLoading,
   blueskyVisiblePosts,
 } from '../store/bluesky';
 import { isConnected } from '../store/auth';
 import {
+  callProposals,
   decisionProposals,
   openUnvotedCount,
   proposalsError,
@@ -38,6 +40,7 @@ import {
   wikiLoading,
 } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
+import { mergeCommunityInputRows } from '../lib/community-input-order';
 import '../styles/dashboard-overview.css';
 
 export const DASHBOARD_FEED_LABELS = {
@@ -75,6 +78,7 @@ function previewState(tab) {
     if (!isConnected.value) return { state: 'signed-out', message: 'Connect Bluesky to see what your network is discussing.' };
     const posts = blueskyVisiblePosts.value;
     if (blueskyLoading.value && posts.length === 0) return { state: 'loading', message: 'Listening to your network…' };
+    if (blueskyError.value && posts.length === 0) return { state: 'error', message: 'Network posts could not refresh. Open Network to try again.' };
     if (!blueskyLoaded.value && posts.length === 0) return { state: 'idle', message: 'Open Network to load popular posts from people you follow.' };
     if (posts.length === 0) return { state: 'empty', message: 'No posts in the current time window.' };
     return {
@@ -87,7 +91,16 @@ function previewState(tab) {
   }
 
   if (tab === 'participation') {
-    const current = [...openSessions.value, ...activeSessions.value, ...upcomingSessions.value];
+    const current = [
+      ...callProposals.value.filter((proposal) => !proposal.outcome && proposal.status === 'open').map((proposal) => ({
+        ...proposal,
+        title: proposal.title || proposal.question || 'Proposed community call',
+        previewDetail: 'Call proposal',
+      })),
+      ...openSessions.value,
+      ...activeSessions.value,
+      ...upcomingSessions.value,
+    ];
     if (sessionsLoading.value && current.length === 0) return { state: 'loading', message: 'Finding ways to take part…' };
     if (sessionsError.value && current.length === 0) return { state: 'error', message: 'Participation opportunities could not refresh.' };
     if (!sessionsLoaded.value && current.length === 0) return { state: 'idle', message: 'Open Participation to find sessions and events.' };
@@ -96,7 +109,7 @@ function previewState(tab) {
       meta: `${current.length} open or upcoming`,
       items: current.slice(0, 3).map((session) => ({
         title: session.title,
-        detail: session.status === 'active' ? 'Happening now' : session.status === 'open' ? 'Open to join' : 'Coming up',
+        detail: session.previewDetail || (session.status === 'active' ? 'Happening now' : session.status === 'open' ? 'Open to join' : 'Coming up'),
       })),
     };
   }
@@ -106,16 +119,17 @@ function previewState(tab) {
   }
 
   const pending = openUnvotedCount.value + openUnvotedKnowledgeCount.value;
-  const items = [
-    ...decisionProposals.value.map((proposal) => ({
-      title: proposal.title || proposal.question || 'Community decision',
-      detail: proposal.my_vote ? 'Response recorded' : 'Decision',
-    })),
-    ...wikiItems.value.map((item) => ({
-      title: item.title || item.url || 'Suggested source',
-      detail: item.my_vote ? 'Response recorded' : 'Wiki suggestion',
-    })),
-  ];
+  const items = mergeCommunityInputRows(decisionProposals.value, wikiItems.value).map((row) =>
+    row.kind === 'decision'
+      ? {
+          title: row.p.title || row.p.question || 'Community decision',
+          detail: row.p.my_vote ? 'Response recorded' : 'Decision',
+        }
+      : {
+          title: row.k.title || row.k.url || 'Suggested source',
+          detail: row.k.my_vote ? 'Response recorded' : 'Wiki suggestion',
+        }
+  );
   if ((proposalsLoading.value || wikiLoading.value) && items.length === 0) return { state: 'loading', message: 'Checking what needs your voice…' };
   if ((proposalsError.value || wikiError.value) && items.length === 0) return { state: 'error', message: 'Community input could not refresh.' };
   if (items.length === 0) return { state: 'empty', message: 'Nothing needs your input right now.' };

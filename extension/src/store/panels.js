@@ -59,11 +59,11 @@ function saveTabOrder(next) {
 }
 
 export function reorderTab(movedTab, targetTab) {
-  saveTabOrder(reorderDashboardTab(tabOrder.value, movedTab, targetTab));
+  saveTabOrder(reorderDashboardTab(tabOrder.value, movedTab, targetTab, availableTabs.value));
 }
 
 export function moveTab(tab, delta) {
-  saveTabOrder(moveDashboardTab(tabOrder.value, tab, delta));
+  saveTabOrder(moveDashboardTab(tabOrder.value, tab, delta, availableTabs.value));
 }
 
 export function setTabVisible(tab, visible) {
