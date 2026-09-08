@@ -4,6 +4,7 @@ import {
   MAX_PREVIEW_DEPTH,
   fitPreviewDepth,
   normalizePreviewDepth,
+  previewRowDensity,
 } from '../src/lib/dashboard-preview-depth.js';
 
 assert.equal(normalizePreviewDepth(undefined), AUTO_PREVIEW_DEPTH);
@@ -16,5 +17,10 @@ assert.equal(fitPreviewDepth(0, 10), 1);
 assert.equal(fitPreviewDepth(147, 10), 3);
 assert.equal(fitPreviewDepth(1000, 4), 4);
 assert.equal(fitPreviewDepth(1000, 0), 0);
+
+assert.equal(previewRowDensity(0, 0), 'compact');
+assert.equal(previewRowDensity(180, 2), 'compact');
+assert.equal(previewRowDensity(192, 2), 'comfortable');
+assert.equal(previewRowDensity(320, 2), 'expansive');
 
 console.log('dashboard preview depth tests passed');

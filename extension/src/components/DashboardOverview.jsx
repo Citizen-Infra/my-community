@@ -52,6 +52,7 @@ import {
   AUTO_PREVIEW_DEPTH,
   MAX_PREVIEW_DEPTH,
   fitPreviewDepth,
+  previewRowDensity,
 } from '../lib/dashboard-preview-depth';
 import '../styles/dashboard-overview.css';
 
@@ -99,6 +100,21 @@ function sessionUrl(session) {
   return session.url || '';
 }
 
+function participationProvenance(item) {
+  const details = [communityName(item.community_id || item.community)];
+  if (item.starts_at) {
+    details.push(new Date(item.starts_at).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }));
+  }
+  if (item.location) details.push(item.location);
+  return details.filter(Boolean).join(' · ');
+}
+
 function previewState(tab) {
   if (tab === 'digest') {
     const links = digestLinks.value;
@@ -111,6 +127,7 @@ function previewState(tab) {
       items: links.map((link, index) => ({
         key: `${link.community_id || ''}-${link.id || link.url}-${index}`,
         title: link.og_title || link.title || link.url,
+        context: link.og_description || link.description || '',
         provenance: [communityName(link.community_id), safeHost(link.url)].filter(Boolean).join(' · '),
         href: link.url,
       })),
@@ -158,8 +175,9 @@ function previewState(tab) {
       items: current.map((item) => ({
         key: `${item.source || item.kind || 'participation'}-${item.community_id || item.community || ''}-${item.id}`,
         title: item.title,
+        context: item.description || item.body || '',
         status: item.previewStatus || (item.status === 'active' ? 'Happening now' : item.status === 'open' ? 'Open to join' : 'Coming up'),
-        provenance: communityName(item.community_id || item.community),
+        provenance: participationProvenance(item),
         href: item.previewAnchor ? '' : sessionUrl(item),
         anchor: item.previewAnchor,
       })),
@@ -176,6 +194,7 @@ function previewState(tab) {
       ? {
           key: `decision-${row.p.community_id}-${row.p.id}`,
           title: row.p.title || row.p.question || 'Community decision',
+          context: row.p.body || '',
           status: row.p.my_vote ? 'Response recorded' : 'Needs your response',
           provenance: communityName(row.p.community_id),
           anchor: communityInputAnchor('decision', row.p),
@@ -183,6 +202,7 @@ function previewState(tab) {
       : {
           key: `knowledge-${row.k.community_id}-${row.k.id}`,
           title: row.k.title || row.k.url || 'Suggested source',
+          context: row.k.summary || '',
           status: row.k.my_vote ? 'Response recorded' : 'Needs your response',
           provenance: communityName(row.k.community_id),
           anchor: communityInputAnchor('knowledge', row.k),
@@ -223,24 +243,30 @@ function tileAction(label, preview) {
   return `View ${label}`;
 }
 
-function useAutoPreviewDepth(containerRef, itemCount, layoutKey) {
-  const [count, setCount] = useState(Math.min(itemCount, 3));
+function usePreviewLayout(containerRef, itemCount, layoutKey) {
+  const [layout, setLayout] = useState({
+    autoCount: Math.min(itemCount, 3),
+    availableHeight: 0,
+  });
 
   useLayoutEffect(() => {
     const node = containerRef.current;
     if (!node || itemCount === 0) {
-      setCount(0);
+      setLayout({ autoCount: 0, availableHeight: node?.clientHeight || 0 });
       return undefined;
     }
 
-    const update = () => setCount(fitPreviewDepth(node.clientHeight, itemCount));
+    const update = () => setLayout({
+      autoCount: fitPreviewDepth(node.clientHeight, itemCount),
+      availableHeight: node.clientHeight,
+    });
     update();
     const observer = new ResizeObserver(update);
     observer.observe(node);
     return () => observer.disconnect();
   }, [itemCount, layoutKey]);
 
-  return count;
+  return layout;
 }
 
 function openAnchoredItem(tab, anchor) {
@@ -254,6 +280,7 @@ function PreviewRow({ item, tab, customizing }) {
   const content = (
     <>
       <strong>{item.title}</strong>
+      {item.context && <span class="dashboard-preview-row-context">{item.context}</span>}
       {(item.status || item.provenance) && (
         <span class="dashboard-preview-row-meta">
           {item.status && <span class={item.status === 'Needs your response' ? 'needs-action' : ''}>{item.status}</span>}
@@ -318,11 +345,12 @@ function TileHeading({ label, preview, customizing, index, count, onMove, onOpen
   );
 }
 
-function TileBody({ preview, tab, customizing, depth, autoCount, containerRef, onOpen }) {
+function TileBody({ preview, tab, customizing, depth, autoCount, availableHeight, containerRef, onOpen }) {
   const visibleCount = depth === AUTO_PREVIEW_DEPTH ? autoCount : depth;
   const visibleItems = preview.items?.slice(0, visibleCount) || [];
   const fixedOverflow = depth !== AUTO_PREVIEW_DEPTH
     && Math.min(depth, preview.items?.length || 0) > autoCount;
+  const rowDensity = previewRowDensity(availableHeight, visibleItems.length);
 
   const stateContent = preview.state === 'loading' ? (
     <span class="dashboard-tile-loading" role="status">
@@ -336,7 +364,10 @@ function TileBody({ preview, tab, customizing, depth, autoCount, containerRef, o
   return (
     <div ref={containerRef} class={`dashboard-tile-body ${fixedOverflow ? 'allows-scroll' : ''}`}>
       {preview.items ? (
-        <div class="dashboard-preview-list">
+        <div
+          class={`dashboard-preview-list density-${rowDensity}`}
+          style={{ '--preview-row-count': Math.max(visibleItems.length, 1) }}
+        >
           {visibleItems.map((item) => <PreviewRow key={item.key} {...{ item, tab, customizing }} />)}
         </div>
       ) : customizing ? (
@@ -367,7 +398,7 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
   const preview = previewState(tab);
   const depth = previewDepths.value[tab] ?? AUTO_PREVIEW_DEPTH;
   const bodyRef = useRef(null);
-  const autoCount = useAutoPreviewDepth(bodyRef, preview.items?.length || 0, customizing);
+  const { autoCount, availableHeight } = usePreviewLayout(bodyRef, preview.items?.length || 0, customizing);
   const handleOpen = () => {
     openDashboardFeed(tab);
     if (preview.state === 'error' && tab === 'communityInput') {
@@ -389,7 +420,7 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
       }}
     >
       <TileHeading {...{ label, preview, customizing, index, count, onMove, onOpen: handleOpen, tab }} />
-      <TileBody {...{ preview, tab, customizing, depth, autoCount, containerRef: bodyRef, onOpen: handleOpen }} />
+      <TileBody {...{ preview, tab, customizing, depth, autoCount, availableHeight, containerRef: bodyRef, onOpen: handleOpen }} />
       {!customizing && (
         <button type="button" class="dashboard-tile-cta" onClick={handleOpen}>
           {tileAction(label, preview)}

@@ -2,6 +2,14 @@ export const AUTO_PREVIEW_DEPTH = 'auto';
 export const MAX_PREVIEW_DEPTH = 20;
 export const PREVIEW_ROW_HEIGHT = 49;
 
+export function previewRowDensity(availableHeight, visibleCount) {
+  if (visibleCount <= 0) return 'compact';
+  const rowHeight = Math.max(0, availableHeight) / visibleCount;
+  if (rowHeight >= 160) return 'expansive';
+  if (rowHeight >= 96) return 'comfortable';
+  return 'compact';
+}
+
 export function normalizePreviewDepth(value) {
   if (value === AUTO_PREVIEW_DEPTH) return value;
   const count = Number(value);
