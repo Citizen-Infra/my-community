@@ -51,7 +51,7 @@ import {
 } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
 import { allCommunities, selectedCommunityIds } from '../store/communities';
-import { mergeCommunityInputRows } from '../lib/community-input-order';
+import { communityInputStatus, mergeCommunityInputRows } from '../lib/community-input-order';
 import { communityScope, networkPostMeta, networkScope } from '../lib/dashboard-preview-meta';
 import {
   AUTO_PREVIEW_DEPTH,
@@ -207,7 +207,7 @@ function previewState(tab) {
           key: `decision-${row.p.community_id}-${row.p.id}`,
           title: row.p.title || row.p.question || 'Community decision',
           context: row.p.body || '',
-          status: row.p.my_vote ? 'Response recorded' : 'Needs your response',
+          status: communityInputStatus(row.tier),
           provenance: communityName(row.p.community_id),
           anchor: communityInputAnchor('decision', row.p),
         }
@@ -215,7 +215,7 @@ function previewState(tab) {
           key: `knowledge-${row.k.community_id}-${row.k.id}`,
           title: row.k.title || row.k.url || 'Suggested source',
           context: row.k.summary || '',
-          status: row.k.my_vote ? 'Response recorded' : 'Needs your response',
+          status: communityInputStatus(row.tier),
           provenance: communityName(row.k.community_id),
           anchor: communityInputAnchor('knowledge', row.k),
         }

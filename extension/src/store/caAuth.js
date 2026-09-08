@@ -145,8 +145,12 @@ export async function getToken() {
 
 // Header object for scenius-digest calls: Bearer when signed in, empty otherwise.
 export async function authHeader() {
+  // Do not authenticate a request until the session has resolved to an account.
+  // Otherwise private responses could be cached under the anonymous selector.
+  const subject = caSubject.value;
+  if (!subject) return {};
   const t = await getToken();
-  return t ? { Authorization: `Bearer ${t}` } : {};
+  return t && caSubject.value === subject ? { Authorization: `Bearer ${t}` } : {};
 }
 
 // Header for community-admin's OWN endpoints (e.g. /communities/:id/proposals).

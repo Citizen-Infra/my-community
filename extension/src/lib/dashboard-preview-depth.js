@@ -5,8 +5,10 @@ export const PREVIEW_ROW_HEIGHT = 49;
 export function previewRowDensity(availableHeight, visibleCount) {
   if (visibleCount <= 0) return 'compact';
   const rowHeight = Math.max(0, availableHeight) / visibleCount;
-  if (rowHeight >= 160) return 'expansive';
-  if (rowHeight >= 96) return 'comfortable';
+  // These thresholds include the maximum clamped title, context, metadata,
+  // gaps, and padding used by each density so an enhanced row remains whole.
+  if (rowHeight >= 192) return 'expansive';
+  if (rowHeight >= 120) return 'comfortable';
   return 'compact';
 }
 

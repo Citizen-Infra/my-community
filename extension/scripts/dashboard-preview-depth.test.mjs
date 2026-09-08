@@ -20,7 +20,8 @@ assert.equal(fitPreviewDepth(1000, 0), 0);
 
 assert.equal(previewRowDensity(0, 0), 'compact');
 assert.equal(previewRowDensity(180, 2), 'compact');
-assert.equal(previewRowDensity(192, 2), 'comfortable');
-assert.equal(previewRowDensity(320, 2), 'expansive');
+assert.equal(previewRowDensity(240, 2), 'comfortable');
+assert.equal(previewRowDensity(383, 2), 'comfortable');
+assert.equal(previewRowDensity(384, 2), 'expansive');
 
 console.log('dashboard preview depth tests passed');

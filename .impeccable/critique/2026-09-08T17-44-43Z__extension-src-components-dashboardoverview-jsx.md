@@ -2,7 +2,7 @@
 target: tile dashboard
 total_score: 20
 max_score: 40
-na_heuristics: 
+na_heuristics:
 p0_count: 0
 p1_count: 3
 target_identity: "file:C:\\Users\\temaz\\opencode\\my-community\\extension\\src\\components\\DashboardOverview.jsx"
