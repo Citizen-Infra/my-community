@@ -170,7 +170,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 
 ### Navigation
 - **Top bar** (72px): brand in Instrument Serif on the left, a settings gear on the right; quiet, no heavy chrome.
-- **Dashboard overview:** enabled feeds form an adaptive mosaic and open into a focused feed. Supporting tab search and Collections remain available but visually recede while the community dashboard is active.
+- **Dashboard overview:** enabled feeds form an adaptive mosaic and open into a focused feed. Supporting tab search may visually recede while the community dashboard is active, but the Collections sidebar keeps its established width so saved collection names are not compressed or newly truncated.
 
 ## 6. Do's and Don'ts
 

@@ -446,14 +446,8 @@
   outline-offset: -4px;
 }
 
-/* On the community surface, tab management remains available but recedes behind
-   the civic pulse. Search expands back to full emphasis as soon as it is used. */
-body:has(.dashboard-overview) .sidebar,
-body:has(.dashboard-feed-header) .sidebar {
-  width: 208px;
-  min-width: 208px;
-}
-
+/* On the community surface, tab management remains available at its established
+   width. Search alone recedes, then expands back to full emphasis when used. */
 body:has(.dashboard-overview) .topbar .search-bar,
 body:has(.dashboard-feed-header) .topbar .search-bar {
   flex: 0 1 220px;
