@@ -23,6 +23,8 @@ function baseFeeds() {
 
 export const blueskyPosts = signal([]);
 export const blueskyLoading = signal(false);
+export const blueskyLoaded = signal(false);
+export const blueskyError = signal(false);
 export const blueskyFeedUri = signal(localStorage.getItem('mc_bluesky_feed') || DEFAULT_FEED_URI);
 export const blueskyTimeWindow = signal(localStorage.getItem('mc_bluesky_window') || '24h');
 export const blueskyShowReposts = signal(localStorage.getItem('mc_bluesky_reposts') !== 'false');
@@ -60,6 +62,20 @@ export const blueskyVisiblePosts = computed(() => {
     return !isPostHidden(p, prefs, uri, now);
   });
 });
+
+export function hydrateBlueskyFeed() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value && Array.isArray(cached.posts)) {
+      blueskyPosts.value = cached.posts;
+      blueskyLoaded.value = true;
+      return true;
+    }
+  } catch {}
+  blueskyPosts.value = [];
+  blueskyLoaded.value = false;
+  return false;
+}
 
 function getTimeWindowMs(window) {
   const map = { '24h': 24 * 60 * 60 * 1000, '7d': 7 * 24 * 60 * 60 * 1000, '30d': 30 * 24 * 60 * 60 * 1000 };
@@ -148,7 +164,9 @@ async function fetchFeedPosts(session, uri) {
 
   for (let page = 0; page < maxPages; page++) {
     const res = await bskyFetch(feedUrl(session, uri, cursor));
-    if (!res || !res.ok) break;
+    if (!res || !res.ok) {
+      throw new Error(`Bluesky feed request failed${res ? ` (${res.status})` : ''}`);
+    }
 
     const data = await res.json();
     const items = data.feed || [];
@@ -191,28 +209,32 @@ async function fetchFeedPosts(session, uri) {
 export async function loadBlueskyFeed() {
   const session = blueskySession.value;
   if (!session) return;
+  blueskyError.value = false;
 
   // Check cache
-  try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value) {
-      blueskyPosts.value = cached.posts;
-      return;
-    }
-  } catch {}
+  if (hydrateBlueskyFeed()) return;
 
   blueskyLoading.value = true;
 
   try {
     const uri = blueskyFeedUri.value;
-    let posts = await fetchFeedPosts(session, uri);
+    let posts;
+    let servedFallback = false;
+
+    try {
+      posts = await fetchFeedPosts(session, uri);
+    } catch (err) {
+      if (!isAlgorithmicFeed(uri)) throw err;
+      console.warn('[MC feed] feed generator failed; falling back to the Following timeline');
+      posts = await fetchFeedPosts(session, 'timeline');
+      servedFallback = true;
+    }
 
     // Curated/community feed generators have no uptime SLA and can be renamed or
     // retired. If one is unavailable (errored or empty) — and it may be the
     // default view — fall back to the Following timeline so the feed never
     // renders blank. Don't cache the fallback, so a transient outage recovers on
     // the next refresh rather than being pinned for the cache TTL.
-    let servedFallback = false;
     if (isAlgorithmicFeed(uri) && posts.length === 0) {
       console.warn('[MC feed] feed generator returned nothing; falling back to the Following timeline');
       posts = await fetchFeedPosts(session, 'timeline');
@@ -232,9 +254,11 @@ export async function loadBlueskyFeed() {
     }
   } catch (err) {
     console.error('Failed to load Bluesky feed:', err);
+    blueskyError.value = true;
   }
 
   blueskyLoading.value = false;
+  blueskyLoaded.value = true;
 }
 
 export function setBlueskyFeedUri(uri) {

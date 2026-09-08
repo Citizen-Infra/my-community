@@ -18,7 +18,15 @@ export const wikiLoading = signal(false);
 export const wikiError = signal(false);
 
 let lastWikiArgs = [];
+let loadGeneration = 0;
 export function retryWikiQueue() { return loadWikiQueue(lastWikiArgs); }
+
+export function clearWikiQueue() {
+  loadGeneration += 1;
+  wikiItems.value = [];
+  wikiLoading.value = false;
+  wikiError.value = false;
+}
 
 // Statuses surfaced in the feed. 'rejected' is dropped.
 const FEED_STATUSES = new Set(['candidate', 'ready', 'approved', 'processed']);
@@ -52,17 +60,24 @@ function byKnowledgeUrgency(a, b) {
 // aggregate, and sort. Non-members 403 per community and are skipped so the rest of
 // the feed still renders. Clears when signed out or nothing is selected.
 export async function loadWikiQueue(communityIds) {
+  const generation = ++loadGeneration;
   lastWikiArgs = communityIds;
   wikiError.value = false;
   const headers = caSessionHeader();
   if (!headers.Authorization || !communityIds || communityIds.length === 0) {
     wikiItems.value = [];
+    wikiLoading.value = false;
     return;
   }
 
   const selector = communityKey(communityIds);
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
-  if (cached) { wikiItems.value = cached; resolveHandles(cached.map((k) => k.submitted_by)); return; }
+  if (Array.isArray(cached)) {
+    wikiItems.value = cached;
+    wikiLoading.value = false;
+    resolveHandles(cached.map((k) => k.submitted_by));
+    return;
+  }
 
   wikiLoading.value = true;
   let anyFailure = false;
@@ -85,16 +100,18 @@ export async function loadWikiQueue(communityIds) {
         }
       })
     );
+    if (generation !== loadGeneration) return;
     all.sort(byKnowledgeUrgency);
     wikiItems.value = all;
     resolveHandles(all.map((k) => k.submitted_by));
     if (!anyFailure) setCached(CACHE_KEY, all, selector);
     wikiError.value = anyFailure && all.length === 0;
   } catch (err) {
+    if (generation !== loadGeneration) return;
     console.error('Failed to load knowledge sources:', err);
     wikiError.value = true;
   }
-  wikiLoading.value = false;
+  if (generation === loadGeneration) wikiLoading.value = false;
 }
 
 // Force a fresh load (bypassing the 90s cache), e.g. after the worker reports a

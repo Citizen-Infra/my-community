@@ -1,8 +1,9 @@
 import { useState } from 'preact/hooks';
-import { blueskyVisiblePosts, blueskyLoading } from '../store/bluesky';
+import { blueskyError, blueskyVisiblePosts, blueskyLoading, loadBlueskyFeed } from '../store/bluesky';
 import { isConnected, connectBluesky, legacyBlueskySession } from '../store/auth';
 import { BlueskyPostCard } from './BlueskyPostCard';
 import { BlueskyFilterBar } from './BlueskyFilterBar';
+import { FeedError } from './FeedError';
 import '../styles/bluesky.css';
 import '../styles/auth-modal.css';
 
@@ -60,6 +61,10 @@ export function BlueskyFeed() {
 
   if (blueskyLoading.value) {
     return <div class="feed-empty">Loading Bluesky feed...</div>;
+  }
+
+  if (blueskyError.value && blueskyVisiblePosts.value.length === 0) {
+    return <FeedError onRetry={loadBlueskyFeed} />;
   }
 
   return (

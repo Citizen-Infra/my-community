@@ -1,6 +1,6 @@
 import { communitiesConfigured } from '../store/communities';
-import { activeTab } from '../store/panels';
-import { TabBar } from './TabBar';
+import { activeTab, dashboardMode, showDashboardOverview } from '../store/panels';
+import { DashboardOverview, DASHBOARD_FEED_LABELS } from './DashboardOverview';
 import { DigestFeed } from './DigestFeed';
 import { SessionsPanel } from './SessionsPanel';
 import { BlueskyFeed } from './BlueskyFeed';
@@ -19,9 +19,21 @@ export function Dashboard() {
     );
   }
 
+  if (dashboardMode.value === 'overview') {
+    return <DashboardOverview />;
+  }
+
   return (
     <>
-      <TabBar />
+      <header class="dashboard-feed-header">
+        <button type="button" class="dashboard-feed-back" onClick={showDashboardOverview}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5m6-6-6 6 6 6" />
+          </svg>
+          Overview
+        </button>
+        <h2>{DASHBOARD_FEED_LABELS[activeTab.value]}</h2>
+      </header>
       <main class="dashboard">
         {activeTab.value === 'digest' && <DigestFeed />}
         {activeTab.value === 'participation' && <SessionsPanel />}

@@ -97,7 +97,7 @@ Signals-based stores in `src/store/`:
 - `digest.js` -- digest links from scenius-digest API, cached
 - `sessions.js` -- events from scenius-digest /api/events per selected community + Supabase sessions, merged and deduped
 - `jam.js` -- active jam rooms from navidrome-jam API, 2-min polling per selected communities
-- `tabs.js` -- tab visibility and active tab state
+- `panels.js` -- dashboard feed visibility, persisted ordering, active feed, and overview/focused mode
 - `theme.js` -- light/dark/system theme
 
 ### Libraries
@@ -109,8 +109,8 @@ Signals-based stores in `src/store/`:
 ### Components
 
 - `TopBar.jsx` -- branding + settings gear
-- `TabBar.jsx` -- horizontal tab navigation (Network / Digest / Participation)
-- `Dashboard.jsx` -- renders the community feed tabs; always mounts `BlueskyFeed` for the Network tab (it owns both the connected + not-connected states)
+- `DashboardOverview.jsx` -- viewport-contained feed tiles, cached previews, and direct pointer/keyboard reordering
+- `Dashboard.jsx` -- swaps the tile overview with a focused, scrollable feed; `BlueskyFeed` owns both Network connection states
 - `BlueskyFeed.jsx` + `BlueskyPostCard.jsx` -- Bluesky timeline; owns the not-connected connect / legacy-reconnect empty state. Disconnect now lives in Settings > Network.
 - `BlueskyFilterBar.jsx` -- the Network feed's inline filter controls: feed-source dropdown, segmented time window (24h/7d/30d) + sort (most liked / most discussed), reposts toggle. Applies changes immediately via `setBluesky*` + `loadBlueskyFeed`.
 - `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
@@ -139,8 +139,9 @@ All keys prefixed with `mc_`:
 | `mc_bluesky_weighted` | `store/bluesky.js` | Weighted engagement sort (default: `false`) |
 | `mc_bluesky_prefs` | `store/bluesky.js` | Cached Bluesky content preferences (muted words, hidden posts, feed-view settings) from `getPreferences`, so filtering applies on first paint |
 | `mc_communities` | `store/communities.js` | Selected community slugs (JSON array) |
-| `mc_visible_tabs` | `store/tabs.js` | Tab visibility toggles (JSON object) |
-| `mc_active_tab` | `store/tabs.js` | Currently active tab (default: `digest`) |
+| `mc_visible_tabs` | `store/panels.js` | Dashboard feed visibility toggles (JSON object) |
+| `mc_dashboard_tab_order` | `store/panels.js` | User-defined dashboard feed order (JSON array) |
+| `mc_active_tab` | `store/panels.js` | Most recently focused dashboard feed (default: `digest`) |
 | `mc_theme` | `store/theme.js` | Theme preference: `light`, `dark`, or `system` |
 
 ### Key constraints

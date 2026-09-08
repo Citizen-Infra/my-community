@@ -7,11 +7,13 @@ const CACHE_TTL = 60 * 60 * 1000;
 
 export const digestLinks = signal([]);
 export const digestLoading = signal(false);
+export const digestLoaded = signal(false);
 // Set when a fetch genuinely fails, so the feed can distinguish an outage from
 // an honest "no links". Only surfaced by the UI when there is nothing to show.
 export const digestError = signal(false);
 
 let lastDigestArgs = [];
+let loadGeneration = 0;
 export function retryDigest() { return loadDigest(lastDigestArgs); }
 
 const TOPIC_EMOJI = {
@@ -25,24 +27,50 @@ export function topicEmoji(topic) {
   return TOPIC_EMOJI[topic] || '\uD83D\uDD17';
 }
 
+function cachedDigest(communityIds) {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    const cacheKey = [...communityIds].sort().join(',');
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.key === cacheKey && Array.isArray(cached.links)) {
+      return cached.links;
+    }
+  } catch {}
+  return null;
+}
+
+export function hydrateDigest(communityIds) {
+  loadGeneration += 1;
+  digestLoading.value = false;
+  digestError.value = false;
+  const cached = cachedDigest(communityIds);
+  if (!cached) {
+    digestLinks.value = [];
+    digestLoaded.value = false;
+    return false;
+  }
+  digestLinks.value = cached;
+  digestLoaded.value = true;
+  return true;
+}
+
 export async function loadDigest(communityIds) {
+  const generation = ++loadGeneration;
   lastDigestArgs = communityIds;
   digestError.value = false;
   if (communityIds.length === 0) {
     digestLinks.value = [];
+    digestLoading.value = false;
+    digestLoaded.value = true;
     return;
   }
 
-  try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      const cacheKey = communityIds.sort().join(',');
-      if (cached.key === cacheKey) {
-        digestLinks.value = cached.links;
-        return;
-      }
-    }
-  } catch {}
+  const cached = cachedDigest(communityIds);
+  if (cached) {
+    digestLinks.value = cached;
+    digestLoading.value = false;
+    digestLoaded.value = true;
+    return;
+  }
 
   digestLoading.value = true;
 
@@ -58,18 +86,23 @@ export async function loadDigest(communityIds) {
       })
     );
 
+    if (generation !== loadGeneration) return;
     allLinks.sort((a, b) => new Date(b.shared_at) - new Date(a.shared_at));
     digestLinks.value = allLinks;
 
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      key: communityIds.sort().join(','),
+      key: [...communityIds].sort().join(','),
       links: allLinks,
       timestamp: Date.now(),
     }));
   } catch (err) {
+    if (generation !== loadGeneration) return;
     console.error('Failed to load digest:', err);
     digestError.value = true;
   }
 
-  digestLoading.value = false;
+  if (generation === loadGeneration) {
+    digestLoading.value = false;
+    digestLoaded.value = true;
+  }
 }
