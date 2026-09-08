@@ -467,20 +467,6 @@
   outline-offset: -4px;
 }
 
-/* On the community surface, tab management remains available at its established
-   width. Search alone recedes, then expands back to full emphasis when used. */
-body:has(.dashboard-overview) .topbar .search-bar,
-body:has(.dashboard-feed-header) .topbar .search-bar {
-  flex: 0 1 220px;
-  margin-left: auto;
-}
-
-body:has(.dashboard-overview) .topbar .search-bar input:not(:focus),
-body:has(.dashboard-feed-header) .topbar .search-bar input:not(:focus) {
-  border-color: transparent;
-  background: var(--color-bg);
-}
-
 @media (max-width: 860px) {
   .dashboard-overview { padding: var(--space-md); }
   .dashboard-tile-grid { gap: var(--space-sm); }
