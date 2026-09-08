@@ -1,38 +1,70 @@
 # Product
 
-## Register
+<!-- impeccable:product-schema 1 -->
 
-product
+## Platform
+
+web
 
 ## Users
 
-CIBC-ecosystem members and civically-engaged people who keep a browser open all day. Their context is the new-tab moment: the small pause between tasks when a fresh tab opens. They want that moment to surface what their community is doing rather than a blank page or a search box, and increasingly they want to *act* from there, save and organize the tabs they're working through, and (soon) push a link straight into the wiki ingestion queue. They are not necessarily technical; the core experience must work with no account and no setup.
+My Community serves CIBC-ecosystem members and other civically engaged people who keep a browser open throughout the day. They encounter it in the brief pause created by opening a new tab and want that moment to show what their communities are doing, what needs their participation, and where they left their own work.
+
+Users are not assumed to be technical. The dashboard and tab manager must remain useful without an account, community selection must be approachable, and signed-in features should deepen participation rather than gate the core experience.
 
 ## Product Purpose
 
-My Community replaces the browser's new-tab page with a community dashboard: a curated digest, a Bluesky network feed, participation opportunities (events and sessions), and live jam rooms, scoped to the communities the user follows. It exists to make community activity ambient, present at a glance, every time a tab opens, so participation becomes a habit rather than a destination.
+My Community replaces the browser's new-tab page with a community dashboard and local tab manager. It keeps community activity present at a glance, makes participation available where people already work, and gives their open tabs a durable home on the same surface.
 
-It is now growing a second capability: folding in the Tab Hoarder tab manager (collections, save-and-close, search) so the same surface that shows your community's pulse also holds your working tabs. The community dashboard leads; the tab manager is a power feature that serves it. Success looks like a new tab that a civically-minded person is glad to see many times a day, that quietly keeps them connected and organized, and that they would never swap back to the default.
+Success means a new tab quietly reconnects someone with their communities and current work often enough that they prefer it to the browser default. The community dashboard remains the home; tab management is a supporting power feature rather than the product's organizing idea.
 
-## Brand Personality
+## Positioning
 
-Warm, civic, grounded. The voice is editorial and human, not corporate or techy, closer to a well-set community newspaper than a productivity SaaS. It feels calm and considered, never urgent or attention-extracting. Three words: warm, civic, grounded.
+My Community turns a high-frequency, otherwise empty browser moment into a community front page. It combines community signals, direct participation, and private tab organization without becoming a general-purpose start-page widget collection or requiring users to adopt another destination.
 
-## Anti-references
+## Operating Context
 
-- **Generic tech-dark tool** (neon-on-black, crypto/dev-tool default darkness).
-- **Sterile SaaS dashboard** (cold gray cards, hero-metric tiles, corporate analytics).
-- **Cluttered startpage** (widget-soup new-tab pages stuffed with feeds, weather, clocks).
-- **Soulless bookmark manager** (a utilitarian tab/bookmark grid with no warmth or point of view, the thing Tab Hoarder itself tries not to be).
+- Runs as a Manifest V3 browser extension in Chromium-based browsers such as Chrome and Brave and overrides the new-tab page.
+- Opens many times during an ordinary workday, so the first viewport must be useful at a glance and routine opens must avoid unnecessary network requests.
+- Lets people scan an adaptive dashboard overview, open one feed for focused reading, and return to the overview.
+- Supports an optional community account through email or Bluesky. The Network feed additionally needs a Bluesky connection, and one Bluesky OAuth session can support both.
+- Uses community-admin, Scenius Digest, Bluesky/ATProto, Supabase, Navidrome Jam, and Avails as external sources. Individual source failures must not make the rest of the dashboard unusable.
 
-## Design Principles
+## Capabilities and Constraints
 
-- **Civic pulse first.** The community dashboard is the home; new surfaces (including the tab manager) serve it and never bury it.
-- **One identity, adopted inward.** Folded-in features take on My Community's existing warm-editorial visual system; the host skin is never bent to match an incoming feature.
-- **Calm density over widget-soup.** Show what matters at a glance with generous breathing room; resist the urge to cram every possible feed onto the page.
-- **Local-first and private by default.** The core works with no account; tab data and preferences stay on the user's machine.
-- **Degrade gracefully.** Every feed and feature stays usable when a data source is unavailable or auth is absent, as the existing feeds already do.
+- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. Tile visibility and order are local preferences; hidden feeds retain their position.
+- **Focused feeds:** each tile opens its complete feed with the feed's existing controls and scrolling behavior.
+- **Community Digest:** shows recent links shared by selected communities.
+- **Network:** shows posts from the user's Bluesky network with feed, time-window, repost, and ranking controls.
+- **Participation:** combines community events, Harmonica sessions, call proposals, Avails polls, and live jam rooms.
+- **Community Input:** combines consent decisions and suggested wiki sources, prioritizing items awaiting the member's response. Members can suggest the current page to a selected community's wiki queue.
+- **Tab manager:** saves and closes tabs, organizes them into collections, supports search and reordering, imports browser bookmarks or compatible exports, exports data, and creates local backups.
+- **Local-first tab data:** saved tabs, collections, and tab-manager preferences stay on the user's device in browser storage and user-controlled JSON backups. Uninstalling the extension removes its browser-local data.
+- **Lazy feed loading:** valid cached previews may hydrate immediately, but a new tab refreshes only the most recently focused feed rather than fetching every feed.
+- **Authentication is additive:** account-specific feeds and actions may require sign-in, while unauthenticated and disconnected states remain understandable and usable.
+- **Read resilience:** loading, empty, signed-out, and source-error states are explicit. A failed source degrades independently and offers recovery where appropriate.
+
+## Brand Commitments
+
+The product is named **My Community**. Its voice is warm, civic, grounded, editorial, and human rather than corporate or technical. It should feel calm and considered, never urgent or attention-extracting. The durable visual system and anti-references are maintained separately in `DESIGN.md`.
+
+## Evidence on Hand
+
+- The working extension and shipped feature copy live under `extension/` and in `README.md`.
+- The current product interface system is documented in `DESIGN.md`.
+- Chrome Web Store listing copy, permission rationale, privacy claims, and capture requirements live in `docs/store-listing.md` and `docs/privacy-policy.md`.
+- Store screenshots and their provenance are maintained under `docs/screenshots/`.
+- Feature decisions and implementation briefs live under `docs/plans/`.
+- No user testimonials, adoption benchmarks, or outcome claims are established in this repository; future product work must not fabricate them.
+
+## Product Principles
+
+- **Civic pulse first.** The community dashboard is the home; supporting capabilities must not bury it.
+- **Act where context appears.** Participation, consent, scheduling, and wiki contribution should be available from the community signal that makes them relevant.
+- **Calm density over widget sprawl.** Show the important signals at a glance without turning the new-tab page into an attention contest.
+- **Local and private by default.** Keep personal tab organization on the user's device and make any outward action explicit.
+- **Degrade gracefully.** Missing authentication or one unavailable source should not make unrelated feeds or local tools unusable.
 
 ## Accessibility & Inclusion
 
-Target WCAG 2.1 AA contrast in both light and dark themes (light / dark / system, already supported). Respect `prefers-reduced-motion` for all card and feed animations. Keep interactive targets keyboard-reachable and large enough for non-precise pointers. Don't rely on color alone to convey state (e.g., session active/upcoming/completed should carry a non-color cue too).
+Target WCAG 2.1 AA contrast in light, dark, and system themes. Respect `prefers-reduced-motion`, keep all actions keyboard-reachable with visible focus, provide targets suitable for non-precise pointers, and never rely on color alone to communicate state. Loading, error, authentication, and empty states must be distinguishable in text.
