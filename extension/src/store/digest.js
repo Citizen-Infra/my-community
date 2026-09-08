@@ -7,6 +7,7 @@ const CACHE_TTL = 60 * 60 * 1000;
 
 export const digestLinks = signal([]);
 export const digestLoading = signal(false);
+export const digestLoaded = signal(false);
 // Set when a fetch genuinely fails, so the feed can distinguish an outage from
 // an honest "no links". Only surfaced by the UI when there is nothing to show.
 export const digestError = signal(false);
@@ -25,24 +26,35 @@ export function topicEmoji(topic) {
   return TOPIC_EMOJI[topic] || '\uD83D\uDD17';
 }
 
+function cachedDigest(communityIds) {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    const cacheKey = [...communityIds].sort().join(',');
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.key === cacheKey) {
+      return cached.links;
+    }
+  } catch {}
+  return null;
+}
+
+export function hydrateDigest(communityIds) {
+  const cached = cachedDigest(communityIds);
+  if (!cached) return false;
+  digestLinks.value = cached;
+  digestLoaded.value = true;
+  return true;
+}
+
 export async function loadDigest(communityIds) {
   lastDigestArgs = communityIds;
   digestError.value = false;
   if (communityIds.length === 0) {
     digestLinks.value = [];
+    digestLoaded.value = true;
     return;
   }
 
-  try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      const cacheKey = communityIds.sort().join(',');
-      if (cached.key === cacheKey) {
-        digestLinks.value = cached.links;
-        return;
-      }
-    }
-  } catch {}
+  if (hydrateDigest(communityIds)) return;
 
   digestLoading.value = true;
 
@@ -62,7 +74,7 @@ export async function loadDigest(communityIds) {
     digestLinks.value = allLinks;
 
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      key: communityIds.sort().join(','),
+      key: [...communityIds].sort().join(','),
       links: allLinks,
       timestamp: Date.now(),
     }));
@@ -72,4 +84,5 @@ export async function loadDigest(communityIds) {
   }
 
   digestLoading.value = false;
+  digestLoaded.value = true;
 }

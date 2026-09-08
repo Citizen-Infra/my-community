@@ -23,6 +23,7 @@ function baseFeeds() {
 
 export const blueskyPosts = signal([]);
 export const blueskyLoading = signal(false);
+export const blueskyLoaded = signal(false);
 export const blueskyFeedUri = signal(localStorage.getItem('mc_bluesky_feed') || DEFAULT_FEED_URI);
 export const blueskyTimeWindow = signal(localStorage.getItem('mc_bluesky_window') || '24h');
 export const blueskyShowReposts = signal(localStorage.getItem('mc_bluesky_reposts') !== 'false');
@@ -60,6 +61,18 @@ export const blueskyVisiblePosts = computed(() => {
     return !isPostHidden(p, prefs, uri, now);
   });
 });
+
+export function hydrateBlueskyFeed() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value) {
+      blueskyPosts.value = cached.posts;
+      blueskyLoaded.value = true;
+      return true;
+    }
+  } catch {}
+  return false;
+}
 
 function getTimeWindowMs(window) {
   const map = { '24h': 24 * 60 * 60 * 1000, '7d': 7 * 24 * 60 * 60 * 1000, '30d': 30 * 24 * 60 * 60 * 1000 };
@@ -193,13 +206,7 @@ export async function loadBlueskyFeed() {
   if (!session) return;
 
   // Check cache
-  try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value) {
-      blueskyPosts.value = cached.posts;
-      return;
-    }
-  } catch {}
+  if (hydrateBlueskyFeed()) return;
 
   blueskyLoading.value = true;
 
@@ -235,6 +242,7 @@ export async function loadBlueskyFeed() {
   }
 
   blueskyLoading.value = false;
+  blueskyLoaded.value = true;
 }
 
 export function setBlueskyFeedUri(uri) {

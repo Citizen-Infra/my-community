@@ -9,12 +9,22 @@ const CACHE_TTL = 5 * 60 * 1000; // 5min
 
 export const sessions = signal([]);
 export const sessionsLoading = signal(false);
+export const sessionsLoaded = signal(false);
 // Set when the fetches genuinely failed and left nothing to show, so an outage
 // reads as an outage rather than "no sessions".
 export const sessionsError = signal(false);
 
 let lastSessionsArgs = [];
 export function retrySessions() { return loadSessions(lastSessionsArgs); }
+
+export function hydrateSessions(communities) {
+  const selector = communityKey(communities.map((c) => c.id));
+  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
+  if (!cached) return false;
+  sessions.value = cached;
+  sessionsLoaded.value = true;
+  return true;
+}
 
 export const openSessions = computed(() =>
   sessions.value.filter((s) => s.status === 'open')
@@ -60,8 +70,7 @@ export async function loadSessions(communities) {
   lastSessionsArgs = communities;
   sessionsError.value = false;
   const selector = communityKey(communities.map((c) => c.id));
-  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
-  if (cached) { sessions.value = cached; return; }
+  if (hydrateSessions(communities)) return;
 
   sessionsLoading.value = true;
 
@@ -139,4 +148,5 @@ export async function loadSessions(communities) {
   }
 
   sessionsLoading.value = false;
+  sessionsLoaded.value = true;
 }
