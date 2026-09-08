@@ -323,6 +323,17 @@
   color: var(--color-primary);
   font-size: 12px;
   font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(3px);
+  transition: opacity 0.18s var(--ease-out), transform 0.18s var(--ease-out);
+}
+
+.dashboard-tile:hover:not(.is-customizing):not(:has(.dashboard-preview-row:hover)) .dashboard-tile-cta,
+.dashboard-tile-cta:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .dashboard-tile-cta svg {
@@ -527,8 +538,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dashboard-tile,
+  .dashboard-tile-cta,
   .dashboard-tile-cta svg,
   .dashboard-preview-row strong { transition: none; }
   .dashboard-tile:hover:not(.is-customizing) { transform: none; }
+  .dashboard-tile-cta { transform: none; }
   .dashboard-tile-loading span { animation: none; }
 }

@@ -208,7 +208,6 @@ function previewState(tab) {
           title: row.p.title || row.p.question || 'Community decision',
           context: row.p.body || '',
           status: communityInputStatus(row.tier),
-          provenance: communityName(row.p.community_id),
           anchor: communityInputAnchor('decision', row.p),
         }
       : {
@@ -216,7 +215,6 @@ function previewState(tab) {
           title: row.k.title || row.k.url || 'Suggested source',
           context: row.k.summary || '',
           status: communityInputStatus(row.tier),
-          provenance: communityName(row.k.community_id),
           anchor: communityInputAnchor('knowledge', row.k),
         }
   );
