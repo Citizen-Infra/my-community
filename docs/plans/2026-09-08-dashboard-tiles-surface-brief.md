@@ -14,7 +14,7 @@
 
 **STORY:** Scan four community signals, choose one, read deeply, return.
 
-**FIRST VIEWPORT:** A quieted top bar and sidebar frame a gapless 2×2 editorial mosaic that begins immediately in the main area. Every tile uses its available height for a calm, complete-row preview, with civic urgency and provenance visible inside each row. Customize is a compact secondary icon beside Dashboard in the sidebar.
+**FIRST VIEWPORT:** A quieted top bar and sidebar frame a gapless 2×2 editorial mosaic that begins immediately in the main area. Every tile uses its available height for a calm, complete-row preview, with civic urgency and useful item-level evidence visible inside each row. Tile subtitles name scope—active Network filters or selected communities—rather than loaded-item totals. Customize is a compact secondary icon beside Dashboard in the sidebar.
 
 **FORM:** Adaptive almanac front page, shaped directly inside the established world.
 
@@ -25,6 +25,7 @@
 - Actionable civic states such as Needs your response, Happening now, and Open to join outrank passive content without changing the user's tile order.
 - Customize replaces item opening with 44px reorder controls, visible instructions, an Auto-fit or exact-count selector per tile, and Reset layout. Reorders remain announced to assistive technology.
 - Preview depth is presentation-only: it never triggers pagination or additional source requests. Exact counts that exceed the current tile height scroll inside that tile; Auto-fit never introduces tile scrolling or a clipped final row. When fewer rows are visible than could fit, they share the body height rather than collecting at the top and reveal more source text instead of leaving avoidable dead space.
+- Avoid repeated provenance. Digest rows show the source domain without repeating a community already named in the tile subtitle. Network rows show the author's handle plus reply and repost counts rather than duplicating the display name.
 - Signed-out, empty, and error tiles explain the next action; opening them leads directly to the existing connection, sign-in, or retry surface.
 - The dashboard subordinates tab-search chrome while leaving it available and preserving the `/` shortcut. The Collections sidebar retains its established width; visual quieting must not compress or newly truncate collection names.
 - Narrow layouts retain guidance, use one column, and scroll; focused feeds keep their existing controls and scrolling.

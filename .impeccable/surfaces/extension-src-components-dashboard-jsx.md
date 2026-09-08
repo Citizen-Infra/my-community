@@ -21,7 +21,7 @@ related_targets: ["extension/src/components/TabBar.jsx","extension/src/store/pan
 
 **STORY:** Scan four community signals, choose one, read deeply, return.
 
-**FIRST VIEWPORT:** Quiet supporting chrome frames a gapless 2×2 editorial mosaic beginning immediately in the main area; every tile uses its available height for complete preview rows with useful civic status and provenance. Customize is represented by a small secondary control beside Dashboard in the sidebar.
+**FIRST VIEWPORT:** Quiet supporting chrome frames a gapless 2×2 editorial mosaic beginning immediately in the main area; every tile uses its available height for complete preview rows with useful civic status and evidence. Tile subtitles state scope—active Network filters or selected communities—instead of loaded-item totals. Digest rows avoid repeated community names; Network rows pair handles with reply and repost counts. Customize is represented by a small secondary control beside Dashboard in the sidebar.
 
 **FORM:** Adaptive almanac front page, shaped directly inside the established world.
 

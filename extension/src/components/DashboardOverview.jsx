@@ -26,29 +26,33 @@ import {
 } from '../store/sessions';
 import {
   blueskyError,
+  blueskyAvailableFeeds,
+  blueskyFeedUri,
   blueskyLoaded,
   blueskyLoading,
+  blueskyShowReposts,
+  blueskyTimeWindow,
   blueskyVisiblePosts,
+  blueskyWeightedSort,
 } from '../store/bluesky';
 import { isConnected } from '../store/auth';
 import {
   callProposals,
   decisionProposals,
-  openUnvotedCount,
   proposalsError,
   proposalsLoading,
   retryProposals,
 } from '../store/proposals';
 import {
-  openUnvotedKnowledgeCount,
   wikiError,
   wikiItems,
   wikiLoading,
   retryWikiQueue,
 } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
-import { allCommunities } from '../store/communities';
+import { allCommunities, selectedCommunityIds } from '../store/communities';
 import { mergeCommunityInputRows } from '../lib/community-input-order';
+import { communityScope, networkPostMeta, networkScope } from '../lib/dashboard-preview-meta';
 import {
   AUTO_PREVIEW_DEPTH,
   MAX_PREVIEW_DEPTH,
@@ -116,6 +120,10 @@ function participationProvenance(item) {
   return details.filter(Boolean).join(' · ');
 }
 
+function selectedCommunityScope() {
+  return communityScope(selectedCommunityIds.value, allCommunities.value);
+}
+
 function previewState(tab) {
   if (tab === 'digest') {
     const links = digestLinks.value;
@@ -124,12 +132,12 @@ function previewState(tab) {
     if (!digestLoaded.value && links.length === 0) return { state: 'idle', message: 'Open the digest to gather this week’s links.' };
     if (links.length === 0) return { state: 'empty', message: 'No recent links from your communities.' };
     return {
-      meta: `${links.length} recent ${links.length === 1 ? 'link' : 'links'}`,
+      meta: selectedCommunityScope(),
       items: links.map((link, index) => ({
         key: `${link.community_id || ''}-${link.id || link.url}-${index}`,
         title: link.og_title || link.title || link.url,
         context: link.og_description || link.description || '',
-        provenance: [communityName(link.community_id), safeHost(link.url)].filter(Boolean).join(' · '),
+        provenance: safeHost(link.url),
         href: link.url,
       })),
     };
@@ -143,13 +151,17 @@ function previewState(tab) {
     if (!blueskyLoaded.value && posts.length === 0) return { state: 'idle', message: 'Open Network to load popular posts from people you follow.' };
     if (posts.length === 0) return { state: 'empty', message: 'No posts in the current time window.' };
     return {
-      meta: `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} in view`,
+      meta: networkScope({
+        feedUri: blueskyFeedUri.value,
+        availableFeeds: blueskyAvailableFeeds.value,
+        timeWindow: blueskyTimeWindow.value,
+        showReposts: blueskyShowReposts.value,
+        weightedSort: blueskyWeightedSort.value,
+      }),
       items: posts.map((post) => ({
         key: post.uri,
         title: post.text || 'Shared a post',
-        provenance: post.author.displayName
-          ? `${post.author.displayName} · @${post.author.handle}`
-          : `@${post.author.handle}`,
+        provenance: networkPostMeta(post),
         href: blueskyPostUrl(post),
       })),
     };
@@ -172,7 +184,7 @@ function previewState(tab) {
     if (!sessionsLoaded.value && current.length === 0) return { state: 'idle', message: 'Open Participation to find sessions and events.' };
     if (current.length === 0) return { state: 'empty', message: 'No open or upcoming sessions right now.' };
     return {
-      meta: `${current.length} ${current.length === 1 ? 'way' : 'ways'} to take part`,
+      meta: selectedCommunityScope(),
       items: current.map((item) => ({
         key: `${item.source || item.kind || 'participation'}-${item.community_id || item.community || ''}-${item.id}`,
         title: item.title,
@@ -189,7 +201,6 @@ function previewState(tab) {
     return { state: 'signed-out', message: 'Sign in to see decisions and sources awaiting community input.' };
   }
 
-  const pending = openUnvotedCount.value + openUnvotedKnowledgeCount.value;
   const items = mergeCommunityInputRows(decisionProposals.value, wikiItems.value).map((row) =>
     row.kind === 'decision'
       ? {
@@ -213,8 +224,7 @@ function previewState(tab) {
   if ((proposalsError.value || wikiError.value) && items.length === 0) return { state: 'error', message: 'Community input could not refresh.' };
   if (items.length === 0) return { state: 'empty', message: 'Nothing needs your input right now.' };
   return {
-    meta: pending > 0 ? `${pending} awaiting your response` : `${items.length} recent ${items.length === 1 ? 'item' : 'items'}`,
-    pending,
+    meta: selectedCommunityScope(),
     items,
   };
 }
@@ -317,12 +327,12 @@ function TileHeading({ label, preview, customizing, index, count, onMove, onOpen
       {customizing ? (
         <div class="dashboard-tile-heading-copy">
           <span class="dashboard-tile-title" role="heading" aria-level="3">{label}</span>
-          {preview.meta && <span class={`dashboard-tile-meta ${preview.pending ? 'needs-action' : ''}`}>{preview.meta}</span>}
+          {preview.meta && <span class="dashboard-tile-meta">{preview.meta}</span>}
         </div>
       ) : (
         <button type="button" class="dashboard-tile-heading-open" onClick={onOpen}>
           <span class="dashboard-tile-title" role="heading" aria-level="3">{label}</span>
-          {preview.meta && <span class={`dashboard-tile-meta ${preview.pending ? 'needs-action' : ''}`}>{preview.meta}</span>}
+          {preview.meta && <span class="dashboard-tile-meta">{preview.meta}</span>}
         </button>
       )}
       {customizing && (
