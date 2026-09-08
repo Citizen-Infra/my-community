@@ -1,7 +1,7 @@
 import { signal, computed } from '@preact/signals';
 import { supabase } from '../lib/supabase';
-import { authHeader } from './caAuth';
-import { getCached, setCached, communityKey } from '../lib/cache';
+import { authHeader, caSubject } from './caAuth';
+import { accountCommunityKey, getCached, getCachedStale, setCached } from '../lib/cache';
 
 const EVENTS_API = 'https://scenius-digest.vercel.app/api/events';
 const CACHE_KEY = 'mc_sessions_cache';
@@ -18,12 +18,14 @@ let lastSessionsArgs = [];
 let loadGeneration = 0;
 export function retrySessions() { return loadSessions(lastSessionsArgs); }
 
-export function hydrateSessions(communities) {
+export function hydrateSessions(communities, { allowStale = false } = {}) {
   loadGeneration += 1;
   sessionsLoading.value = false;
   sessionsError.value = false;
-  const selector = communityKey(communities.map((c) => c.id));
-  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
+  const selector = accountCommunityKey(caSubject.value, communities.map((c) => c.id));
+  const cached = allowStale
+    ? getCachedStale(CACHE_KEY, selector)
+    : getCached(CACHE_KEY, CACHE_TTL, selector);
   if (!Array.isArray(cached)) {
     sessions.value = [];
     sessionsLoaded.value = false;
@@ -78,7 +80,7 @@ export async function loadSessions(communities) {
   const generation = ++loadGeneration;
   lastSessionsArgs = communities;
   sessionsError.value = false;
-  const selector = communityKey(communities.map((c) => c.id));
+  const selector = accountCommunityKey(caSubject.value, communities.map((c) => c.id));
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
   if (Array.isArray(cached)) {
     sessions.value = cached;

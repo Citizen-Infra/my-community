@@ -84,7 +84,7 @@ It explicitly rejects the **generic tech-dark tool** (neon on black), the **ster
 - Warm paper background, never pure white or gray.
 - Forest-green primary, amber accent used sparingly.
 - Editorial serif display + humanist sans body.
-- One narrow reading column (~720px), generous breathing room.
+- Focused feeds use one narrow reading column (~720px); the overview uses an adaptive 2×2 editorial mosaic.
 - Near-flat cards that lift gently on hover; warm, diffuse shadows.
 
 ## 2. Colors
@@ -162,6 +162,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 - **Border:** 1px `border-light` at rest, darkening to `border` on hover.
 - **Signature:** a 4px left accent bar carrying community color (the Community-Color Rule), widening to 5px on hover. Cards stagger in with `card-enter` (opacity + 12px rise, 40ms cascade).
 - **Internal Padding:** `lg` (24px). No nested cards.
+- **Dashboard tile:** a civic-priority preview whose density responds to the tile's available height. Auto-fit uses the full tile without clipping a row; a locally saved exact count can make an individual feed quieter or denser. Whatever the source of the visible count, rows divide the available tile body evenly. Sparse rows become editorial summaries with multiline titles and source descriptions; dense rows collapse to compact scan lines. The subtitle under each tile name describes the current scope, never the number of loaded items: Network lists its active filters and community-backed feeds list the selected communities. Do not repeat that scope under every row: Digest rows use source domains, Community Input rows use civic state, and Network rows use handles plus reply and repost counts. Preview rows deep-link to their item, while the heading and footer open the full feed. The footer action stays quiet until the pointer is over tile chrome or unused space, disappears while a specific preview row is hovered, and remains visible when keyboard-focused. Tiles may combine several communities, so they carry no decorative color stripe.
 
 ### Inputs / Fields
 - **Style:** surface or paper fill, 1px border, `sm`/`md` radius, DM Sans at body size.
@@ -169,7 +170,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 
 ### Navigation
 - **Top bar** (72px): brand in Instrument Serif on the left, a settings gear on the right; quiet, no heavy chrome.
-- **Tab bar:** horizontal text tabs for switching feeds (Digest / Network / Participation), active tab marked by green, not a heavy pill.
+- **Dashboard overview:** enabled feeds form an adaptive mosaic and open into a focused feed. The mosaic begins immediately in the main area without a redundant page title. A small sliders control beside Dashboard in the sidebar toggles Customize mode; its icon remains visually compact while its button provides a usable target, active state, tooltip, and accessible name. Customize, collection Sort, and each row's trailing Delete action share one right-edge control column. Hidden row actions do not reserve name width; on hover or keyboard focus they replace the count and only then constrain the collection name. The top-bar search keeps exactly the same width, border, background, and focus treatment as it has on Collections pages. The Collections sidebar keeps its established width so saved collection names are not compressed or newly truncated.
 
 ## 6. Do's and Don'ts
 

@@ -1,7 +1,7 @@
 import { signal, computed } from '@preact/signals';
-import { caSessionHeader } from './caAuth';
+import { caSessionHeader, caSubject } from './caAuth';
 import { resolveHandles } from './handles';
-import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
+import { accountCommunityKey, getCached, getCachedStale, setCached, clearCached } from '../lib/cache';
 import { CA_URL } from '../lib/config';
 
 const CACHE_KEY = 'mc_wiki_queue_cache';
@@ -26,6 +26,24 @@ export function clearWikiQueue() {
   wikiItems.value = [];
   wikiLoading.value = false;
   wikiError.value = false;
+}
+
+export function hydrateWikiQueue(communityIds) {
+  loadGeneration += 1;
+  wikiLoading.value = false;
+  wikiError.value = false;
+  if (!caSubject.value || !communityIds?.length) {
+    wikiItems.value = [];
+    return false;
+  }
+  const cached = getCachedStale(CACHE_KEY, accountCommunityKey(caSubject.value, communityIds));
+  if (!Array.isArray(cached)) {
+    wikiItems.value = [];
+    return false;
+  }
+  wikiItems.value = cached;
+  resolveHandles(cached.map((k) => k.submitted_by));
+  return true;
 }
 
 // Statuses surfaced in the feed. 'rejected' is dropped.
@@ -70,7 +88,7 @@ export async function loadWikiQueue(communityIds) {
     return;
   }
 
-  const selector = communityKey(communityIds);
+  const selector = accountCommunityKey(caSubject.value, communityIds);
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
   if (Array.isArray(cached)) {
     wikiItems.value = cached;

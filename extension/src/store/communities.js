@@ -1,6 +1,6 @@
 import { signal, computed } from '@preact/signals';
-import { authHeader } from './caAuth';
-import { getCached, setCached } from '../lib/cache';
+import { authHeader, caSubject } from './caAuth';
+import { accountCommunityKey, getCached, setCached } from '../lib/cache';
 
 const GROUPS_API = 'https://scenius-digest.vercel.app/api/groups';
 const CACHE_KEY = 'mc_communities_cache';
@@ -20,7 +20,10 @@ export const selectedCommunities = computed(() =>
 );
 
 export async function loadCommunities() {
-  const cached = getCached(CACHE_KEY, CACHE_TTL);
+  // The structured selector also invalidates legacy unscoped snapshots, which
+  // could otherwise retain a private community list after sign-out.
+  const selector = accountCommunityKey(caSubject.value, []);
+  const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
   if (cached) {
     allCommunities.value = cached;
     communitiesStatus.value = 'ready';
@@ -43,7 +46,7 @@ export async function loadCommunities() {
       hasEvents: !!(val.event_apis && val.event_apis.length > 0) || !!(val.event_topics && val.event_topics.length > 0),
     }));
     allCommunities.value = groups;
-    setCached(CACHE_KEY, groups);
+    setCached(CACHE_KEY, groups, selector);
     communitiesStatus.value = 'ready';
   } catch (err) {
     console.error('Failed to load communities:', err);

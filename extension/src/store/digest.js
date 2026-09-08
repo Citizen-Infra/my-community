@@ -1,5 +1,6 @@
 import { signal } from '@preact/signals';
-import { authHeader } from './caAuth';
+import { authHeader, caSubject } from './caAuth';
+import { accountCommunityKey } from '../lib/cache';
 
 const LINKS_API = 'https://scenius-digest.vercel.app/api/links';
 const CACHE_KEY = 'mc_digest_cache';
@@ -27,22 +28,23 @@ export function topicEmoji(topic) {
   return TOPIC_EMOJI[topic] || '\uD83D\uDD17';
 }
 
-function cachedDigest(communityIds) {
+function cachedDigest(communityIds, allowStale = false) {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    const cacheKey = [...communityIds].sort().join(',');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.key === cacheKey && Array.isArray(cached.links)) {
+    const cacheKey = accountCommunityKey(caSubject.value, communityIds);
+    const freshEnough = allowStale || Date.now() - cached?.timestamp < CACHE_TTL;
+    if (cached && freshEnough && cached.key === cacheKey && Array.isArray(cached.links)) {
       return cached.links;
     }
   } catch {}
   return null;
 }
 
-export function hydrateDigest(communityIds) {
+export function hydrateDigest(communityIds, { allowStale = false } = {}) {
   loadGeneration += 1;
   digestLoading.value = false;
   digestError.value = false;
-  const cached = cachedDigest(communityIds);
+  const cached = cachedDigest(communityIds, allowStale);
   if (!cached) {
     digestLinks.value = [];
     digestLoaded.value = false;
@@ -91,7 +93,7 @@ export async function loadDigest(communityIds) {
     digestLinks.value = allLinks;
 
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      key: [...communityIds].sort().join(','),
+      key: accountCommunityKey(caSubject.value, communityIds),
       links: allLinks,
       timestamp: Date.now(),
     }));

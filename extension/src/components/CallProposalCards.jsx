@@ -99,6 +99,7 @@ function CallProposalCard({ proposal: p }) {
 
   return (
     <article
+      id={`call-${p.community_id}-${p.id}`}
       class="session-card call-card"
       style={{ '--community-border': colors.border, '--community-bg': colors.bg, '--community-text': colors.text }}
     >

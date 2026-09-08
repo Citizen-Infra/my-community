@@ -7,7 +7,7 @@ globalThis.localStorage = {
   removeItem: (k) => store.delete(k),
 };
 
-const { getCached, setCached, clearCached, communityKey } = await import('../src/lib/cache.js');
+const { accountCommunityKey, getCached, getCachedStale, setCached, clearCached, communityKey } = await import('../src/lib/cache.js');
 
 let failures = 0;
 const assert = (cond, msg) => {
@@ -22,10 +22,12 @@ assert(JSON.stringify(getCached('k', 1000)) === JSON.stringify({ a: 1 }), 'fresh
 
 setCached('k2', 42);
 assert(getCached('k2', -1) === null, 'expired (age >= ttl) returns null');
+assert(getCachedStale('k2') === 42, 'stale get retains expired value');
 
 setCached('k3', 'x', 'cibc');
 assert(getCached('k3', 1000, 'scenius') === null, 'selector mismatch returns null');
 assert(getCached('k3', 1000, 'cibc') === 'x', 'selector match returns value');
+assert(getCachedStale('k3', 'scenius') === null, 'stale get still enforces selector');
 
 setCached('k4', 1);
 clearCached('k4');
@@ -34,6 +36,8 @@ assert(getCached('k4', 1000) === null, 'clearCached removes the entry');
 const ids = ['b', 'a'];
 assert(communityKey(ids) === 'a,b', 'communityKey sorts');
 assert(ids[0] === 'b', 'communityKey does not mutate input');
+assert(accountCommunityKey('member-a', ids) === '["member-a","a,b"]', 'accountCommunityKey scopes a sorted community set to one account');
+assert(accountCommunityKey('member-b', ids) !== accountCommunityKey('member-a', ids), 'accountCommunityKey separates member snapshots');
 
 globalThis.localStorage.setItem('k5', '{not json');
 assert(getCached('k5', 1000) === null, 'corrupt JSON returns null');

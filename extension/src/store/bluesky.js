@@ -63,15 +63,24 @@ export const blueskyVisiblePosts = computed(() => {
   });
 });
 
-export function hydrateBlueskyFeed() {
+function cachedBlueskyPosts(allowStale = false) {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value && Array.isArray(cached.posts)) {
-      blueskyPosts.value = cached.posts;
-      blueskyLoaded.value = true;
-      return true;
+    const freshEnough = allowStale || Date.now() - cached?.timestamp < CACHE_TTL;
+    if (cached && freshEnough && cached.accountDid === blueskySession.value?.did && cached.feedUri === blueskyFeedUri.value && cached.window === blueskyTimeWindow.value && cached.weightedSort === blueskyWeightedSort.value && Array.isArray(cached.posts)) {
+      return cached.posts;
     }
   } catch {}
+  return null;
+}
+
+export function hydrateBlueskyFeed({ allowStale = false } = {}) {
+  const cached = cachedBlueskyPosts(allowStale);
+  if (Array.isArray(cached)) {
+    blueskyPosts.value = cached;
+    blueskyLoaded.value = true;
+    return true;
+  }
   blueskyPosts.value = [];
   blueskyLoaded.value = false;
   return false;
@@ -211,8 +220,18 @@ export async function loadBlueskyFeed() {
   if (!session) return;
   blueskyError.value = false;
 
-  // Check cache
-  if (hydrateBlueskyFeed()) return;
+  // A fresh snapshot avoids the request. An expired matching snapshot remains
+  // visible during the refresh instead of dropping the overview back to empty.
+  const fresh = cachedBlueskyPosts();
+  if (Array.isArray(fresh)) {
+    blueskyPosts.value = fresh;
+    blueskyLoaded.value = true;
+    return;
+  }
+  if (!Array.isArray(cachedBlueskyPosts(true))) {
+    blueskyPosts.value = [];
+    blueskyLoaded.value = false;
+  }
 
   blueskyLoading.value = true;
 
@@ -246,6 +265,7 @@ export async function loadBlueskyFeed() {
     if (!servedFallback) {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         posts,
+        accountDid: session.did,
         feedUri: blueskyFeedUri.value,
         window: blueskyTimeWindow.value,
         weightedSort: blueskyWeightedSort.value,

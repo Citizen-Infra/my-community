@@ -5,6 +5,7 @@ import {
   normalizeDashboardOrder,
   reorderDashboardTab,
 } from '../lib/dashboard-order';
+import { AUTO_PREVIEW_DEPTH, normalizePreviewDepth } from '../lib/dashboard-preview-depth';
 
 function storedJson(key, fallback) {
   try {
@@ -26,6 +27,11 @@ export const tabOrder = signal(normalizeDashboardOrder(
   storedJson('mc_dashboard_tab_order', DEFAULT_DASHBOARD_ORDER)
 ));
 
+const storedPreviewDepths = storedJson('mc_dashboard_preview_depths', {});
+export const previewDepths = signal(Object.fromEntries(
+  DEFAULT_DASHBOARD_ORDER.map((tab) => [tab, normalizePreviewDepth(storedPreviewDepths[tab])])
+));
+
 // Jam is a global "now listening" strip (below the TopBar, every screen), not a
 // dashboard tab — so it gets its own visibility flag, kept out of visibleTabs.
 const storedJam = localStorage.getItem('mc_jam_visible');
@@ -38,6 +44,7 @@ export function setJamVisible(visible) {
 
 export const activeTab = signal(localStorage.getItem('mc_active_tab') || 'digest');
 export const dashboardMode = signal('overview');
+export const dashboardCustomizing = signal(false);
 
 export function setActiveTab(tab) {
   activeTab.value = tab;
@@ -53,6 +60,15 @@ export function showDashboardOverview() {
   dashboardMode.value = 'overview';
 }
 
+export function toggleDashboardCustomization() {
+  dashboardMode.value = 'overview';
+  dashboardCustomizing.value = !dashboardCustomizing.value;
+}
+
+export function stopDashboardCustomization() {
+  dashboardCustomizing.value = false;
+}
+
 function saveTabOrder(next) {
   tabOrder.value = next;
   localStorage.setItem('mc_dashboard_tab_order', JSON.stringify(next));
@@ -64,6 +80,23 @@ export function reorderTab(movedTab, targetTab) {
 
 export function moveTab(tab, delta) {
   saveTabOrder(moveDashboardTab(tabOrder.value, tab, delta, availableTabs.value));
+}
+
+export function resetTabOrder() {
+  saveTabOrder([...DEFAULT_DASHBOARD_ORDER]);
+}
+
+export function setPreviewDepth(tab, value) {
+  if (!DEFAULT_DASHBOARD_ORDER.includes(tab)) return;
+  const next = { ...previewDepths.value, [tab]: normalizePreviewDepth(value) };
+  previewDepths.value = next;
+  localStorage.setItem('mc_dashboard_preview_depths', JSON.stringify(next));
+}
+
+export function resetPreviewDepths() {
+  const next = Object.fromEntries(DEFAULT_DASHBOARD_ORDER.map((tab) => [tab, AUTO_PREVIEW_DEPTH]));
+  previewDepths.value = next;
+  localStorage.setItem('mc_dashboard_preview_depths', JSON.stringify(next));
 }
 
 export function setTabVisible(tab, visible) {

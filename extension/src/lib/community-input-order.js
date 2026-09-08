@@ -12,6 +12,12 @@ export function knowledgeTier(item) {
   return 2;
 }
 
+export function communityInputStatus(tier) {
+  if (tier === 0) return 'Needs your response';
+  if (tier === 1) return 'In progress';
+  return 'Resolved';
+}
+
 export function mergeCommunityInputRows(decisions, knowledge, now = Date.now()) {
   const rows = [
     ...decisions.map((proposal) => ({ kind: 'decision', tier: decisionTier(proposal, now), p: proposal })),

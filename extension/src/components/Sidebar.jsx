@@ -7,6 +7,13 @@ import {
 import { allTabs } from '../store/tabs';
 import { collectionSort, setCollectionSort } from '../store/sort';
 import { activeView, showDashboard, showCollection } from '../store/view';
+import {
+  availableTabs,
+  dashboardCustomizing,
+  showDashboardOverview,
+  stopDashboardCustomization,
+  toggleDashboardCustomization,
+} from '../store/panels';
 import { CollectionItem } from './CollectionItem';
 import { SortMenu } from './SortMenu';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
@@ -15,6 +22,21 @@ export function Sidebar() {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const { collectionDrag } = useDragAndDrop();
+
+  const handleShowDashboard = () => {
+    showDashboard();
+    showDashboardOverview();
+  };
+
+  const handleCustomizeDashboard = () => {
+    showDashboard();
+    toggleDashboardCustomization();
+  };
+
+  const handleShowCollection = (id) => {
+    stopDashboardCustomization();
+    showCollection(id);
+  };
 
   const handleAdd = async () => {
     const name = newName.trim();
@@ -36,18 +58,36 @@ export function Sidebar() {
   return (
     <div class="sidebar">
       <nav class="sidebar-pinned-nav">
-        <button
-          class={`sidebar-pinned ${activeView.value === 'dashboard' ? 'active' : ''}`}
-          onClick={showDashboard}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-          </svg>
-          <span>Dashboard</span>
-        </button>
+        <div class="sidebar-pinned-row">
+          <button
+            class={`sidebar-pinned ${activeView.value === 'dashboard' ? 'active' : ''}`}
+            onClick={handleShowDashboard}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button
+            type="button"
+            class={`sidebar-dashboard-customize ${dashboardCustomizing.value ? 'active' : ''}`}
+            onClick={handleCustomizeDashboard}
+            disabled={availableTabs.value.length === 0}
+            aria-label="Customize dashboard"
+            aria-pressed={dashboardCustomizing.value}
+            title="Customize dashboard"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="4" y1="7" x2="20" y2="7" />
+              <circle cx="9" cy="7" r="2" fill="var(--bg-sidebar)" />
+              <line x1="4" y1="17" x2="20" y2="17" />
+              <circle cx="15" cy="17" r="2" fill="var(--bg-sidebar)" />
+            </svg>
+          </button>
+        </div>
       </nav>
       <div class="sidebar-header">
         <div class="sidebar-title-wrap">
@@ -84,7 +124,7 @@ export function Sidebar() {
               collection={col}
               count={count}
               active={activeView.value === col.id}
-              onSelect={() => showCollection(col.id)}
+              onSelect={() => handleShowCollection(col.id)}
               collectionDrag={collectionDrag}
             />
           );
@@ -99,7 +139,7 @@ export function Sidebar() {
           return (
             <div
               class={`collection-item archive-item ${activeView.value === archive.id ? 'active' : ''}`}
-              onClick={() => showCollection(archive.id)}
+              onClick={() => handleShowCollection(archive.id)}
               onDragOver={(e) => collectionDrag.onDragOver(e, archive.id)}
               onDragLeave={(e) => collectionDrag.onDragLeave(e)}
               onDrop={(e) => collectionDrag.onDrop(e, archive.id)}

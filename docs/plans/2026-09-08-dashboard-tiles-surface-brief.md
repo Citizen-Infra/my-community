@@ -2,18 +2,31 @@
 
 **Mode:** Operate. A member opening a new browser tab should understand the community pulse without scrolling the dashboard overview.
 
-**Scope:** Replace feed tabs with an adaptive overview of enabled feeds. Four feeds form a 2×2 mosaic; fewer feeds expand to use the space. Each tile previews real feed content and handles loading, empty, error, and sign-in states. Selecting a tile opens the existing full, scrollable feed; Back returns to the overview. A direct Customize mode supports pointer drag and keyboard move controls. Existing visibility settings, data loading, themes, sidebar, and full-feed behavior remain.
+**Scope:** Replace feed tabs with an adaptive overview of enabled feeds. Four feeds form a 2×2 mosaic; fewer feeds expand to use the space. The normal overview has no separate page heading, reserving the main-area height for tiles. A compact sliders control beside Dashboard in the sidebar enters and exits Customize mode. Each tile presents community-attributed, civic-priority preview items and handles loading, empty, error, and sign-in states. Auto-fit shows as many complete rows as the tile's current height allows, so one or two enabled tiles use their additional space. Visible rows divide the tile body evenly and progressively reveal multiline titles and descriptive context as each row gains height. Customize can persist an exact item count independently for each feed. Preview rows open their item; the tile heading and footer open the existing full, scrollable feed. Back returns to the overview. Existing visibility settings, themes, and full-feed behavior remain.
+
+**Persistent preview contract:** A matching preview remains visible after its network-refresh TTL rather than reverting to an unloaded tile. Never-loaded enabled feeds populate sequentially after first paint; subsequent network refreshes are limited to the most recently focused feed on a new tab and any feed the member explicitly opens. Cache selectors include the current community selection and account where content is private, so persistence never crosses identities. This keeps the overview useful without restoring every-feed fetching on every new tab.
 
 ## Direction contract
 
 **THESIS:** A community front page, not a tab strip or widget grid.
 
-**OWN-WORLD:** Warm paper, editorial type, quiet rules, feed-specific modules, and forest-green action.
+**OWN-WORLD:** Warm paper, editorial type, quiet rules, community provenance, and forest-green action. Decorative feed-color bars are absent; civic state supplies emphasis.
 
 **STORY:** Scan four community signals, choose one, read deeply, return.
 
-**FIRST VIEWPORT:** Top bar and sidebar frame a gapless 2×2 editorial mosaic; each feed has one strong preview and a clear opening affordance. Customize is quiet but visible.
+**FIRST VIEWPORT:** A quieted top bar and sidebar frame a gapless 2×2 editorial mosaic that begins immediately in the main area. Every tile uses its available height for a calm, complete-row preview, with civic urgency and useful item-level evidence visible inside each row. Tile subtitles name scope—active Network filters or selected communities—rather than loaded-item totals. Customize is a compact secondary icon beside Dashboard in the sidebar.
 
 **FORM:** Adaptive almanac front page, shaped directly inside the established world.
 
 **FINISH:** unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Interaction and hardening
+
+- Actionable civic states such as Needs your response, Happening now, and Open to join outrank passive content without changing the user's tile order.
+- Customize replaces item opening with 44px reorder controls, visible instructions, an Auto-fit or exact-count selector per tile, and Reset layout. Reorders remain announced to assistive technology.
+- Preview depth is presentation-only: it never triggers pagination or additional source requests. Exact counts that exceed the current tile height scroll inside that tile; Auto-fit never introduces tile scrolling or a clipped final row. When fewer rows are visible than could fit, they share the body height rather than collecting at the top and reveal more source text instead of leaving avoidable dead space.
+- Avoid repeated provenance. Digest rows show the source domain and Community Input rows show only civic state rather than repeating a community already named in the tile subtitle. Network rows show the author's handle plus reply and repost counts rather than duplicating the display name.
+- Keep full-feed actions available without competing with item links. A tile's footer action appears while hovering tile chrome or unused space, recedes while a specific preview row is hovered, and remains visible on keyboard focus.
+- Signed-out, empty, and error tiles explain the next action; opening them leads directly to the existing connection, sign-in, or retry surface.
+- Top-bar search remains visually and behaviorally identical to Collections pages, including the `/` shortcut. The Collections sidebar retains its established width; the dashboard must not compress or newly truncate collection names.
+- Narrow layouts retain guidance, use one column, and scroll; focused feeds keep their existing controls and scrolling.

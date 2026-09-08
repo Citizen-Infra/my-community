@@ -1,21 +1,21 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
-import { initAuth, isConnected } from './store/auth';
+import { blueskySession, initAuth, isConnected } from './store/auth';
 import { loadCommunities, selectedCommunityIds, selectedCommunities } from './store/communities';
-import { hydrateDigest, loadDigest } from './store/digest';
-import { hydrateSessions, loadSessions } from './store/sessions';
+import { digestLoaded, digestLoading, hydrateDigest, loadDigest } from './store/digest';
+import { hydrateSessions, loadSessions, sessionsLoaded, sessionsLoading } from './store/sessions';
 import { initCaAuth, caSignedIn } from './store/caAuth';
-import { clearProposals, loadProposals } from './store/proposals';
-import { clearWikiQueue, loadWikiQueue, refreshWikiQueue } from './store/knowledge';
+import { hydrateProposals, loadProposals } from './store/proposals';
+import { hydrateWikiQueue, loadWikiQueue, refreshWikiQueue } from './store/knowledge';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
-import { hydrateBlueskyFeed, loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
+import { blueskyLoaded, blueskyLoading, hydrateBlueskyFeed, loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
 import { initDB } from './store/db';
 import { loadCollections, collections, getOrCreateArchive } from './store/collections';
 import { allTabs, loadTabs } from './store/tabs';
 import { syncToStorage, restoreFromStorage } from './store/backup';
 import { activeView } from './store/view';
-import { activeTab, dashboardMode } from './store/panels';
+import { activeTab, availableTabs, dashboardMode } from './store/panels';
 import { searchQuery } from './store/search';
 import { TopBar } from './components/TopBar';
 import { JamBanner } from './components/JamBanner';
@@ -69,12 +69,15 @@ export function App() {
       await initCaAuth();
       // Preserve original feed ordering: communities + auth resolve before reveal.
       await Promise.all([loadCommunities(), initAuth()]);
-      // Fill overview tiles from valid local caches without restoring the old
-      // all-feeds-on-every-new-tab request cost. The lead tile is refreshed by
-      // the loader effect below; other feeds fetch only when opened.
-      hydrateDigest(selectedCommunityIds.value);
-      hydrateSessions(selectedCommunities.value);
-      if (isConnected.value) hydrateBlueskyFeed();
+      // A selector-matched snapshot remains useful after its refresh TTL. The
+      // focused feed refreshes below; only never-loaded inactive feeds populate
+      // after first paint, so routine new tabs keep the request budget from #32.
+      const ids = selectedCommunityIds.value;
+      hydrateDigest(ids, { allowStale: true });
+      hydrateSessions(selectedCommunities.value, { allowStale: true });
+      hydrateProposals(caSignedIn.value ? ids : []);
+      hydrateWikiQueue(caSignedIn.value ? ids : []);
+      if (isConnected.value) hydrateBlueskyFeed({ allowStale: true });
       setReady(true);
     })();
 
@@ -109,20 +112,20 @@ export function App() {
     return () => stopJamPolling();
   }, [ready, caSignedIn.value, selectedCommunityIds.value]);
 
-  // Community-scoped inactive tiles must never retain a previous selection's
-  // content. Hydrate matching cache snapshots or clear them before the active
-  // feed loader below refreshes its one allowed network source.
+  // Community-scoped inactive tiles must never retain another selection's or
+  // account's content. Matching stale snapshots remain visible during refresh.
   useLayoutEffect(() => {
     if (!ready) return;
-    hydrateDigest(selectedCommunityIds.value);
-    hydrateSessions(selectedCommunities.value);
-    clearProposals();
-    clearWikiQueue();
+    const ids = selectedCommunityIds.value;
+    hydrateDigest(ids, { allowStale: true });
+    hydrateSessions(selectedCommunities.value, { allowStale: true });
+    hydrateProposals(caSignedIn.value ? ids : []);
+    hydrateWikiQueue(caSignedIn.value ? ids : []);
   }, [ready, caSignedIn.value, selectedCommunityIds.value, selectedCommunities.value]);
 
   // Refresh one feed at a time: the member's most recently focused feed (Digest
   // by default), whether the overview or a focused feed is open. Other overview
-  // tiles use valid cache snapshots, preserving the request budget from #32.
+  // tiles use selector-matched snapshots, preserving the request budget from #32.
   // Bluesky stays single-owner HERE (see #33/#35).
   useEffect(() => {
     if (!ready) return;
@@ -130,17 +133,53 @@ export function App() {
     const requestedTab = activeTab.value;
     switch (requestedTab) {
       case 'network':
-        if (isConnected.value) { loadSavedFeeds(); loadBlueskyFeed(); }
+        if (isConnected.value && !blueskyLoading.value) { loadSavedFeeds(); loadBlueskyFeed(); }
         break;
       case 'digest':
-        loadDigest(ids);
+        if (!digestLoading.value) loadDigest(ids);
         break;
       case 'participation':
-        loadSessions(selectedCommunities.value);
+        if (!sessionsLoading.value) loadSessions(selectedCommunities.value);
         break;
       // 'communityInput' -> proposals, already loaded by the always-on effect above
     }
   }, [ready, activeTab.value, selectedCommunityIds.value, isConnected.value]);
+
+  // Populate only enabled previews that have never produced a selector-matched
+  // snapshot. Work starts after first paint and runs one feed at a time. Once an
+  // empty or non-empty result is cached, future new tabs hydrate it without this
+  // background work; normal freshness remains owned by the focused-feed loader.
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+
+    const populateMissingPreviews = async () => {
+      for (const tab of availableTabs.value) {
+        if (cancelled) return;
+        if (tab === activeTab.value || tab === 'communityInput') continue;
+
+        if (tab === 'digest' && !digestLoaded.value && !digestLoading.value) {
+          await loadDigest(selectedCommunityIds.value);
+        } else if (tab === 'participation' && !sessionsLoaded.value && !sessionsLoading.value) {
+          await loadSessions(selectedCommunities.value);
+        } else if (tab === 'network' && isConnected.value && !blueskyLoaded.value && !blueskyLoading.value) {
+          await loadSavedFeeds();
+          await loadBlueskyFeed();
+        }
+      }
+    };
+
+    const run = () => { if (!cancelled) void populateMissingPreviews(); };
+    const idleHandle = globalThis.requestIdleCallback
+      ? globalThis.requestIdleCallback(run, { timeout: 1500 })
+      : globalThis.setTimeout(run, 300);
+
+    return () => {
+      cancelled = true;
+      if (globalThis.cancelIdleCallback) globalThis.cancelIdleCallback(idleHandle);
+      else globalThis.clearTimeout(idleHandle);
+    };
+  }, [ready, availableTabs.value, selectedCommunityIds.value, selectedCommunities.value, caSignedIn.value, blueskySession.value?.did]);
 
   // avails polling is scoped to the Participation tab being open (its banners
   // only show there). Starts on activation, stops when you leave.

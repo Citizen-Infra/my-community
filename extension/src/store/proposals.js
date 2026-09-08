@@ -1,7 +1,7 @@
 import { signal, computed } from '@preact/signals';
-import { caSessionHeader } from './caAuth';
+import { caSessionHeader, caSubject } from './caAuth';
 import { resolveHandles } from './handles';
-import { getCached, setCached, clearCached, communityKey } from '../lib/cache';
+import { accountCommunityKey, getCached, getCachedStale, setCached, clearCached } from '../lib/cache';
 import { CA_URL } from '../lib/config';
 
 const CACHE_KEY = 'mc_proposals_cache';
@@ -25,6 +25,24 @@ export function clearProposals() {
   proposals.value = [];
   proposalsLoading.value = false;
   proposalsError.value = false;
+}
+
+export function hydrateProposals(communityIds) {
+  loadGeneration += 1;
+  proposalsLoading.value = false;
+  proposalsError.value = false;
+  if (!caSubject.value || !communityIds?.length) {
+    proposals.value = [];
+    return false;
+  }
+  const cached = getCachedStale(CACHE_KEY, accountCommunityKey(caSubject.value, communityIds));
+  if (!Array.isArray(cached)) {
+    proposals.value = [];
+    return false;
+  }
+  proposals.value = cached;
+  resolveHandles(cached.map((p) => p.created_by));
+  return true;
 }
 
 // This endpoint carries every artifact on community-admin's shared backbone, not
@@ -93,7 +111,7 @@ export async function loadProposals(communityIds) {
     return;
   }
 
-  const selector = communityKey(communityIds);
+  const selector = accountCommunityKey(caSubject.value, communityIds);
   const cached = getCached(CACHE_KEY, CACHE_TTL, selector);
   if (Array.isArray(cached)) {
     proposals.value = cached;

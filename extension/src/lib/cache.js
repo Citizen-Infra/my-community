@@ -2,14 +2,24 @@
 // already use: one storage key per store, an optional `selector` (e.g. the
 // selected-community set) compared on read, and a timestamp for TTL expiry.
 
-export function getCached(key, ttlMs, selector = '') {
+function readCached(key, selector) {
   try {
     const c = JSON.parse(localStorage.getItem(key) || 'null');
-    if (c && Date.now() - c.timestamp < ttlMs && (c.selector ?? '') === selector) {
-      return c.value;
-    }
+    if (c && (c.selector ?? '') === selector) return c;
   } catch {}
   return null;
+}
+
+export function getCached(key, ttlMs, selector = '') {
+  const cached = readCached(key, selector);
+  return cached && Date.now() - cached.timestamp < ttlMs ? cached.value : null;
+}
+
+// Overview tiles may render an expired snapshot while their focused feed gets a
+// network refresh. Selectors still gate the read, so stale data cannot cross a
+// community or account boundary.
+export function getCachedStale(key, selector = '') {
+  return readCached(key, selector)?.value ?? null;
 }
 
 export function setCached(key, value, selector = '') {
@@ -25,4 +35,8 @@ export function clearCached(key) {
 // Stable, order-independent selector for a set of selected communities.
 export function communityKey(ids) {
   return [...ids].sort().join(',');
+}
+
+export function accountCommunityKey(account, ids) {
+  return JSON.stringify([account || '', communityKey(ids)]);
 }

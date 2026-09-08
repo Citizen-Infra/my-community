@@ -10,10 +10,15 @@
 }
 
 .sidebar-header {
-  padding: var(--space-lg) var(--space-lg) var(--space-md);
+  padding: var(--space-lg) var(--space-sm) var(--space-md) var(--space-lg);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.sidebar-header .sort-btn {
+  width: 36px;
+  height: 36px;
 }
 
 /* Group label over the collection list — DM Sans caps, matches .settings-section-title.
@@ -39,10 +44,11 @@
 }
 
 .collection-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-sm) 12px var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background var(--transition-fast);
@@ -78,6 +84,7 @@
 
 .collection-name {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,22 +104,41 @@
   font-size: 12px;
   color: var(--text-muted);
   flex-shrink: 0;
-}
-
-.collection-actions {
-  display: flex;
-  gap: 2px;
-  opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
-.collection-item:hover .collection-actions {
+.collection-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.collection-item:hover .collection-actions,
+.collection-item:focus-within .collection-actions {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.collection-item:hover .collection-name,
+.collection-item:focus-within .collection-name {
+  padding-right: 64px;
+}
+
+.collection-item:hover .collection-count,
+.collection-item:focus-within .collection-count {
+  opacity: 0;
 }
 
 .collection-action-btn {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,6 +150,12 @@
 .collection-action-btn:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+.sidebar-header .sort-btn:focus-visible,
+.collection-action-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .archive-item {

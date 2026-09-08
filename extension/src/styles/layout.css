@@ -107,11 +107,18 @@
   padding: var(--space-sm) var(--space-sm) 0;
 }
 
+.sidebar-pinned-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .sidebar-pinned {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   font-size: 14px;
@@ -132,6 +139,34 @@
 
 .sidebar-pinned svg {
   flex-shrink: 0;
+}
+
+.sidebar-dashboard-customize {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.sidebar-dashboard-customize:hover:not(:disabled),
+.sidebar-dashboard-customize.active {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.sidebar-dashboard-customize:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sidebar-dashboard-customize:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .welcome-prompt {
