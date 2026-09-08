@@ -263,7 +263,7 @@ export function DashboardOverview() {
       <header class="dashboard-overview-header">
         <div>
           <h2 id="dashboard-overview-title">Today in your communities</h2>
-          <p>{customizing ? 'Drag feeds or use the arrow controls to set their order.' : 'A glance across the conversations, invitations, and choices around you.'}</p>
+          {customizing && <p>Drag feeds or use the arrow controls to set their order.</p>}
         </div>
         <button
           type="button"
