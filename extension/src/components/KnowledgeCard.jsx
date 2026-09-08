@@ -53,6 +53,7 @@ export function KnowledgeCard({ item: k }) {
 
   return (
     <article
+      id={`knowledge-${k.community_id}-${k.id}`}
       class="decision-card knowledge-card"
       style={{ '--community-border': colors.border, '--community-bg': colors.bg, '--community-text': colors.text }}
     >

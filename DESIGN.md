@@ -162,7 +162,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 - **Border:** 1px `border-light` at rest, darkening to `border` on hover.
 - **Signature:** a 4px left accent bar carrying community color (the Community-Color Rule), widening to 5px on hover. Cards stagger in with `card-enter` (opacity + 12px rise, 40ms cascade).
 - **Internal Padding:** `lg` (24px). No nested cards.
-- **Dashboard tile:** one lead signal rather than a miniature list. The whole normal tile is the opening control. Tiles may combine several communities, so they carry no decorative color stripe; community identity appears as provenance beside the signal itself.
+- **Dashboard tile:** a civic-priority preview whose density responds to the tile's available height. Auto-fit uses the full tile without clipping a row; a locally saved exact count can make an individual feed quieter or denser. Preview rows deep-link to their item, while the heading and footer open the full feed. Tiles may combine several communities, so they carry no decorative color stripe; community identity appears as provenance beside each signal.
 
 ### Inputs / Fields
 - **Style:** surface or paper fill, 1px border, `sm`/`md` radius, DM Sans at body size.

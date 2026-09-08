@@ -1,10 +1,13 @@
-import { useState } from 'preact/hooks';
+import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import {
   availableTabs,
   moveTab,
   openDashboardFeed,
+  previewDepths,
   reorderTab,
+  resetPreviewDepths,
   resetTabOrder,
+  setPreviewDepth,
 } from '../store/panels';
 import {
   digestError,
@@ -45,6 +48,11 @@ import {
 import { caSignedIn } from '../store/caAuth';
 import { allCommunities } from '../store/communities';
 import { mergeCommunityInputRows } from '../lib/community-input-order';
+import {
+  AUTO_PREVIEW_DEPTH,
+  MAX_PREVIEW_DEPTH,
+  fitPreviewDepth,
+} from '../lib/dashboard-preview-depth';
 import '../styles/dashboard-overview.css';
 
 export const DASHBOARD_FEED_LABELS = {
@@ -67,6 +75,30 @@ function communityName(id) {
   return allCommunities.value.find((community) => community.id === id)?.name || id;
 }
 
+function blueskyPostUrl(post) {
+  const rkey = post.uri?.split('/').pop();
+  return post.author?.handle && rkey
+    ? `https://bsky.app/profile/${post.author.handle}/post/${rkey}`
+    : '';
+}
+
+function callProposalAnchor(proposal) {
+  return `call-${proposal.community_id}-${proposal.id}`;
+}
+
+function communityInputAnchor(kind, item) {
+  return `${kind}-${item.community_id}-${item.id}`;
+}
+
+function sessionUrl(session) {
+  if (session.session_state === 'open' && session.session_join_url) return session.session_join_url;
+  if (session.session_state === 'ready' && session.session_results_url) return session.session_results_url;
+  if (session.source === 'session' && session.harmonica_session_id) {
+    return `https://harmonica.chat/session/${session.harmonica_session_id}`;
+  }
+  return session.url || '';
+}
+
 function previewState(tab) {
   if (tab === 'digest') {
     const links = digestLinks.value;
@@ -74,13 +106,14 @@ function previewState(tab) {
     if (digestError.value && links.length === 0) return { state: 'error', message: 'The digest could not refresh. Open it to try again.' };
     if (!digestLoaded.value && links.length === 0) return { state: 'idle', message: 'Open the digest to gather this week’s links.' };
     if (links.length === 0) return { state: 'empty', message: 'No recent links from your communities.' };
-    const lead = links[0];
     return {
       meta: `${links.length} recent ${links.length === 1 ? 'link' : 'links'}`,
-      lead: {
-        title: lead.og_title || lead.title || lead.url,
-        provenance: [communityName(lead.community_id), safeHost(lead.url)].filter(Boolean).join(' · '),
-      },
+      items: links.map((link, index) => ({
+        key: `${link.community_id || ''}-${link.id || link.url}-${index}`,
+        title: link.og_title || link.title || link.url,
+        provenance: [communityName(link.community_id), safeHost(link.url)].filter(Boolean).join(' · '),
+        href: link.url,
+      })),
     };
   }
 
@@ -91,15 +124,16 @@ function previewState(tab) {
     if (blueskyError.value && posts.length === 0) return { state: 'error', message: 'Network posts could not refresh. Open Network to try again.' };
     if (!blueskyLoaded.value && posts.length === 0) return { state: 'idle', message: 'Open Network to load popular posts from people you follow.' };
     if (posts.length === 0) return { state: 'empty', message: 'No posts in the current time window.' };
-    const lead = posts[0];
     return {
       meta: `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} in view`,
-      lead: {
-        title: lead.text || 'Shared a post',
-        provenance: lead.author.displayName
-          ? `${lead.author.displayName} · @${lead.author.handle}`
-          : `@${lead.author.handle}`,
-      },
+      items: posts.map((post) => ({
+        key: post.uri,
+        title: post.text || 'Shared a post',
+        provenance: post.author.displayName
+          ? `${post.author.displayName} · @${post.author.handle}`
+          : `@${post.author.handle}`,
+        href: blueskyPostUrl(post),
+      })),
     };
   }
 
@@ -111,6 +145,7 @@ function previewState(tab) {
         ...proposal,
         title: proposal.title || proposal.question || 'Proposed community call',
         previewStatus: 'Proposed call',
+        previewAnchor: callProposalAnchor(proposal),
       })),
       ...upcomingSessions.value,
     ];
@@ -118,14 +153,16 @@ function previewState(tab) {
     if (sessionsError.value && current.length === 0) return { state: 'error', message: 'Participation opportunities could not refresh.' };
     if (!sessionsLoaded.value && current.length === 0) return { state: 'idle', message: 'Open Participation to find sessions and events.' };
     if (current.length === 0) return { state: 'empty', message: 'No open or upcoming sessions right now.' };
-    const lead = current[0];
     return {
       meta: `${current.length} ${current.length === 1 ? 'way' : 'ways'} to take part`,
-      lead: {
-        title: lead.title,
-        status: lead.previewStatus || (lead.status === 'active' ? 'Happening now' : lead.status === 'open' ? 'Open to join' : 'Coming up'),
-        provenance: communityName(lead.community_id || lead.community),
-      },
+      items: current.map((item) => ({
+        key: `${item.source || item.kind || 'participation'}-${item.community_id || item.community || ''}-${item.id}`,
+        title: item.title,
+        status: item.previewStatus || (item.status === 'active' ? 'Happening now' : item.status === 'open' ? 'Open to join' : 'Coming up'),
+        provenance: communityName(item.community_id || item.community),
+        href: item.previewAnchor ? '' : sessionUrl(item),
+        anchor: item.previewAnchor,
+      })),
     };
   }
 
@@ -137,14 +174,18 @@ function previewState(tab) {
   const items = mergeCommunityInputRows(decisionProposals.value, wikiItems.value).map((row) =>
     row.kind === 'decision'
       ? {
+          key: `decision-${row.p.community_id}-${row.p.id}`,
           title: row.p.title || row.p.question || 'Community decision',
           status: row.p.my_vote ? 'Response recorded' : 'Needs your response',
           provenance: communityName(row.p.community_id),
+          anchor: communityInputAnchor('decision', row.p),
         }
       : {
+          key: `knowledge-${row.k.community_id}-${row.k.id}`,
           title: row.k.title || row.k.url || 'Suggested source',
           status: row.k.my_vote ? 'Response recorded' : 'Needs your response',
           provenance: communityName(row.k.community_id),
+          anchor: communityInputAnchor('knowledge', row.k),
         }
   );
   if ((proposalsLoading.value || wikiLoading.value) && items.length === 0) return { state: 'loading', message: 'Checking what needs your voice…' };
@@ -153,7 +194,7 @@ function previewState(tab) {
   return {
     meta: pending > 0 ? `${pending} awaiting your response` : `${items.length} recent ${items.length === 1 ? 'item' : 'items'}`,
     pending,
-    lead: items[0],
+    items,
   };
 }
 
@@ -182,67 +223,151 @@ function tileAction(label, preview) {
   return `View ${label}`;
 }
 
-function TileContents({ label, preview, customizing, index, count, onMove, tab }) {
-  return (
+function useAutoPreviewDepth(containerRef, itemCount, layoutKey) {
+  const [count, setCount] = useState(Math.min(itemCount, 3));
+
+  useLayoutEffect(() => {
+    const node = containerRef.current;
+    if (!node || itemCount === 0) {
+      setCount(0);
+      return undefined;
+    }
+
+    const update = () => setCount(fitPreviewDepth(node.clientHeight, itemCount));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [itemCount, layoutKey]);
+
+  return count;
+}
+
+function openAnchoredItem(tab, anchor) {
+  openDashboardFeed(tab);
+  globalThis.setTimeout(() => {
+    document.getElementById(anchor)?.scrollIntoView({ block: 'start' });
+  }, 0);
+}
+
+function PreviewRow({ item, tab, customizing }) {
+  const content = (
     <>
-      <span class="dashboard-tile-heading">
-        <span>
-          <span class="dashboard-tile-title" role="heading" aria-level="3">{label}</span>
-          {preview.meta && <span class={`dashboard-tile-meta ${preview.pending ? 'needs-action' : ''}`}>{preview.meta}</span>}
-        </span>
-        {customizing && (
-          <span class="dashboard-tile-order-controls" aria-label={`Move ${label}`}>
-            <span class="dashboard-drag-handle" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="8" cy="7" r="1.5" /><circle cx="16" cy="7" r="1.5" />
-                <circle cx="8" cy="12" r="1.5" /><circle cx="16" cy="12" r="1.5" />
-                <circle cx="8" cy="17" r="1.5" /><circle cx="16" cy="17" r="1.5" />
-              </svg>
-            </span>
-            <button type="button" onClick={() => onMove(tab, -1)} disabled={index === 0} aria-label={`Move ${label} earlier`}>
-              <MoveIcon direction="up" />
-            </button>
-            <button type="button" onClick={() => onMove(tab, 1)} disabled={index === count - 1} aria-label={`Move ${label} later`}>
-              <MoveIcon direction="down" />
-            </button>
-          </span>
-        )}
-      </span>
-
-      <span class="dashboard-tile-body">
-        {preview.lead ? (
-          <span class="dashboard-tile-lead">
-            {preview.lead.status && (
-              <span class={`dashboard-tile-status ${preview.lead.status === 'Needs your response' ? 'needs-action' : ''}`}>
-                {preview.lead.status}
-              </span>
-            )}
-            <strong>{preview.lead.title}</strong>
-            {preview.lead.provenance && <span class="dashboard-tile-provenance">{preview.lead.provenance}</span>}
-          </span>
-        ) : preview.state === 'loading' ? (
-          <span class="dashboard-tile-loading" role="status">
-            <span class="dashboard-tile-loading-copy">{preview.message}</span>
-            <span class="dashboard-tile-loading-rule" aria-hidden="true" />
-          </span>
-        ) : (
-          <span class={`dashboard-tile-message state-${preview.state}`}>{preview.message}</span>
-        )}
-      </span>
-
-      {!customizing && (
-        <span class="dashboard-tile-cta">
-          {tileAction(label, preview)}
-          <ArrowIcon direction="right" />
+      <strong>{item.title}</strong>
+      {(item.status || item.provenance) && (
+        <span class="dashboard-preview-row-meta">
+          {item.status && <span class={item.status === 'Needs your response' ? 'needs-action' : ''}>{item.status}</span>}
+          {item.status && item.provenance && <span aria-hidden="true"> · </span>}
+          {item.provenance && <span>{item.provenance}</span>}
         </span>
       )}
     </>
+  );
+
+  if (customizing) return <span class="dashboard-preview-row is-static">{content}</span>;
+  if (item.href) {
+    return (
+      <a class="dashboard-preview-row" href={item.href} target="_blank" rel="noopener noreferrer">
+        {content}
+      </a>
+    );
+  }
+  return (
+    <button
+      type="button"
+      class="dashboard-preview-row"
+      onClick={() => item.anchor ? openAnchoredItem(tab, item.anchor) : openDashboardFeed(tab)}
+    >
+      {content}
+    </button>
+  );
+}
+
+function TileHeading({ label, preview, customizing, index, count, onMove, onOpen, tab }) {
+  return (
+    <div class="dashboard-tile-heading">
+      {customizing ? (
+        <div class="dashboard-tile-heading-copy">
+          <span class="dashboard-tile-title" role="heading" aria-level="3">{label}</span>
+          {preview.meta && <span class={`dashboard-tile-meta ${preview.pending ? 'needs-action' : ''}`}>{preview.meta}</span>}
+        </div>
+      ) : (
+        <button type="button" class="dashboard-tile-heading-open" onClick={onOpen}>
+          <span class="dashboard-tile-title" role="heading" aria-level="3">{label}</span>
+          {preview.meta && <span class={`dashboard-tile-meta ${preview.pending ? 'needs-action' : ''}`}>{preview.meta}</span>}
+        </button>
+      )}
+      {customizing && (
+        <div class="dashboard-tile-order-controls" aria-label={`Move ${label}`}>
+          <span class="dashboard-drag-handle" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="8" cy="7" r="1.5" /><circle cx="16" cy="7" r="1.5" />
+              <circle cx="8" cy="12" r="1.5" /><circle cx="16" cy="12" r="1.5" />
+              <circle cx="8" cy="17" r="1.5" /><circle cx="16" cy="17" r="1.5" />
+            </svg>
+          </span>
+          <button type="button" onClick={() => onMove(tab, -1)} disabled={index === 0} aria-label={`Move ${label} earlier`}>
+            <MoveIcon direction="up" />
+          </button>
+          <button type="button" onClick={() => onMove(tab, 1)} disabled={index === count - 1} aria-label={`Move ${label} later`}>
+            <MoveIcon direction="down" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TileBody({ preview, tab, customizing, depth, autoCount, containerRef, onOpen }) {
+  const visibleCount = depth === AUTO_PREVIEW_DEPTH ? autoCount : depth;
+  const visibleItems = preview.items?.slice(0, visibleCount) || [];
+  const fixedOverflow = depth !== AUTO_PREVIEW_DEPTH
+    && Math.min(depth, preview.items?.length || 0) > autoCount;
+
+  const stateContent = preview.state === 'loading' ? (
+    <span class="dashboard-tile-loading" role="status">
+      <span class="dashboard-tile-loading-copy">{preview.message}</span>
+      <span class="dashboard-tile-loading-rule" aria-hidden="true" />
+    </span>
+  ) : (
+    <span class={`dashboard-tile-message state-${preview.state}`}>{preview.message}</span>
+  );
+
+  return (
+    <div ref={containerRef} class={`dashboard-tile-body ${fixedOverflow ? 'allows-scroll' : ''}`}>
+      {preview.items ? (
+        <div class="dashboard-preview-list">
+          {visibleItems.map((item) => <PreviewRow key={item.key} {...{ item, tab, customizing }} />)}
+        </div>
+      ) : customizing ? (
+        <div class="dashboard-tile-state-open is-static">{stateContent}</div>
+      ) : (
+        <button type="button" class="dashboard-tile-state-open" onClick={onOpen}>{stateContent}</button>
+      )}
+    </div>
+  );
+}
+
+function PreviewDepthControl({ label, depth, autoCount, onChange }) {
+  return (
+    <label class="dashboard-preview-depth">
+      <span>Preview items</span>
+      <select value={String(depth)} onInput={(event) => onChange(event.currentTarget.value)} aria-label={`${label} preview items`}>
+        <option value={AUTO_PREVIEW_DEPTH}>Auto fit ({autoCount})</option>
+        {Array.from({ length: MAX_PREVIEW_DEPTH }, (_, index) => index + 1).map((count) => (
+          <option value={count} key={count}>{count}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 
 function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, onDrop, onMove }) {
   const label = DASHBOARD_FEED_LABELS[tab];
   const preview = previewState(tab);
+  const depth = previewDepths.value[tab] ?? AUTO_PREVIEW_DEPTH;
+  const bodyRef = useRef(null);
+  const autoCount = useAutoPreviewDepth(bodyRef, preview.items?.length || 0, customizing);
   const handleOpen = () => {
     openDashboardFeed(tab);
     if (preview.state === 'error' && tab === 'communityInput') {
@@ -259,15 +384,23 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
       onDragEnd={() => onDragStart(null, null)}
       onDragOver={(event) => customizing && event.preventDefault()}
       onDrop={(event) => onDrop(event, tab)}
+      onClick={(event) => {
+        if (!customizing && !event.target.closest('a, button, select')) handleOpen();
+      }}
     >
-      {customizing ? (
-        <div class="dashboard-tile-static">
-          <TileContents {...{ label, preview, customizing, index, count, onMove, tab }} />
-        </div>
-      ) : (
-        <button type="button" class="dashboard-tile-open" onClick={handleOpen}>
-          <TileContents {...{ label, preview, customizing, index, count, onMove, tab }} />
+      <TileHeading {...{ label, preview, customizing, index, count, onMove, onOpen: handleOpen, tab }} />
+      <TileBody {...{ preview, tab, customizing, depth, autoCount, containerRef: bodyRef, onOpen: handleOpen }} />
+      {!customizing && (
+        <button type="button" class="dashboard-tile-cta" onClick={handleOpen}>
+          {tileAction(label, preview)}
+          <ArrowIcon direction="right" />
         </button>
+      )}
+      {customizing && (
+        <PreviewDepthControl
+          {...{ label, depth, autoCount }}
+          onChange={(value) => setPreviewDepth(tab, value)}
+        />
       )}
     </article>
   );
@@ -284,6 +417,10 @@ export function DashboardOverview() {
   };
 
   const handleDragStart = (event, tab) => {
+    if (event?.target?.closest('button, select, a')) {
+      event.preventDefault();
+      return;
+    }
     setDraggedTab(tab);
     if (event?.dataTransfer && tab) {
       event.dataTransfer.effectAllowed = 'move';
@@ -308,7 +445,8 @@ export function DashboardOverview() {
 
   const handleReset = () => {
     resetTabOrder();
-    announce('Dashboard feed order reset.');
+    resetPreviewDepths();
+    announce('Dashboard layout reset.');
   };
 
   if (tabs.length === 0) {
@@ -325,10 +463,10 @@ export function DashboardOverview() {
       <header class="dashboard-overview-header">
         <div>
           <h2 id="dashboard-overview-title">Today in your communities</h2>
-          {customizing && <p>Drag feeds or use the arrow controls to set their order.</p>}
+          {customizing && <p>Reorder feeds and choose how many preview items each tile shows.</p>}
         </div>
         <div class="dashboard-customize-actions">
-          {customizing && <button type="button" class="dashboard-reset" onClick={handleReset}>Reset order</button>}
+          {customizing && <button type="button" class="dashboard-reset" onClick={handleReset}>Reset layout</button>}
           <button
             type="button"
             class={`dashboard-customize ${customizing ? 'active' : ''}`}
