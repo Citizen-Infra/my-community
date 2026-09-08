@@ -9,17 +9,19 @@ related_targets: ["extension/src/components/TabBar.jsx","extension/src/store/pan
 
 **Mode:** Operate. A member opening a new browser tab should understand the community pulse without scrolling the dashboard overview.
 
-**Scope:** Replace feed tabs with an adaptive overview of enabled feeds. Four feeds form a 2×2 mosaic; fewer feeds expand to use the space. Each tile previews real feed content and handles loading, empty, error, and sign-in states. Selecting a tile opens the existing full, scrollable feed; Back returns to the overview. A direct Customize mode supports pointer drag and keyboard move controls. Existing visibility settings, data loading, themes, sidebar, and full-feed behavior remain.
+**Scope:** Present enabled feeds in an adaptive overview. Four feeds form a 2×2 mosaic; fewer feeds expand to use the space. Each tile shows one decisive, community-attributed signal with persistent cached content and explicit loading, empty, error, and sign-in states. The entire normal tile opens the existing full feed. Customize supports pointer drag, 44px keyboard controls, and Reset order. Decorative feed-color bars are removed, and surrounding tab-manager chrome recedes on the dashboard.
+
+**Persistent preview contract:** Selector-matched cached content remains visible beyond its refresh TTL. Never-loaded feeds populate sequentially after first paint; afterward, refreshes are limited to the most recently focused feed on a new tab and any feed explicitly opened. Private previews are keyed to both the selected communities and current account.
 
 ## Direction contract
 
 **THESIS:** A community front page, not a tab strip or widget grid.
 
-**OWN-WORLD:** Warm paper, editorial type, quiet rules, feed-specific modules, and forest-green action.
+**OWN-WORLD:** Warm paper, editorial type, quiet rules, community provenance, and forest-green action. Civic state—not decorative feed color—carries emphasis.
 
 **STORY:** Scan four community signals, choose one, read deeply, return.
 
-**FIRST VIEWPORT:** Top bar and sidebar frame a gapless 2×2 editorial mosaic; each feed has one strong preview and a clear opening affordance. Customize is quiet but visible.
+**FIRST VIEWPORT:** Quiet supporting chrome frames a gapless 2×2 editorial mosaic; each feed has one strong preview, one useful status, and a whole-tile opening affordance. Customize is quiet but visible.
 
 **FORM:** Adaptive almanac front page, shaped directly inside the established world.
 

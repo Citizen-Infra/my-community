@@ -4,6 +4,7 @@ import {
   moveTab,
   openDashboardFeed,
   reorderTab,
+  resetTabOrder,
 } from '../store/panels';
 import {
   digestError,
@@ -32,14 +33,17 @@ import {
   openUnvotedCount,
   proposalsError,
   proposalsLoading,
+  retryProposals,
 } from '../store/proposals';
 import {
   openUnvotedKnowledgeCount,
   wikiError,
   wikiItems,
   wikiLoading,
+  retryWikiQueue,
 } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
+import { allCommunities } from '../store/communities';
 import { mergeCommunityInputRows } from '../lib/community-input-order';
 import '../styles/dashboard-overview.css';
 
@@ -58,6 +62,11 @@ function safeHost(url) {
   }
 }
 
+function communityName(id) {
+  if (!id) return '';
+  return allCommunities.value.find((community) => community.id === id)?.name || id;
+}
+
 function previewState(tab) {
   if (tab === 'digest') {
     const links = digestLinks.value;
@@ -65,12 +74,13 @@ function previewState(tab) {
     if (digestError.value && links.length === 0) return { state: 'error', message: 'The digest could not refresh. Open it to try again.' };
     if (!digestLoaded.value && links.length === 0) return { state: 'idle', message: 'Open the digest to gather this week’s links.' };
     if (links.length === 0) return { state: 'empty', message: 'No recent links from your communities.' };
+    const lead = links[0];
     return {
       meta: `${links.length} recent ${links.length === 1 ? 'link' : 'links'}`,
-      items: links.slice(0, 3).map((link) => ({
-        title: link.og_title || link.title || link.url,
-        detail: safeHost(link.url),
-      })),
+      lead: {
+        title: lead.og_title || lead.title || lead.url,
+        provenance: [communityName(lead.community_id), safeHost(lead.url)].filter(Boolean).join(' · '),
+      },
     };
   }
 
@@ -81,36 +91,41 @@ function previewState(tab) {
     if (blueskyError.value && posts.length === 0) return { state: 'error', message: 'Network posts could not refresh. Open Network to try again.' };
     if (!blueskyLoaded.value && posts.length === 0) return { state: 'idle', message: 'Open Network to load popular posts from people you follow.' };
     if (posts.length === 0) return { state: 'empty', message: 'No posts in the current time window.' };
+    const lead = posts[0];
     return {
       meta: `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} in view`,
-      items: posts.slice(0, 3).map((post) => ({
-        title: post.author.displayName || `@${post.author.handle}`,
-        detail: post.text || 'Shared a post',
-      })),
+      lead: {
+        title: lead.text || 'Shared a post',
+        provenance: lead.author.displayName
+          ? `${lead.author.displayName} · @${lead.author.handle}`
+          : `@${lead.author.handle}`,
+      },
     };
   }
 
   if (tab === 'participation') {
     const current = [
+      ...activeSessions.value,
+      ...openSessions.value,
       ...callProposals.value.filter((proposal) => !proposal.outcome && proposal.status === 'open').map((proposal) => ({
         ...proposal,
         title: proposal.title || proposal.question || 'Proposed community call',
-        previewDetail: 'Call proposal',
+        previewStatus: 'Proposed call',
       })),
-      ...openSessions.value,
-      ...activeSessions.value,
       ...upcomingSessions.value,
     ];
     if (sessionsLoading.value && current.length === 0) return { state: 'loading', message: 'Finding ways to take part…' };
     if (sessionsError.value && current.length === 0) return { state: 'error', message: 'Participation opportunities could not refresh.' };
     if (!sessionsLoaded.value && current.length === 0) return { state: 'idle', message: 'Open Participation to find sessions and events.' };
     if (current.length === 0) return { state: 'empty', message: 'No open or upcoming sessions right now.' };
+    const lead = current[0];
     return {
-      meta: `${current.length} open or upcoming`,
-      items: current.slice(0, 3).map((session) => ({
-        title: session.title,
-        detail: session.previewDetail || (session.status === 'active' ? 'Happening now' : session.status === 'open' ? 'Open to join' : 'Coming up'),
-      })),
+      meta: `${current.length} ${current.length === 1 ? 'way' : 'ways'} to take part`,
+      lead: {
+        title: lead.title,
+        status: lead.previewStatus || (lead.status === 'active' ? 'Happening now' : lead.status === 'open' ? 'Open to join' : 'Coming up'),
+        provenance: communityName(lead.community_id || lead.community),
+      },
     };
   }
 
@@ -123,11 +138,13 @@ function previewState(tab) {
     row.kind === 'decision'
       ? {
           title: row.p.title || row.p.question || 'Community decision',
-          detail: row.p.my_vote ? 'Response recorded' : 'Decision',
+          status: row.p.my_vote ? 'Response recorded' : 'Needs your response',
+          provenance: communityName(row.p.community_id),
         }
       : {
           title: row.k.title || row.k.url || 'Suggested source',
-          detail: row.k.my_vote ? 'Response recorded' : 'Wiki suggestion',
+          status: row.k.my_vote ? 'Response recorded' : 'Needs your response',
+          provenance: communityName(row.k.community_id),
         }
   );
   if ((proposalsLoading.value || wikiLoading.value) && items.length === 0) return { state: 'loading', message: 'Checking what needs your voice…' };
@@ -136,7 +153,7 @@ function previewState(tab) {
   return {
     meta: pending > 0 ? `${pending} awaiting your response` : `${items.length} recent ${items.length === 1 ? 'item' : 'items'}`,
     pending,
-    items: items.slice(0, 3),
+    lead: items[0],
   };
 }
 
@@ -149,9 +166,90 @@ function ArrowIcon({ direction }) {
   );
 }
 
+function MoveIcon({ direction }) {
+  const path = direction === 'up' ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6';
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d={path} />
+    </svg>
+  );
+}
+
+function tileAction(label, preview) {
+  if (preview.state === 'signed-out') return label === 'Network' ? 'Connect Bluesky' : 'Sign in';
+  if (preview.state === 'error') return 'Open to retry';
+  if (preview.state === 'idle') return 'Load this feed';
+  return `View ${label}`;
+}
+
+function TileContents({ label, preview, customizing, index, count, onMove, tab }) {
+  return (
+    <>
+      <span class="dashboard-tile-heading">
+        <span>
+          <span class="dashboard-tile-title" role="heading" aria-level="3">{label}</span>
+          {preview.meta && <span class={`dashboard-tile-meta ${preview.pending ? 'needs-action' : ''}`}>{preview.meta}</span>}
+        </span>
+        {customizing && (
+          <span class="dashboard-tile-order-controls" aria-label={`Move ${label}`}>
+            <span class="dashboard-drag-handle" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="8" cy="7" r="1.5" /><circle cx="16" cy="7" r="1.5" />
+                <circle cx="8" cy="12" r="1.5" /><circle cx="16" cy="12" r="1.5" />
+                <circle cx="8" cy="17" r="1.5" /><circle cx="16" cy="17" r="1.5" />
+              </svg>
+            </span>
+            <button type="button" onClick={() => onMove(tab, -1)} disabled={index === 0} aria-label={`Move ${label} earlier`}>
+              <MoveIcon direction="up" />
+            </button>
+            <button type="button" onClick={() => onMove(tab, 1)} disabled={index === count - 1} aria-label={`Move ${label} later`}>
+              <MoveIcon direction="down" />
+            </button>
+          </span>
+        )}
+      </span>
+
+      <span class="dashboard-tile-body">
+        {preview.lead ? (
+          <span class="dashboard-tile-lead">
+            {preview.lead.status && (
+              <span class={`dashboard-tile-status ${preview.lead.status === 'Needs your response' ? 'needs-action' : ''}`}>
+                {preview.lead.status}
+              </span>
+            )}
+            <strong>{preview.lead.title}</strong>
+            {preview.lead.provenance && <span class="dashboard-tile-provenance">{preview.lead.provenance}</span>}
+          </span>
+        ) : preview.state === 'loading' ? (
+          <span class="dashboard-tile-loading" role="status">
+            <span class="dashboard-tile-loading-copy">{preview.message}</span>
+            <span class="dashboard-tile-loading-rule" aria-hidden="true" />
+          </span>
+        ) : (
+          <span class={`dashboard-tile-message state-${preview.state}`}>{preview.message}</span>
+        )}
+      </span>
+
+      {!customizing && (
+        <span class="dashboard-tile-cta">
+          {tileAction(label, preview)}
+          <ArrowIcon direction="right" />
+        </span>
+      )}
+    </>
+  );
+}
+
 function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, onDrop, onMove }) {
   const label = DASHBOARD_FEED_LABELS[tab];
   const preview = previewState(tab);
+  const handleOpen = () => {
+    openDashboardFeed(tab);
+    if (preview.state === 'error' && tab === 'communityInput') {
+      retryProposals();
+      retryWikiQueue();
+    }
+  };
 
   return (
     <article
@@ -162,60 +260,15 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
       onDragOver={(event) => customizing && event.preventDefault()}
       onDrop={(event) => onDrop(event, tab)}
     >
-      <div class="dashboard-tile-heading">
-        <div>
-          <h3>{label}</h3>
-          {preview.meta && <p>{preview.meta}</p>}
+      {customizing ? (
+        <div class="dashboard-tile-static">
+          <TileContents {...{ label, preview, customizing, index, count, onMove, tab }} />
         </div>
-        {customizing && (
-          <div class="dashboard-tile-order-controls" aria-label={`Move ${label}`}>
-            <span class="dashboard-drag-handle" title={`Drag ${label} to rearrange`}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="8" cy="7" r="1.5" /><circle cx="16" cy="7" r="1.5" />
-                <circle cx="8" cy="12" r="1.5" /><circle cx="16" cy="12" r="1.5" />
-                <circle cx="8" cy="17" r="1.5" /><circle cx="16" cy="17" r="1.5" />
-              </svg>
-            </span>
-            <button type="button" onClick={() => onMove(tab, -1)} disabled={index === 0} aria-label={`Move ${label} earlier`}>
-              <ArrowIcon direction="left" />
-            </button>
-            <button type="button" onClick={() => onMove(tab, 1)} disabled={index === count - 1} aria-label={`Move ${label} later`}>
-              <ArrowIcon direction="right" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      <button
-        type="button"
-        class="dashboard-tile-open"
-        onClick={() => openDashboardFeed(tab)}
-        disabled={customizing}
-        aria-label={`Open ${label} feed`}
-      >
-        {preview.items ? (
-          <span class="dashboard-tile-items">
-            {preview.items.map((item, itemIndex) => (
-              <span class="dashboard-tile-item" key={`${item.title}-${itemIndex}`}>
-                <strong>{item.title}</strong>
-                {item.detail && <span>{item.detail}</span>}
-              </span>
-            ))}
-          </span>
-        ) : preview.state === 'loading' ? (
-          <span class="dashboard-tile-loading" aria-label={preview.message}>
-            <span /><span />
-          </span>
-        ) : (
-          <span class={`dashboard-tile-message state-${preview.state}`}>{preview.message}</span>
-        )}
-        {!customizing && (
-          <span class="dashboard-tile-cta">
-            Open {label}
-            <ArrowIcon direction="right" />
-          </span>
-        )}
-      </button>
+      ) : (
+        <button type="button" class="dashboard-tile-open" onClick={handleOpen}>
+          <TileContents {...{ label, preview, customizing, index, count, onMove, tab }} />
+        </button>
+      )}
     </article>
   );
 }
@@ -223,8 +276,12 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
 export function DashboardOverview() {
   const [customizing, setCustomizing] = useState(false);
   const [draggedTab, setDraggedTab] = useState(null);
-  const [announcement, setAnnouncement] = useState('');
+  const [announcement, setAnnouncement] = useState({ id: 0, message: '' });
   const tabs = availableTabs.value;
+
+  const announce = (message) => {
+    setAnnouncement((current) => ({ id: current.id + 1, message }));
+  };
 
   const handleDragStart = (event, tab) => {
     setDraggedTab(tab);
@@ -239,14 +296,19 @@ export function DashboardOverview() {
     const sourceTab = draggedTab || event.dataTransfer?.getData('text/plain');
     if (sourceTab && sourceTab !== targetTab) {
       reorderTab(sourceTab, targetTab);
-      setAnnouncement(`${DASHBOARD_FEED_LABELS[sourceTab]} reordered.`);
+      announce(`${DASHBOARD_FEED_LABELS[sourceTab]} reordered.`);
     }
     setDraggedTab(null);
   };
 
   const handleMove = (tab, delta) => {
     moveTab(tab, delta);
-    setAnnouncement(`${DASHBOARD_FEED_LABELS[tab]} moved ${delta < 0 ? 'earlier' : 'later'}.`);
+    announce(`${DASHBOARD_FEED_LABELS[tab]} moved ${delta < 0 ? 'earlier' : 'later'}.`);
+  };
+
+  const handleReset = () => {
+    resetTabOrder();
+    announce('Dashboard feed order reset.');
   };
 
   if (tabs.length === 0) {
@@ -265,14 +327,17 @@ export function DashboardOverview() {
           <h2 id="dashboard-overview-title">Today in your communities</h2>
           {customizing && <p>Drag feeds or use the arrow controls to set their order.</p>}
         </div>
-        <button
-          type="button"
-          class={`dashboard-customize ${customizing ? 'active' : ''}`}
-          aria-pressed={customizing}
-          onClick={() => setCustomizing((value) => !value)}
-        >
-          {customizing ? 'Done' : 'Customize'}
-        </button>
+        <div class="dashboard-customize-actions">
+          {customizing && <button type="button" class="dashboard-reset" onClick={handleReset}>Reset order</button>}
+          <button
+            type="button"
+            class={`dashboard-customize ${customizing ? 'active' : ''}`}
+            aria-pressed={customizing}
+            onClick={() => setCustomizing((value) => !value)}
+          >
+            {customizing ? 'Done' : 'Customize'}
+          </button>
+        </div>
       </header>
 
       <div class="dashboard-tile-grid" data-count={tabs.length}>
@@ -290,7 +355,7 @@ export function DashboardOverview() {
           />
         ))}
       </div>
-      <p class="dashboard-order-announcement" role="status" aria-live="polite">{announcement}</p>
+      <p key={announcement.id} class="dashboard-order-announcement" role="status" aria-live="polite">{announcement.message}</p>
     </section>
   );
 }

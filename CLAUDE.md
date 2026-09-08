@@ -149,7 +149,7 @@ All keys prefixed with `mc_`:
 - `base: ''` in vite.config.js -- Chrome extensions need relative paths
 - Supabase env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set at build time
 - Communities fetched from scenius-digest API at https://scenius-digest.vercel.app/api/groups
-- Digest links cached with 1-hour TTL, Bluesky posts cached with 5-minute TTL (cache key includes feed URI, time window, and sort; reposts + content-preference filtering are applied at render, not baked into the cache)
+- Feed refresh TTLs remain source-specific, but dashboard previews use selector-matched stale snapshots so they do not disappear between focused refreshes. Never-loaded enabled feeds populate sequentially after first paint. Community-scoped caches include the selected communities and community account; Bluesky posts include the Bluesky DID plus feed URI, time window, and sort. Reposts + content-preference filtering are applied at render, not baked into the Bluesky cache.
 - Bluesky timeline filtered to followed users only (`author.viewer.following`); reposts kept or hidden based on user setting
 - Bluesky pagination: 2 pages for 24h, 6 for 7d, 10 for 30d — stops early when posts fall outside window
 - DigestCard prefers `og_title` over `title`, `og_description` over `description`, shows `og_image` thumbnail when available

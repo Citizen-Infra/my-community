@@ -66,6 +66,10 @@ export function moveTab(tab, delta) {
   saveTabOrder(moveDashboardTab(tabOrder.value, tab, delta, availableTabs.value));
 }
 
+export function resetTabOrder() {
+  saveTabOrder([...DEFAULT_DASHBOARD_ORDER]);
+}
+
 export function setTabVisible(tab, visible) {
   const next = { ...visibleTabs.value, [tab]: visible };
   visibleTabs.value = next;

@@ -50,6 +50,7 @@
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
   --color-danger-subtle: rgba(220, 38, 38, 0.08);
+  --color-danger-text: #b91c1c;
 
   /* Typography */
   --font-display: 'Instrument Serif', Georgia, serif;
@@ -136,6 +137,8 @@
   /* Dark amber is already bright enough: 9.02:1 on the badge tint, 11.10:1 on
      the page background. */
   --color-session-open: #fbbf24;
+
+  --color-danger-text: #fca5a5;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);

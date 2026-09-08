@@ -84,7 +84,7 @@ It explicitly rejects the **generic tech-dark tool** (neon on black), the **ster
 - Warm paper background, never pure white or gray.
 - Forest-green primary, amber accent used sparingly.
 - Editorial serif display + humanist sans body.
-- One narrow reading column (~720px), generous breathing room.
+- Focused feeds use one narrow reading column (~720px); the overview uses an adaptive 2×2 editorial mosaic.
 - Near-flat cards that lift gently on hover; warm, diffuse shadows.
 
 ## 2. Colors
@@ -162,6 +162,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 - **Border:** 1px `border-light` at rest, darkening to `border` on hover.
 - **Signature:** a 4px left accent bar carrying community color (the Community-Color Rule), widening to 5px on hover. Cards stagger in with `card-enter` (opacity + 12px rise, 40ms cascade).
 - **Internal Padding:** `lg` (24px). No nested cards.
+- **Dashboard tile:** one lead signal rather than a miniature list. The whole normal tile is the opening control. Tiles may combine several communities, so they carry no decorative color stripe; community identity appears as provenance beside the signal itself.
 
 ### Inputs / Fields
 - **Style:** surface or paper fill, 1px border, `sm`/`md` radius, DM Sans at body size.
@@ -169,7 +170,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 
 ### Navigation
 - **Top bar** (72px): brand in Instrument Serif on the left, a settings gear on the right; quiet, no heavy chrome.
-- **Tab bar:** horizontal text tabs for switching feeds (Digest / Network / Participation), active tab marked by green, not a heavy pill.
+- **Dashboard overview:** enabled feeds form an adaptive mosaic and open into a focused feed. Supporting tab search and Collections remain available but visually recede while the community dashboard is active.
 
 ## 6. Do's and Don'ts
 

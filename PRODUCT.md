@@ -32,7 +32,7 @@ My Community turns a high-frequency, otherwise empty browser moment into a commu
 
 ## Capabilities and Constraints
 
-- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. Tile visibility and order are local preferences; hidden feeds retain their position.
+- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. Each tile surfaces one lead civic signal and opens across its full area. Tile visibility and order are local preferences; hidden feeds retain their position.
 - **Focused feeds:** each tile opens its complete feed with the feed's existing controls and scrolling behavior.
 - **Community Digest:** shows recent links shared by selected communities.
 - **Network:** shows posts from the user's Bluesky network with feed, time-window, repost, and ranking controls.
@@ -40,7 +40,7 @@ My Community turns a high-frequency, otherwise empty browser moment into a commu
 - **Community Input:** combines consent decisions and suggested wiki sources, prioritizing items awaiting the member's response. Members can suggest the current page to a selected community's wiki queue.
 - **Tab manager:** saves and closes tabs, organizes them into collections, supports search and reordering, imports browser bookmarks or compatible exports, exports data, and creates local backups.
 - **Local-first tab data:** saved tabs, collections, and tab-manager preferences stay on the user's device in browser storage and user-controlled JSON backups. Uninstalling the extension removes its browser-local data.
-- **Lazy feed loading:** valid cached previews may hydrate immediately, but a new tab refreshes only the most recently focused feed rather than fetching every feed.
+- **Lazy feed loading:** selector-matched previews remain visible after their refresh TTL. Never-loaded enabled feeds populate sequentially after first paint; routine new tabs refresh only the most recently focused feed rather than fetching every feed.
 - **Authentication is additive:** account-specific feeds and actions may require sign-in, while unauthenticated and disconnected states remain understandable and usable.
 - **Read resilience:** loading, empty, signed-out, and source-error states are explicit. A failed source degrades independently and offers recovery where appropriate.
 
