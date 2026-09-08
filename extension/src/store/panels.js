@@ -44,6 +44,7 @@ export function setJamVisible(visible) {
 
 export const activeTab = signal(localStorage.getItem('mc_active_tab') || 'digest');
 export const dashboardMode = signal('overview');
+export const dashboardCustomizing = signal(false);
 
 export function setActiveTab(tab) {
   activeTab.value = tab;
@@ -57,6 +58,15 @@ export function openDashboardFeed(tab) {
 
 export function showDashboardOverview() {
   dashboardMode.value = 'overview';
+}
+
+export function toggleDashboardCustomization() {
+  dashboardMode.value = 'overview';
+  dashboardCustomizing.value = !dashboardCustomizing.value;
+}
+
+export function stopDashboardCustomization() {
+  dashboardCustomizing.value = false;
 }
 
 function saveTabOrder(next) {

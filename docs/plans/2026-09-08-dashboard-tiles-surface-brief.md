@@ -2,7 +2,7 @@
 
 **Mode:** Operate. A member opening a new browser tab should understand the community pulse without scrolling the dashboard overview.
 
-**Scope:** Replace feed tabs with an adaptive overview of enabled feeds. Four feeds form a 2×2 mosaic; fewer feeds expand to use the space. Each tile presents community-attributed, civic-priority preview items and handles loading, empty, error, and sign-in states. Auto-fit shows as many complete rows as the tile's current height allows, so one or two enabled tiles use their additional space. Visible rows divide the tile body evenly and progressively reveal multiline titles and descriptive context as each row gains height. Customize can persist an exact item count independently for each feed. Preview rows open their item; the tile heading and footer open the existing full, scrollable feed. Back returns to the overview. Existing visibility settings, themes, and full-feed behavior remain.
+**Scope:** Replace feed tabs with an adaptive overview of enabled feeds. Four feeds form a 2×2 mosaic; fewer feeds expand to use the space. The normal overview has no separate page heading, reserving the main-area height for tiles. A compact sliders control beside Dashboard in the sidebar enters and exits Customize mode. Each tile presents community-attributed, civic-priority preview items and handles loading, empty, error, and sign-in states. Auto-fit shows as many complete rows as the tile's current height allows, so one or two enabled tiles use their additional space. Visible rows divide the tile body evenly and progressively reveal multiline titles and descriptive context as each row gains height. Customize can persist an exact item count independently for each feed. Preview rows open their item; the tile heading and footer open the existing full, scrollable feed. Back returns to the overview. Existing visibility settings, themes, and full-feed behavior remain.
 
 **Persistent preview contract:** A matching preview remains visible after its network-refresh TTL rather than reverting to an unloaded tile. Never-loaded enabled feeds populate sequentially after first paint; subsequent network refreshes are limited to the most recently focused feed on a new tab and any feed the member explicitly opens. Cache selectors include the current community selection and account where content is private, so persistence never crosses identities. This keeps the overview useful without restoring every-feed fetching on every new tab.
 
@@ -14,7 +14,7 @@
 
 **STORY:** Scan four community signals, choose one, read deeply, return.
 
-**FIRST VIEWPORT:** A quieted top bar and sidebar frame a gapless 2×2 editorial mosaic. Every tile uses its available height for a calm, complete-row preview, with civic urgency and provenance visible inside each row. Customize is quiet but visible.
+**FIRST VIEWPORT:** A quieted top bar and sidebar frame a gapless 2×2 editorial mosaic that begins immediately in the main area. Every tile uses its available height for a calm, complete-row preview, with civic urgency and provenance visible inside each row. Customize is a compact secondary icon beside Dashboard in the sidebar.
 
 **FORM:** Adaptive almanac front page, shaped directly inside the established world.
 

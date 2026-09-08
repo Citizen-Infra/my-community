@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import {
   availableTabs,
+  dashboardCustomizing,
   moveTab,
   openDashboardFeed,
   previewDepths,
@@ -438,10 +439,10 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
 }
 
 export function DashboardOverview() {
-  const [customizing, setCustomizing] = useState(false);
   const [draggedTab, setDraggedTab] = useState(null);
   const [announcement, setAnnouncement] = useState({ id: 0, message: '' });
   const tabs = availableTabs.value;
+  const customizing = dashboardCustomizing.value;
 
   const announce = (message) => {
     setAnnouncement((current) => ({ id: current.id + 1, message }));
@@ -490,25 +491,13 @@ export function DashboardOverview() {
   }
 
   return (
-    <section class="dashboard-overview" aria-labelledby="dashboard-overview-title">
-      <header class="dashboard-overview-header">
-        <div>
-          <h2 id="dashboard-overview-title">Today in your communities</h2>
-          {customizing && <p>Reorder feeds and choose how many preview items each tile shows.</p>}
+    <section class="dashboard-overview" aria-label="Dashboard overview">
+      {customizing && (
+        <div class="dashboard-customize-bar">
+          <p>Drag feeds or use the arrows to reorder them. Choose how many preview items each tile shows.</p>
+          <button type="button" class="dashboard-reset" onClick={handleReset}>Reset layout</button>
         </div>
-        <div class="dashboard-customize-actions">
-          {customizing && <button type="button" class="dashboard-reset" onClick={handleReset}>Reset layout</button>}
-          <button
-            type="button"
-            class={`dashboard-customize ${customizing ? 'active' : ''}`}
-            aria-pressed={customizing}
-            onClick={() => setCustomizing((value) => !value)}
-          >
-            {customizing ? 'Done' : 'Customize'}
-          </button>
-        </div>
-      </header>
-
+      )}
       <div class="dashboard-tile-grid" data-count={tabs.length}>
         {tabs.map((tab, index) => (
           <DashboardTile

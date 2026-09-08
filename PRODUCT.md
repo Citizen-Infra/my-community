@@ -32,7 +32,7 @@ My Community turns a high-frequency, otherwise empty browser moment into a commu
 
 ## Capabilities and Constraints
 
-- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. Each tile defaults to showing as many civic-priority preview items as fit its available height; members can instead save an exact item count per tile. Visible items share the available tile body evenly and reveal more title and descriptive context when sparse. Preview rows open their item, while tile headings and footers open the complete feed. Tile visibility, order, and preview depth are local preferences; hidden feeds retain their position.
+- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. The overview gives its full main-area height to the tiles without a redundant page heading. A compact control beside Dashboard in the sidebar enters Customize mode. Each tile defaults to showing as many civic-priority preview items as fit its available height; members can instead save an exact item count per tile. Visible items share the available tile body evenly and reveal more title and descriptive context when sparse. Preview rows open their item, while tile headings and footers open the complete feed. Tile visibility, order, and preview depth are local preferences; hidden feeds retain their position.
 - **Focused feeds:** each tile opens its complete feed with the feed's existing controls and scrolling behavior.
 - **Community Digest:** shows recent links shared by selected communities.
 - **Network:** shows posts from the user's Bluesky network with feed, time-window, repost, and ranking controls.
