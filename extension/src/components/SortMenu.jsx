@@ -24,6 +24,8 @@ export function SortMenu({ value, onChange, options }) {
           setOpen(!open);
         }}
         title="Sort"
+        aria-label="Sort"
+        aria-expanded={open}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 6h18M3 12h12M3 18h6" />
