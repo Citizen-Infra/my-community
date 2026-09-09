@@ -21,13 +21,20 @@ cd extension && npm run dev     # Vite dev server
 
 After building, reload at `chrome://extensions` (Developer mode, Load unpacked -> `extension/dist/`).
 
-No linting or test *framework* configured — but three framework-free tests exist and are worth running:
+No linting or test *framework* is configured, but framework-free tests cover the
+stores, dashboard helpers, OAuth state, favicon handling, and background-worker
+save guards:
 
 ```bash
 cd extension && for f in scripts/*.test.mjs; do node "$f" || break; done
 ```
 
-`cache.test.mjs`, `favicon.test.mjs` and `oauth-state.test.mjs` run under plain `node`, need no dependency, and each ends in `process.exit(failures ? 1 : 0)`, so they signal failure by exit code. `oauth-state.test.mjs` is the load-bearing one: it guards the wire format community-admin's `redirectForState` parses, and a disagreement there is a sign-in that opens a consent screen and never returns.
+They run under plain `node`, need no test framework, and signal failure by exit
+code. `oauth-state.test.mjs` is load-bearing: it guards the wire format
+community-admin's `redirectForState` parses, and a disagreement there is a
+sign-in that opens a consent screen and never returns. `tab-manager-mode.test.mjs`
+executes the service worker against a Chrome mock so dashboard-only mode cannot
+silently save and close a tab into a hidden collection UI.
 
 `npm run build` is the other gate — `prebuild` runs `scripts/check-hosts.mjs`, which asserts the manifest grants `CA_URL` and `AVAILS_URL` (the drift that caused #84).
 
@@ -98,6 +105,7 @@ Signals-based stores in `src/store/`:
 - `sessions.js` -- events from scenius-digest /api/events per selected community + Supabase sessions, merged and deduped
 - `jam.js` -- active jam rooms from navidrome-jam API, 2-min polling per selected communities
 - `panels.js` -- dashboard feed visibility, persisted ordering, active feed, and overview/focused mode
+- `tab-manager.js` -- dashboard-only preference, persisted to `chrome.storage.local` so both the new-tab shell and background save actions enforce it
 - `theme.js` -- light/dark/system theme
 
 ### Libraries
@@ -144,6 +152,10 @@ All keys prefixed with `mc_`:
 | `mc_dashboard_preview_depths` | `store/panels.js` | Per-feed preview depth (`auto` or an exact item count) |
 | `mc_active_tab` | `store/panels.js` | Most recently focused dashboard feed (default: `digest`) |
 | `mc_theme` | `store/theme.js` | Theme preference: `light`, `dark`, or `system` |
+
+The dashboard-only preference uses `chrome.storage.local` rather than page
+`localStorage`: `mc_tab_manager_enabled` must also be readable by the service
+worker so toolbar and Alt+S saves cannot close tabs into a hidden interface.
 
 ### Key constraints
 

@@ -167,6 +167,7 @@ async function saveAndCloseTab(tab, collection) {
 // scripts/check-hosts.mjs, which fails the build if this literal drifts from
 // config.js or from manifest.json's host_permissions (#85).
 const CA_URL = 'https://admin.citizeninfra.org';
+const TAB_MANAGER_ENABLED_KEY = 'mc_tab_manager_enabled';
 
 function flashBadge(text, color) {
   chrome.action.setBadgeBackgroundColor({ color });
@@ -174,11 +175,27 @@ function flashBadge(text, color) {
   setTimeout(() => chrome.action.setBadgeText({ text: '' }), 1800);
 }
 
-// The tooltip reflects what the toolbar button does, which depends on its target.
-function applyToolbarTitle(target) {
+// The tooltip reflects what the toolbar button does, which depends on both its
+// target and whether the local tab manager is available.
+function applyToolbarTitle(target, tabManagerEnabled = true) {
   chrome.action.setTitle({
-    title: target === 'wiki-queue' ? 'Suggest page to the community wiki' : 'Save & close tab',
+    title: target === 'wiki-queue'
+      ? 'Suggest page to the community wiki'
+      : tabManagerEnabled
+        ? 'Save & close tab'
+        : 'Tab Manager is off',
   });
+}
+
+async function syncToolbarTitle() {
+  const settings = await chrome.storage.local.get([
+    'tab-hoarder-toolbar-target',
+    TAB_MANAGER_ENABLED_KEY,
+  ]);
+  applyToolbarTitle(
+    settings['tab-hoarder-toolbar-target'] || 'saved-tabs',
+    settings[TAB_MANAGER_ENABLED_KEY] !== false,
+  );
 }
 
 // Injected into the active page (runs in the PAGE context, so it must be
@@ -225,6 +242,15 @@ async function showToast(tabId, message, kind) {
   } catch (err) {
     /* page disallows injection — badge covers it */
   }
+}
+
+function showTabManagerDisabledNotice(tab) {
+  flashBadge('OFF', '#457b9d');
+  showToast(
+    tab?.id,
+    'Tab Manager is off. Turn it on in My Community Settings to save tabs.',
+    'info',
+  );
 }
 
 // Which community a suggestion goes to: the member's explicit setting if it still
@@ -284,9 +310,16 @@ async function suggestToWiki(tab) {
 chrome.action.onClicked.addListener(async (tab) => {
   if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
   try {
-    const settings = await chrome.storage.local.get('tab-hoarder-toolbar-target');
+    const settings = await chrome.storage.local.get([
+      'tab-hoarder-toolbar-target',
+      TAB_MANAGER_ENABLED_KEY,
+    ]);
     const target = settings['tab-hoarder-toolbar-target'] || 'saved-tabs';
     if (target === 'wiki-queue') { await suggestToWiki(tab); return; }
+    if (settings[TAB_MANAGER_ENABLED_KEY] === false) {
+      showTabManagerDisabledNotice(tab);
+      return;
+    }
     const db = await openDB();
     await restoreIfEmpty(db);
     const collection = target === 'most-recent'
@@ -312,7 +345,14 @@ chrome.commands.onCommand.addListener(async (command) => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
-    const settings = await chrome.storage.local.get('tab-hoarder-shortcut-target');
+    const settings = await chrome.storage.local.get([
+      'tab-hoarder-shortcut-target',
+      TAB_MANAGER_ENABLED_KEY,
+    ]);
+    if (settings[TAB_MANAGER_ENABLED_KEY] === false) {
+      showTabManagerDisabledNotice(tab);
+      return;
+    }
     const target = settings['tab-hoarder-shortcut-target'] || 'most-recent';
     const db = await openDB();
     await restoreIfEmpty(db);
@@ -398,9 +438,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 // Sync the toolbar tooltip with what the button currently does, on worker start.
-chrome.storage.local.get('tab-hoarder-toolbar-target').then((s) => {
-  applyToolbarTitle(s['tab-hoarder-toolbar-target'] || 'saved-tabs');
-});
+syncToolbarTitle();
 
 // React to setting changes: backup interval -> reschedule; toolbar target -> retitle.
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -409,8 +447,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
     const minutes = parseInt(changes['tab-hoarder-backup-interval'].newValue) || 1440;
     chrome.alarms.create('daily-backup', { periodInMinutes: minutes });
   }
-  if (changes['tab-hoarder-toolbar-target']) {
-    applyToolbarTitle(changes['tab-hoarder-toolbar-target'].newValue || 'saved-tabs');
+  if (changes['tab-hoarder-toolbar-target'] || changes[TAB_MANAGER_ENABLED_KEY]) {
+    syncToolbarTitle();
   }
 });
 
