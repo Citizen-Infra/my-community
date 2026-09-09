@@ -94,6 +94,10 @@
   margin-bottom: 0;
 }
 
+.settings-tab-manager-status {
+  margin-top: 0;
+}
+
 /* Inline toggle in section header */
 .settings-toggle-inline {
   position: relative;

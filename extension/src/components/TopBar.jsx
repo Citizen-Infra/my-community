@@ -1,6 +1,12 @@
 import { useState } from 'preact/hooks';
 import { SettingsModal } from './SettingsModal';
 import { SearchBar } from './SearchBar';
+import { tabManagerEnabled } from '../store/tab-manager';
+import {
+  availableTabs,
+  dashboardCustomizing,
+  toggleDashboardCustomization,
+} from '../store/panels';
 import '../styles/topbar.css';
 
 export function TopBar() {
@@ -8,14 +14,32 @@ export function TopBar() {
 
   return (
     <header class="topbar">
-      <div class="topbar-inner">
+      <div class={`topbar-inner ${tabManagerEnabled.value ? '' : 'dashboard-only'}`}>
         <div class="topbar-brand">
           <h1 class="topbar-title">My Community</h1>
         </div>
 
-        <SearchBar />
+        {tabManagerEnabled.value && <SearchBar />}
 
         <div class="topbar-actions">
+          {!tabManagerEnabled.value && (
+            <button
+              type="button"
+              class={`topbar-gear topbar-customize ${dashboardCustomizing.value ? 'active' : ''}`}
+              onClick={toggleDashboardCustomization}
+              disabled={availableTabs.value.length === 0}
+              aria-label="Customize dashboard"
+              aria-pressed={dashboardCustomizing.value}
+              title="Customize dashboard"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <circle cx="9" cy="7" r="2" fill="var(--color-surface)" />
+                <line x1="4" y1="17" x2="20" y2="17" />
+                <circle cx="15" cy="17" r="2" fill="var(--color-surface)" />
+              </svg>
+            </button>
+          )}
           <button
             class="topbar-gear"
             onClick={() => setShowSettings(true)}

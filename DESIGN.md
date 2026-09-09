@@ -169,7 +169,7 @@ Surfaces are nearly flat at rest and use warm, diffuse shadows that lift on inte
 - **Focus:** border shifts to forest green with a soft green-subtle ring; no harsh blue browser outline.
 
 ### Navigation
-- **Top bar** (72px): brand in Instrument Serif on the left, a settings gear on the right; quiet, no heavy chrome.
+- **Top bar** (72px): brand in Instrument Serif on the left, a settings gear on the right; quiet, no heavy chrome. In dashboard-only mode, saved-tab search disappears and the dashboard Customize control moves beside Settings so tile controls remain reachable without the Collections sidebar.
 - **Dashboard overview:** enabled feeds form an adaptive mosaic and open into a focused feed. The mosaic begins immediately in the main area without a redundant page title. A small sliders control beside Dashboard in the sidebar toggles Customize mode; its icon remains visually compact while its button provides a usable target, active state, tooltip, and accessible name. Customize, collection Sort, and each row's trailing Delete action share one right-edge control column. Hidden row actions do not reserve name width; on hover or keyboard focus they replace the count and only then constrain the collection name. The top-bar search keeps exactly the same width, border, background, and focus treatment as it has on Collections pages. The Collections sidebar keeps its established width so saved collection names are not compressed or newly truncated.
 
 ## 6. Do's and Don'ts

@@ -10,6 +10,7 @@ import { exportData } from '../lib/export';
 import { clearAllData } from '../store/db';
 import { activeCollectionId, loadCollections, getOrCreateArchive } from '../store/collections';
 import { loadTabs } from '../store/tabs';
+import { tabManagerEnabled, setTabManagerEnabled } from '../store/tab-manager';
 import { ImportModal } from './ImportModal';
 import { BookmarkImportModal } from './BookmarkImportModal';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -477,6 +478,26 @@ export function SettingsModal({ onClose }) {
 
           {activeSettingsTab === 'tab-manager' && (
             <>
+              <section class="settings-section">
+                <div class="settings-section-header">
+                  <h4 class="settings-section-title">Tab Manager</h4>
+                  <label class="settings-toggle-inline">
+                    <input
+                      type="checkbox"
+                      checked={tabManagerEnabled.value}
+                      onChange={(e) => void setTabManagerEnabled(e.target.checked)}
+                      aria-label="Show Tab Manager"
+                    />
+                    <span class="settings-toggle-track-sm" />
+                  </label>
+                </div>
+                <p class="settings-hint settings-tab-manager-status">
+                  {tabManagerEnabled.value
+                    ? 'Collections, saved-tab search, and save actions are available.'
+                    : 'Dashboard-only mode is on. Your saved tabs stay here, but the toolbar button and Alt+S will not save or close tabs.'}
+                </p>
+              </section>
+
               {/* #27 — the full local/private explanation for the tab manager.
                   Mirrors the lock cue beside the Collections label in the sidebar. */}
               <div class="settings-privacy">

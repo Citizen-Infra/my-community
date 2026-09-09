@@ -17,6 +17,7 @@ import { syncToStorage, restoreFromStorage } from './store/backup';
 import { activeView } from './store/view';
 import { activeTab, availableTabs, dashboardMode } from './store/panels';
 import { searchQuery } from './store/search';
+import { initTabManager, tabManagerEnabled } from './store/tab-manager';
 import { TopBar } from './components/TopBar';
 import { JamBanner } from './components/JamBanner';
 import { Sidebar } from './components/Sidebar';
@@ -51,6 +52,7 @@ export function App() {
     chrome.runtime?.onMessage?.addListener(listener);
 
     (async () => {
+      await initTabManager();
       await initDB();
       await loadCollections();
       await loadTabs();
@@ -220,10 +222,10 @@ export function App() {
     <div class="app-shell">
       <TopBar />
       <JamBanner />
-      <div class="app-body">
-        <Sidebar />
+      <div class={`app-body ${tabManagerEnabled.value ? '' : 'dashboard-only'}`}>
+        {tabManagerEnabled.value && <Sidebar />}
         <main class="app-main">
-          {searchQuery.value
+          {tabManagerEnabled.value && searchQuery.value
             ? <SearchResults />
             : (activeView.value === 'dashboard' ? <Dashboard /> : <MainContent />)}
         </main>

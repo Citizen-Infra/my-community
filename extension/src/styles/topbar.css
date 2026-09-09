@@ -39,6 +39,11 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  gap: var(--space-xs);
+}
+
+.topbar-inner.dashboard-only .topbar-actions {
+  margin-left: auto;
 }
 
 .topbar-gear {
@@ -55,6 +60,20 @@
 .topbar-gear:hover {
   background: var(--color-primary-subtle);
   color: var(--color-primary);
+}
+
+.topbar-customize.active {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.topbar-customize:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.topbar-customize:hover svg {
+  transform: none;
 }
 
 .topbar-gear svg {
