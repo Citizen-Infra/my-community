@@ -33,12 +33,13 @@ function makeEvent() {
   };
 }
 
-function createWorker(initialStorage = {}) {
+function createWorker(initialStorage = {}, { deferToasts = false } = {}) {
   const storage = { ...initialStorage };
   const calls = {
     badges: [],
     fetches: [],
     removedTabs: [],
+    releaseToast: null,
     titles: [],
     toasts: [],
   };
@@ -77,7 +78,11 @@ function createWorker(initialStorage = {}) {
       sendMessage: async () => {},
     },
     scripting: {
-      async executeScript({ args }) { calls.toasts.push(args[0]); },
+      executeScript({ args }) {
+        calls.toasts.push(args[0]);
+        if (!deferToasts) return Promise.resolve();
+        return new Promise((resolve) => { calls.releaseToast = resolve; });
+      },
     },
     storage: {
       local: {
@@ -127,8 +132,15 @@ function createWorker(initialStorage = {}) {
 const disabled = createWorker({
   mc_tab_manager_enabled: false,
   'tab-hoarder-toolbar-target': 'saved-tabs',
-});
-await disabled.events.actionClicked.invoke({ id: 42, title: 'Example', url: 'https://example.com' });
+}, { deferToasts: true });
+let toolbarHandlerSettled = false;
+const toolbarNotice = disabled.events.actionClicked
+  .invoke({ id: 42, title: 'Example', url: 'https://example.com' })
+  .then(() => { toolbarHandlerSettled = true; });
+await new Promise((resolve) => setImmediate(resolve));
+assert(!toolbarHandlerSettled, 'disabled toolbar handler stays alive until its notice is delivered');
+disabled.calls.releaseToast();
+await toolbarNotice;
 assert(disabled.calls.removedTabs.length === 0, 'disabled toolbar save keeps the current tab open');
 assert(disabled.calls.badges.includes('OFF'), 'disabled toolbar save shows an OFF badge');
 assert(disabled.calls.toasts.some((text) => text.includes('Tab Manager is off')), 'disabled toolbar save explains how to restore saving');
@@ -136,7 +148,14 @@ assert(disabled.calls.titles.includes('Tab Manager is off'), 'disabled save targ
 
 disabled.calls.badges.length = 0;
 disabled.calls.toasts.length = 0;
-await disabled.events.command.invoke('save-to-recent');
+let shortcutHandlerSettled = false;
+const shortcutNotice = disabled.events.command
+  .invoke('save-to-recent')
+  .then(() => { shortcutHandlerSettled = true; });
+await new Promise((resolve) => setImmediate(resolve));
+assert(!shortcutHandlerSettled, 'disabled Alt+S handler stays alive until its notice is delivered');
+disabled.calls.releaseToast();
+await shortcutNotice;
 assert(disabled.calls.removedTabs.length === 0, 'disabled Alt+S keeps the current tab open');
 assert(disabled.calls.badges.includes('OFF'), 'disabled Alt+S shows an OFF badge');
 assert(disabled.calls.toasts.some((text) => text.includes('Tab Manager is off')), 'disabled Alt+S shows the same recovery notice');

@@ -244,9 +244,9 @@ async function showToast(tabId, message, kind) {
   }
 }
 
-function showTabManagerDisabledNotice(tab) {
+async function showTabManagerDisabledNotice(tab) {
   flashBadge('OFF', '#457b9d');
-  showToast(
+  await showToast(
     tab?.id,
     'Tab Manager is off. Turn it on in My Community Settings to save tabs.',
     'info',
@@ -317,7 +317,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     const target = settings['tab-hoarder-toolbar-target'] || 'saved-tabs';
     if (target === 'wiki-queue') { await suggestToWiki(tab); return; }
     if (settings[TAB_MANAGER_ENABLED_KEY] === false) {
-      showTabManagerDisabledNotice(tab);
+      await showTabManagerDisabledNotice(tab);
       return;
     }
     const db = await openDB();
@@ -350,7 +350,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       TAB_MANAGER_ENABLED_KEY,
     ]);
     if (settings[TAB_MANAGER_ENABLED_KEY] === false) {
-      showTabManagerDisabledNotice(tab);
+      await showTabManagerDisabledNotice(tab);
       return;
     }
     const target = settings['tab-hoarder-shortcut-target'] || 'most-recent';
