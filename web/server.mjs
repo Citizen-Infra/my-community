@@ -25,7 +25,13 @@ createServer((req, res) => {
     res.writeHead(405, { Allow: 'GET, HEAD' });
     return res.end();
   }
-  const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end('Bad request');
+  }
   const relative = normalize(pathname).replace(/^([/\\])+/, '');
   let file = join(root, relative);
   if (!file.startsWith(root) || !existsSync(file) || statSync(file).isDirectory()) file = join(root, 'index.html');

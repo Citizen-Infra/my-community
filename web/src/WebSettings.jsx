@@ -4,6 +4,7 @@ import {
   communitiesStatus,
   selectedCommunityIds,
   toggleCommunity,
+  loadCommunities,
 } from '../../extension/src/store/communities';
 import { caHandle, caSignedIn, caSubject, caType, requestBlueskySignIn, requestSignIn, signOut } from '../../extension/src/store/caAuth';
 import { blueskyUser, connectBluesky, disconnectBluesky, isConnected } from '../../extension/src/store/auth';
@@ -77,6 +78,7 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
         if (!result) return;
       }
       await requestBlueskySignIn();
+      await loadCommunities();
       setMessage('Signed in with Bluesky.');
     } catch (error) { setMessage(error.message); }
     setBusy(null);

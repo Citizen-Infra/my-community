@@ -1,4 +1,5 @@
 import { configurePlatform } from '../../extension/src/lib/platform';
+import { clearCommunityBlueskySignIn, markCommunityBlueskySignIn } from './bluesky-signin-intent';
 
 const WEB_ORIGIN = import.meta.env.VITE_WEB_ORIGIN || 'https://my.citizeninfra.org';
 
@@ -18,5 +19,6 @@ configurePlatform({
     location.assign(url);
     return null;
   },
-  prepareCommunityBlueskySignIn: () => sessionStorage.setItem('mc_web_bluesky_ca_signin', '1'),
+  prepareCommunityBlueskySignIn: markCommunityBlueskySignIn,
+  clearCommunityBlueskySignIn,
 });

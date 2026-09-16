@@ -10,6 +10,7 @@ const fallback = {
   consumeCommunitySession: async () => null,
   mirrorCommunitySession: () => {},
   prepareCommunityBlueskySignIn: () => {},
+  clearCommunityBlueskySignIn: () => {},
 };
 
 let adapter = fallback;
@@ -22,4 +23,8 @@ export function configurePlatform(next) {
 
 export function platform() {
   return adapter;
+}
+
+export function oauthClientIdForSession(session) {
+  return session?.clientId || adapter.oauthClientId;
 }

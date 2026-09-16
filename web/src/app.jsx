@@ -14,6 +14,7 @@ import { routeFromPath, pathForDashboardRoute } from './routing';
 import { WebTopBar } from './WebTopBar';
 import { WebSettings } from './WebSettings';
 import { canUseNetworkAction } from './offline-policy';
+import { clearCommunityBlueskySignIn, consumeCommunityBlueskySignIn } from './bluesky-signin-intent';
 import './web.css';
 
 export function App() {
@@ -58,8 +59,7 @@ export function App() {
         } else if (initialRoute.callback === 'atproto') {
           await completeBlueskyLogin(location.href);
           await initAuth();
-          if (sessionStorage.getItem('mc_web_bluesky_ca_signin') === '1') {
-            sessionStorage.removeItem('mc_web_bluesky_ca_signin');
+          if (consumeCommunityBlueskySignIn()) {
             await requestBlueskySignIn();
           }
           history.replaceState({}, '', '/');
@@ -70,6 +70,7 @@ export function App() {
         hydrateDashboard();
         setReady(true);
       } catch (error) {
+        clearCommunityBlueskySignIn();
         setAuthError(error.message || 'Sign-in could not be completed.');
         history.replaceState({}, '', '/');
         await initCaAuth();

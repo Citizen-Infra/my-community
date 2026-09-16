@@ -5,6 +5,7 @@ import {
   preferencesMatch,
   SUPPORTING_TILE_KEYS,
 } from '../lib/dashboard-preferences';
+import { latestUnsavedPreference } from '../lib/preference-write-queue';
 import { selectedCommunityIds } from './communities';
 import {
   previewDepths,
@@ -23,6 +24,7 @@ import { replaceSupportingTileKeys, visibleSupportingTileKeys } from './supporti
 const ACCOUNT_KEY = 'mc_preferences_account';
 const SIGNED_OUT_KEY = 'mc_signed_out_preferences';
 const CACHE_PREFIX = 'mc_preferences_cache:';
+const STALE_ACCOUNT = Symbol('stale preference account');
 
 export const preferenceStatus = signal('local');
 export const preferenceMessage = signal('Saved on this device');
@@ -85,14 +87,16 @@ export function applyDashboardPreferences(value) {
   return next;
 }
 
-async function fetchRemote() {
+async function fetchRemote(account = activeAccount) {
   const res = await fetch(`${CA_URL}/auth/preferences/my-community`, { headers: caSessionHeader() });
+  if (activeAccount !== account) return STALE_ACCOUNT;
   if (res.status === 401) {
     await signOut();
     throw new Error('Your sign-in has expired.');
   }
   if (!res.ok) throw new Error('Saved layout is temporarily unavailable.');
-  return (await res.json()).preferences;
+  const preferences = (await res.json()).preferences;
+  return activeAccount === account ? preferences : STALE_ACCOUNT;
 }
 
 function cacheRemote(account, preferences) {
@@ -106,7 +110,12 @@ function watchChanges() {
     const snapshot = currentDashboardPreferences();
     // Read every participating signal before the guard so the effect tracks it.
     visibleSupportingTileKeys.value;
-    if (applying || !activeAccount || !['synced', 'error'].includes(preferenceStatus.peek())) return;
+    if (applying || !activeAccount) return;
+    if (preferenceStatus.peek() === 'saving') {
+      queuedSnapshot = snapshot;
+      return;
+    }
+    if (!['synced', 'error'].includes(preferenceStatus.peek())) return;
     if (preferencesMatch(snapshot, lastSaved)) return;
     queuedSnapshot = snapshot;
     clearTimeout(writeTimer);
@@ -115,7 +124,8 @@ function watchChanges() {
 }
 
 async function writePreferences(snapshot) {
-  if (!activeAccount) return;
+  const account = activeAccount;
+  if (!account) return;
   if (!navigator.onLine) {
     preferenceStatus.value = 'error';
     preferenceMessage.value = 'Offline — changes are waiting on this device';
@@ -130,12 +140,14 @@ async function writePreferences(snapshot) {
       headers: { ...caSessionHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences }),
     });
+    if (activeAccount !== account) return;
     if (res.status === 401) {
       await signOut();
       throw new Error('Your sign-in has expired.');
     }
     if (res.status === 409) {
-      const remote = await fetchRemote();
+      const remote = await fetchRemote(account);
+      if (remote === STALE_ACCOUNT) return;
       preferenceStatus.value = 'conflict';
       preferenceMessage.value = 'A newer saved layout needs your review';
       preferencePrompt.value = { kind: 'conflict', local: currentDashboardPreferences(), remote };
@@ -143,12 +155,19 @@ async function writePreferences(snapshot) {
     }
     if (!res.ok) throw new Error('Could not save layout.');
     const saved = (await res.json()).preferences;
+    if (activeAccount !== account) return;
     revision = saved.revision;
     lastSaved = saved;
-    cacheRemote(activeAccount, saved);
+    cacheRemote(account, saved);
     preferenceStatus.value = 'synced';
     preferenceMessage.value = 'Layout saved across devices';
+    const pending = latestUnsavedPreference(queuedSnapshot, saved);
+    if (pending) {
+      clearTimeout(writeTimer);
+      writeTimer = setTimeout(() => void writePreferences(pending), 900);
+    }
   } catch (error) {
+    if (activeAccount !== account) return;
     preferenceStatus.value = 'error';
     preferenceMessage.value = error.message || 'Could not save layout';
   }
@@ -158,6 +177,7 @@ export async function beginPreferenceContinuity(account) {
   if (!account || activeAccount === account) return;
   stopWatching?.();
   clearTimeout(writeTimer);
+  queuedSnapshot = null;
   const local = currentDashboardPreferences();
   const previousAccount = localStorage.getItem(ACCOUNT_KEY);
   if (!previousAccount) localStorage.setItem(SIGNED_OUT_KEY, JSON.stringify(local));
@@ -169,7 +189,8 @@ export async function beginPreferenceContinuity(account) {
   if (previousAccount === account && cached) applyDashboardPreferences(cached);
 
   try {
-    const remote = await fetchRemote();
+    const remote = await fetchRemote(account);
+    if (remote === STALE_ACCOUNT) return;
     if (previousAccount === account) {
       if (remote) {
         const applied = applyDashboardPreferences(remote);
@@ -202,6 +223,7 @@ export async function beginPreferenceContinuity(account) {
     preferenceMessage.value = 'Choose which dashboard layout to keep';
     preferencePrompt.value = { kind: 'choose', local, remote };
   } catch (error) {
+    if (activeAccount !== account) return;
     preferenceStatus.value = 'error';
     preferenceMessage.value = error.message || 'Saved layout is unavailable';
   }
@@ -242,6 +264,7 @@ export function endPreferenceContinuity() {
   stopWatching?.();
   stopWatching = null;
   clearTimeout(writeTimer);
+  queuedSnapshot = null;
   activeAccount = null;
   revision = null;
   lastSaved = null;

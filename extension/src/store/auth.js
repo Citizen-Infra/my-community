@@ -20,8 +20,16 @@ export async function initAuth() {
 }
 
 export async function connectBluesky(handle, { communitySignIn = false } = {}) {
-  if (communitySignIn) platform().prepareCommunityBlueskySignIn();
-  const id = await loginWithBluesky(handle);
+  const activePlatform = platform();
+  if (communitySignIn) activePlatform.prepareCommunityBlueskySignIn();
+  else activePlatform.clearCommunityBlueskySignIn();
+  let id;
+  try {
+    id = await loginWithBluesky(handle);
+  } catch (error) {
+    if (communitySignIn) activePlatform.clearCommunityBlueskySignIn();
+    throw error;
+  }
   if (!id) return null;
   blueskyUser.value = { did: id.did, handle: id.handle };
   blueskySession.value = id;

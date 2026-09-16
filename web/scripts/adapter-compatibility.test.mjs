@@ -1,4 +1,6 @@
 const { normalizeDashboardPreferences, preferencesMatch } = await import('../../extension/src/lib/dashboard-preferences.js');
+const { latestUnsavedPreference } = await import('../../extension/src/lib/preference-write-queue.js');
+const { configurePlatform, oauthClientIdForSession } = await import('../../extension/src/lib/platform.js');
 
 let failures = 0;
 const assert = (condition, message) => {
@@ -19,6 +21,12 @@ const extensionAdapter = normalizeDashboardPreferences(local);
 const webAdapter = normalizeDashboardPreferences(JSON.parse(JSON.stringify(local)));
 assert(preferencesMatch(extensionAdapter, webAdapter), 'web and extension adapters consume the same schema');
 assert(extensionAdapter.schemaVersion === webAdapter.schemaVersion, 'both adapters pin the same schema version');
+configurePlatform({ oauthClientId: 'https://web.example/client-metadata.json' });
+assert(oauthClientIdForSession({ clientId: 'https://original.example/client-metadata.json' }) === 'https://original.example/client-metadata.json', 'token refresh keeps the client id that created the session');
+assert(oauthClientIdForSession({}) === 'https://web.example/client-metadata.json', 'older sessions fall back to the active platform client id');
+const changedDuringSave = { ...local, selectedCommunityIds: ['sen'] };
+assert(latestUnsavedPreference(changedDuringSave, local) === changedDuringSave, 'a preference change made during a save remains queued');
+assert(latestUnsavedPreference(local, local) === null, 'a completed save does not queue an identical snapshot');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

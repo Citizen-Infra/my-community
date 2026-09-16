@@ -18,7 +18,15 @@ self.addEventListener('fetch', (event) => {
   if (request.headers.has('authorization') || url.pathname.startsWith('/auth/')) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('/')));
+    event.respondWith(fetch(request).then(async (response) => {
+      const contentType = response.headers.get('Content-Type') || '';
+      if (response.ok && response.type === 'basic' && contentType.includes('text/html')) {
+        const copy = response.clone();
+        const cache = await caches.open(CACHE);
+        await cache.put('/', copy);
+      }
+      return response;
+    }).catch(() => caches.match('/')));
     return;
   }
 

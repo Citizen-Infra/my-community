@@ -7,7 +7,7 @@
 
 import { openDB } from 'idb';
 import { SignJWT } from 'jose';
-import { platform } from './platform';
+import { oauthClientIdForSession, platform } from './platform';
 
 const SCOPE = 'atproto transition:generic';
 
@@ -251,7 +251,7 @@ export async function completeBlueskyLogin(redirect) {
   const { res } = await dpopPost(md.token_endpoint, tokenForm, key, { nonce });
   if (!res.ok) throw new Error(`token exchange ${res.status}`);
   const tok = await res.json();
-  const session = { did: tok.sub, handle, pdsUrl: pds, accessToken: tok.access_token, refreshToken: tok.refresh_token, sub: tok.sub, tokenEndpoint: md.token_endpoint, authIssuer: md.issuer, dpopPublicKey: key.publicKey, dpopPrivateKey: key.privateKey };
+  const session = { did: tok.sub, handle, pdsUrl: pds, accessToken: tok.access_token, refreshToken: tok.refresh_token, sub: tok.sub, tokenEndpoint: md.token_endpoint, authIssuer: md.issuer, clientId, dpopPublicKey: key.publicKey, dpopPrivateKey: key.privateKey };
   await saveSession(session);
   await clearPending();
   localStorage.removeItem('mc_bluesky_session'); // retire any legacy app-password session
@@ -311,7 +311,7 @@ async function doRefresh() {
   const s = await readSession();
   if (!s) return null;
   const key = await keyFromSession(s);
-  const form = new URLSearchParams({ client_id: CLIENT_ID, grant_type: 'refresh_token', refresh_token: s.refreshToken });
+  const form = new URLSearchParams({ client_id: oauthClientIdForSession(s), grant_type: 'refresh_token', refresh_token: s.refreshToken });
   const { res } = await dpopPost(s.tokenEndpoint, form, key);
   if (!res.ok) {
     let dead = false;
