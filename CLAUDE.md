@@ -19,6 +19,16 @@ cd extension && npm run build   # Production build -> dist/
 cd extension && npm run dev     # Vite dev server
 ```
 
+The cross-device companion is a separate Vite entry point that imports the shared dashboard graph from `extension/src/`:
+
+```bash
+cd web && npm test              # Routing, callback, offline, schema, and Chrome-boundary checks
+cd web && npm run dev           # Responsive web companion
+cd web && npm run build         # Production bundle; rejects Chrome-only modules
+```
+
+Railway builds from the repository root using `railway.json`; do not set the service root to `web/`, because the web bundle imports shared source from `extension/src/`.
+
 After building, reload at `chrome://extensions` (Developer mode, Load unpacked -> `extension/dist/`).
 
 No linting or test *framework* is configured, but framework-free tests cover the
@@ -160,7 +170,7 @@ worker so toolbar and Alt+S saves cannot close tabs into a hidden interface.
 ### Key constraints
 
 - `base: ''` in vite.config.js -- Chrome extensions need relative paths
-- Supabase env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must be set at build time
+- Supabase env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are optional but paired: setting both enables the legacy Harmonica-session fallback; omitting them leaves the primary events API active and must not block startup
 - Communities fetched from scenius-digest API at https://scenius-digest.vercel.app/api/groups
 - Feed refresh TTLs remain source-specific, but dashboard previews use selector-matched stale snapshots so they do not disappear between focused refreshes. Never-loaded enabled feeds populate sequentially after first paint. Auto-fit and exact preview depths reveal only items already held by the store; changing density must not fetch more pages. Community-scoped caches include the selected communities and community account; Bluesky posts include the Bluesky DID plus feed URI, time window, and sort. Reposts + content-preference filtering are applied at render, not baked into the Bluesky cache.
 - Bluesky timeline filtered to followed users only (`author.viewer.following`); reposts kept or hidden based on user setting

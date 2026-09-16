@@ -116,14 +116,17 @@ export async function loadSessions(communities) {
       }
     }
 
-    // Fetch Supabase sessions (Harmonica sessions, kept as fallback)
-    const { data, error } = await supabase
-      .from('sessions_with_topics')
-      .select('*')
-      .order('starts_at', { ascending: true });
-    if (error) anyFailure = true;
-    if (data) {
-      results.push(...data.map((s) => ({ ...s, source: 'session' })));
+    // Fetch Supabase sessions when that optional legacy fallback is configured.
+    // Railway's web companion intentionally starts without these variables.
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('sessions_with_topics')
+        .select('*')
+        .order('starts_at', { ascending: true });
+      if (error) anyFailure = true;
+      if (data) {
+        results.push(...data.map((s) => ({ ...s, source: 'session' })));
+      }
     }
 
     // Deduplicate by URL (events API may overlap with sessions)

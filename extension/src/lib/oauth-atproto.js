@@ -1,19 +1,14 @@
-// In-extension ATProto OAuth client, ported from the validated spike at
+// Browser ATProto OAuth client, ported from the validated spike at
 // atproto-oauth-poc/poc.mjs (LOGIN PASSED against a real Bluesky account).
 // Node -> browser adaptations only: WebCrypto instead of node:crypto/jose
-// generateKeyPair, chrome.identity.launchWebAuthFlow instead of a loopback
-// HTTP server, and idb (IndexedDB) instead of an in-memory session. The
-// resolution + DPoP logic itself is identical to the spike.
+// generateKeyPair and idb (IndexedDB) instead of an in-memory session. OAuth
+// launch and callback URLs come from the active platform adapter, keeping this
+// module usable by both the extension and web companion.
 
 import { openDB } from 'idb';
 import { SignJWT } from 'jose';
-import { CA_URL } from './config';
-import { oauthState } from './oauth-state';
+import { platform } from './platform';
 
-// CA_URL is this client's OAuth identity, not merely where we send requests —
-// see the note in lib/config.js, which now owns the constant.
-const CLIENT_ID = `${CA_URL}/oauth/client-metadata.json`;
-const REDIRECT_URI = `${CA_URL}/oauth/callback`;
 const SCOPE = 'atproto transition:generic';
 
 // --- crypto primitives (WebCrypto adaptations of the PoC's node:crypto helpers) ---
@@ -129,10 +124,10 @@ async function dpopPost(endpoint, form, key, { nonce, accessToken } = {}) {
   throw new Error('exhausted DPoP nonce retries');
 }
 
-async function doPar(md, handle, { codeChallenge, state }, key) {
+async function doPar(md, handle, { codeChallenge, state, clientId, redirectUri }, key) {
   const form = new URLSearchParams({
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
+    client_id: clientId,
+    redirect_uri: redirectUri,
     response_type: 'code',
     scope: SCOPE,
     code_challenge: codeChallenge,
@@ -184,17 +179,49 @@ async function clearSessionIdb() {
 // --- public API ---
 
 export async function loginWithBluesky(handle) {
+  const activePlatform = platform();
+  const clientId = activePlatform.oauthClientId;
+  const redirectUri = activePlatform.oauthRedirectUri;
+  if (!clientId || !redirectUri) throw new Error('Bluesky sign-in is not configured.');
   const { pds, md } = await resolveIdentity(handle);
   const key = await makeDpopKey();
   const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
   const codeChallenge = b64url(await sha256(verifier));
-  // Carries our extension id so CA's relay knows which chromiumapp.org URL to
-  // bounce the response to (#79). The whole string is compared on return below,
-  // so the prefix is covered by the same check as the random half.
-  const state = oauthState(chrome.runtime?.id, b64url(crypto.getRandomValues(new Uint8Array(16))));
-  const { request_uri, nonce } = await doPar(md, handle, { codeChallenge, state }, key);
-  const authorizeUrl = `${md.authorization_endpoint}?client_id=${encodeURIComponent(CLIENT_ID)}&request_uri=${encodeURIComponent(request_uri)}`;
-  const redirect = await chrome.identity.launchWebAuthFlow({ url: authorizeUrl, interactive: true });
+  const state = activePlatform.createOAuthState();
+  const { request_uri, nonce } = await doPar(
+    md,
+    handle,
+    { codeChallenge, state, clientId, redirectUri },
+    key,
+  );
+  await savePending({ pds, md, key, verifier, state, nonce, handle, clientId, redirectUri });
+  const authorizeUrl = `${md.authorization_endpoint}?client_id=${encodeURIComponent(clientId)}&request_uri=${encodeURIComponent(request_uri)}`;
+  const redirect = await activePlatform.launchOAuth(authorizeUrl);
+  if (!redirect) return null;
+  return completeBlueskyLogin(redirect);
+}
+
+async function savePending(flow) {
+  const db = await getDb();
+  await db.put(STORE_NAME, { ...flow, id: 'pending' });
+}
+
+async function readPending() {
+  const db = await getDb();
+  return (await db.get(STORE_NAME, 'pending')) || null;
+}
+
+async function clearPending() {
+  const db = await getDb();
+  await db.delete(STORE_NAME, 'pending');
+}
+
+// Full-page web OAuth resumes here after the browser returns to the callback.
+// Extension OAuth uses the same completion path with launchWebAuthFlow's URL.
+export async function completeBlueskyLogin(redirect) {
+  const pending = await readPending();
+  if (!pending) throw new Error('This sign-in has expired. Start again.');
+  const { pds, md, key, verifier, state, nonce, handle, clientId, redirectUri } = pending;
   const rt = new URL(redirect);
   if (rt.searchParams.get('state') !== state) throw new Error('state mismatch');
   const code = rt.searchParams.get('code');
@@ -220,12 +247,13 @@ export async function loginWithBluesky(handle) {
     throw new Error('authorization response is missing iss');
   }
   if (iss && iss !== md.issuer) throw new Error(`issuer mismatch: got ${iss}, expected ${md.issuer}`);
-  const tokenForm = new URLSearchParams({ client_id: CLIENT_ID, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code', code, code_verifier: verifier });
+  const tokenForm = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, grant_type: 'authorization_code', code, code_verifier: verifier });
   const { res } = await dpopPost(md.token_endpoint, tokenForm, key, { nonce });
   if (!res.ok) throw new Error(`token exchange ${res.status}`);
   const tok = await res.json();
   const session = { did: tok.sub, handle, pdsUrl: pds, accessToken: tok.access_token, refreshToken: tok.refresh_token, sub: tok.sub, tokenEndpoint: md.token_endpoint, authIssuer: md.issuer, dpopPublicKey: key.publicKey, dpopPrivateKey: key.privateKey };
   await saveSession(session);
+  await clearPending();
   localStorage.removeItem('mc_bluesky_session'); // retire any legacy app-password session
   return { did: session.did, handle, pdsUrl: pds };
 }
@@ -307,4 +335,4 @@ export function hasLegacyAppPasswordSession() {
 }
 
 export async function getStoredSession() { const s = await readSession(); return s ? { did: s.did, handle: s.handle, pdsUrl: s.pdsUrl } : null; }
-export async function logout() { await clearSessionIdb(); }
+export async function logout() { await Promise.all([clearSessionIdb(), clearPending()]); }

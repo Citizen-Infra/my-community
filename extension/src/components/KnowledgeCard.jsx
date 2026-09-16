@@ -78,6 +78,7 @@ export function KnowledgeCard({ item: k }) {
         {votable && (
           <div class="decision-actions">
             <button
+              data-requires-network
               class={`decision-vote decision-vote--agree ${k.my_vote === 'agree' ? 'is-selected' : ''}`}
               onClick={() => vote('agree')}
               disabled={busy}
@@ -86,6 +87,7 @@ export function KnowledgeCard({ item: k }) {
               Support
             </button>
             <button
+              data-requires-network
               class={`decision-vote decision-vote--pass ${k.my_vote === 'pass' ? 'is-selected' : ''}`}
               onClick={() => vote('pass')}
               disabled={busy}
@@ -94,6 +96,7 @@ export function KnowledgeCard({ item: k }) {
               Pass
             </button>
             <button
+              data-requires-network
               class={`decision-vote decision-vote--oppose ${k.my_vote === 'disagree' ? 'is-selected' : ''}`}
               onClick={() => vote('disagree')}
               disabled={busy}

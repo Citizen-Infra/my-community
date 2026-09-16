@@ -149,7 +149,7 @@ export function SettingsModal({ onClose }) {
     // session too (one login, one sign-out). An email login leaves any Bluesky
     // feed connection untouched.
     const wasBluesky = caType.value === 'atproto';
-    signOut();
+    await signOut();
     if (wasBluesky) await disconnectBluesky();
     await loadCommunities();
     if (selectedCommunityIds.value.length > 0) {
@@ -166,7 +166,7 @@ export function SettingsModal({ onClose }) {
     const endsCommunity = caType.value === 'atproto' && blueskyUser.value?.did === caSubject.value;
     await disconnectBluesky();
     if (endsCommunity) {
-      signOut();
+      await signOut();
       await loadCommunities();
       if (selectedCommunityIds.value.length > 0) {
         loadDigest(selectedCommunityIds.value);

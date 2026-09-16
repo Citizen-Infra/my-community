@@ -1,23 +1,21 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { initTheme } from './store/theme';
-import { blueskySession, initAuth, isConnected } from './store/auth';
+import { initAuth } from './store/auth';
 import { loadCommunities, selectedCommunityIds, selectedCommunities } from './store/communities';
-import { digestLoaded, digestLoading, hydrateDigest, loadDigest } from './store/digest';
-import { hydrateSessions, loadSessions, sessionsLoaded, sessionsLoading } from './store/sessions';
-import { initCaAuth, caSignedIn } from './store/caAuth';
-import { hydrateProposals, loadProposals } from './store/proposals';
-import { hydrateWikiQueue, loadWikiQueue, refreshWikiQueue } from './store/knowledge';
-import { startJamPolling, stopJamPolling } from './store/jam';
-import { startAvailsPolling, stopAvailsPolling } from './store/avails';
-import { blueskyLoaded, blueskyLoading, hydrateBlueskyFeed, loadBlueskyFeed, loadSavedFeeds } from './store/bluesky';
+import { initCaAuth, caSignedIn, caSubject } from './store/caAuth';
+import { refreshWikiQueue } from './store/knowledge';
+import { stopJamPolling } from './store/jam';
+import { stopAvailsPolling } from './store/avails';
 import { initDB } from './store/db';
 import { loadCollections, collections, getOrCreateArchive } from './store/collections';
 import { allTabs, loadTabs } from './store/tabs';
 import { syncToStorage, restoreFromStorage } from './store/backup';
 import { activeView } from './store/view';
-import { activeTab, availableTabs, dashboardMode } from './store/panels';
 import { searchQuery } from './store/search';
 import { initTabManager, tabManagerEnabled } from './store/tab-manager';
+import { hydrateDashboard, useDashboardFeeds } from './dashboard-runtime';
+import { beginPreferenceContinuity, endPreferenceContinuity, startSignedOutPreferenceProfile } from './store/preferences';
+import { PreferenceReconciliation } from './components/PreferenceReconciliation';
 import { TopBar } from './components/TopBar';
 import { JamBanner } from './components/JamBanner';
 import { Sidebar } from './components/Sidebar';
@@ -35,6 +33,22 @@ import './styles/animations.css';
 export function App() {
   const [ready, setReady] = useState(false);
   const skipFirst = useRef(true);
+  const preferenceAccount = useRef(null);
+  useDashboardFeeds(ready);
+
+  useEffect(() => {
+    if (!ready) return;
+    const account = caSubject.value;
+    if (account && preferenceAccount.current !== account) {
+      preferenceAccount.current = account;
+      void beginPreferenceContinuity(account);
+    } else if (!account && preferenceAccount.current) {
+      preferenceAccount.current = null;
+      endPreferenceContinuity();
+    } else if (!account) {
+      startSignedOutPreferenceProfile();
+    }
+  }, [ready, caSubject.value]);
 
   // Boot: tab manager (local) first, then feeds (network), then reveal.
   useEffect(() => {
@@ -74,12 +88,7 @@ export function App() {
       // A selector-matched snapshot remains useful after its refresh TTL. The
       // focused feed refreshes below; only never-loaded inactive feeds populate
       // after first paint, so routine new tabs keep the request budget from #32.
-      const ids = selectedCommunityIds.value;
-      hydrateDigest(ids, { allowStale: true });
-      hydrateSessions(selectedCommunities.value, { allowStale: true });
-      hydrateProposals(caSignedIn.value ? ids : []);
-      hydrateWikiQueue(caSignedIn.value ? ids : []);
-      if (isConnected.value) hydrateBlueskyFeed({ allowStale: true });
+      hydrateDashboard();
       setReady(true);
     })();
 
@@ -100,102 +109,6 @@ export function App() {
       });
     } catch {}
   }, [selectedCommunities.value]);
-
-  // Always-on feeds: the consent badge (proposals) and the global jam strip.
-  // These load on mount and on community / sign-in change regardless of the
-  // active tab, so the Community Input badge is live on every open.
-  useEffect(() => {
-    if (!ready) return;
-    const ids = selectedCommunityIds.value;
-    loadProposals(caSignedIn.value ? ids : []);
-    loadWikiQueue(caSignedIn.value ? ids : []);
-    if (ids.length > 0) startJamPolling(ids);
-    else stopJamPolling();
-    return () => stopJamPolling();
-  }, [ready, caSignedIn.value, selectedCommunityIds.value]);
-
-  // Community-scoped inactive tiles must never retain another selection's or
-  // account's content. Matching stale snapshots remain visible during refresh.
-  useLayoutEffect(() => {
-    if (!ready) return;
-    const ids = selectedCommunityIds.value;
-    hydrateDigest(ids, { allowStale: true });
-    hydrateSessions(selectedCommunities.value, { allowStale: true });
-    hydrateProposals(caSignedIn.value ? ids : []);
-    hydrateWikiQueue(caSignedIn.value ? ids : []);
-  }, [ready, caSignedIn.value, selectedCommunityIds.value, selectedCommunities.value]);
-
-  // Refresh one feed at a time: the member's most recently focused feed (Digest
-  // by default), whether the overview or a focused feed is open. Other overview
-  // tiles use selector-matched snapshots, preserving the request budget from #32.
-  // Bluesky stays single-owner HERE (see #33/#35).
-  useEffect(() => {
-    if (!ready) return;
-    const ids = selectedCommunityIds.value;
-    const requestedTab = activeTab.value;
-    switch (requestedTab) {
-      case 'network':
-        if (isConnected.value && !blueskyLoading.value) { loadSavedFeeds(); loadBlueskyFeed(); }
-        break;
-      case 'digest':
-        if (!digestLoading.value) loadDigest(ids);
-        break;
-      case 'participation':
-        if (!sessionsLoading.value) loadSessions(selectedCommunities.value);
-        break;
-      // 'communityInput' -> proposals, already loaded by the always-on effect above
-    }
-  }, [ready, activeTab.value, selectedCommunityIds.value, isConnected.value]);
-
-  // Populate only enabled previews that have never produced a selector-matched
-  // snapshot. Work starts after first paint and runs one feed at a time. Once an
-  // empty or non-empty result is cached, future new tabs hydrate it without this
-  // background work; normal freshness remains owned by the focused-feed loader.
-  useEffect(() => {
-    if (!ready) return;
-    let cancelled = false;
-
-    const populateMissingPreviews = async () => {
-      for (const tab of availableTabs.value) {
-        if (cancelled) return;
-        if (tab === activeTab.value || tab === 'communityInput') continue;
-
-        if (tab === 'digest' && !digestLoaded.value && !digestLoading.value) {
-          await loadDigest(selectedCommunityIds.value);
-        } else if (tab === 'participation' && !sessionsLoaded.value && !sessionsLoading.value) {
-          await loadSessions(selectedCommunities.value);
-        } else if (tab === 'network' && isConnected.value && !blueskyLoaded.value && !blueskyLoading.value) {
-          await loadSavedFeeds();
-          await loadBlueskyFeed();
-        }
-      }
-    };
-
-    const run = () => { if (!cancelled) void populateMissingPreviews(); };
-    const idleHandle = globalThis.requestIdleCallback
-      ? globalThis.requestIdleCallback(run, { timeout: 1500 })
-      : globalThis.setTimeout(run, 300);
-
-    return () => {
-      cancelled = true;
-      if (globalThis.cancelIdleCallback) globalThis.cancelIdleCallback(idleHandle);
-      else globalThis.clearTimeout(idleHandle);
-    };
-  }, [ready, availableTabs.value, selectedCommunityIds.value, selectedCommunities.value, caSignedIn.value, blueskySession.value?.did]);
-
-  // avails polling is scoped to the Participation tab being open (its banners
-  // only show there). Starts on activation, stops when you leave.
-  // (Slice 2 moves this into a shared service-worker loop.)
-  useEffect(() => {
-    if (!ready) return;
-    const ids = selectedCommunityIds.value;
-    if (dashboardMode.value === 'feed' && activeTab.value === 'participation' && ids.length > 0) {
-      startAvailsPolling(ids);
-    } else {
-      stopAvailsPolling();
-    }
-    return () => stopAvailsPolling();
-  }, [ready, dashboardMode.value, activeTab.value, selectedCommunityIds.value]);
 
   // Debounced mirror of tab data to chrome.storage.local.
   useEffect(() => {
@@ -230,6 +143,7 @@ export function App() {
             : (activeView.value === 'dashboard' ? <Dashboard /> : <MainContent />)}
         </main>
       </div>
+      <PreferenceReconciliation />
     </div>
   );
 }

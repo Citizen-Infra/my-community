@@ -131,6 +131,7 @@ export function AvailabilityStrip({ proposal }) {
             : `${zone} · ${days} ${days === 1 ? 'day' : 'days'} a week`}
         </span>
         <button
+          data-requires-network
           type="button"
           class="avail-save"
           onClick={save}

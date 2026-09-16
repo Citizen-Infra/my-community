@@ -103,6 +103,7 @@ export function DecisionCard({ proposal: p }) {
           <>
             <div class="decision-actions">
               <button
+                data-requires-network
                 class={`decision-vote decision-vote--agree ${p.my_vote === 'agree' ? 'is-selected' : ''}`}
                 onClick={() => vote('agree')}
                 disabled={busy}
@@ -111,6 +112,7 @@ export function DecisionCard({ proposal: p }) {
                 Agree
               </button>
               <button
+                data-requires-network
                 class={`decision-vote decision-vote--pass ${p.my_vote === 'pass' ? 'is-selected' : ''}`}
                 onClick={() => vote('pass')}
                 disabled={busy}
@@ -154,7 +156,7 @@ export function DecisionCard({ proposal: p }) {
                   >
                     Cancel
                   </button>
-                  <button type="submit" class="decision-objection-submit" disabled={busy || !reason.trim()}>
+                  <button type="submit" data-requires-network class="decision-objection-submit" disabled={busy || !reason.trim()}>
                     {busy ? 'Submitting…' : 'Submit objection'}
                   </button>
                 </div>

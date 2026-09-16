@@ -24,7 +24,7 @@ My Community turns a high-frequency, otherwise empty browser moment into a commu
 
 ## Operating Context
 
-- Runs as a Manifest V3 browser extension in Chromium-based browsers such as Chrome and Brave and overrides the new-tab page.
+- Runs primarily as a Manifest V3 browser extension in Chromium-based browsers such as Chrome and Brave, where it overrides the new-tab page. A responsive companion at `my.citizeninfra.org` provides the same dashboard on phones, managed devices, and browsers without the extension.
 - Opens many times during an ordinary workday, so the first viewport must be useful at a glance and routine opens must avoid unnecessary network requests.
 - Lets people scan an adaptive dashboard overview, open one feed for focused reading, and return to the overview.
 - Supports an optional community account through email or Bluesky. The Network feed additionally needs a Bluesky connection, and one Bluesky OAuth session can support both.
@@ -32,13 +32,14 @@ My Community turns a high-frequency, otherwise empty browser moment into a commu
 
 ## Capabilities and Constraints
 
-- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. The overview gives its full main-area height to the tiles without a redundant page heading. A compact control beside Dashboard in the sidebar enters Customize mode. Tile subtitles describe scope rather than item totals: Network shows its active source, window, sort, and repost filters; community-backed feeds name the selected communities. Each tile defaults to showing as many civic-priority preview items as fit its available height; members can instead save an exact item count per tile. Visible items share the available tile body evenly and reveal more title and descriptive context when sparse. Preview rows open their item, while tile headings and footers open the complete feed. Tile visibility, order, and preview depth are local preferences; hidden feeds retain their position.
+- **Dashboard overview:** previews enabled Digest, Network, Participation, and Community Input feeds as rearrangeable tiles. The overview gives its full main-area height to the tiles without a redundant page heading. A compact control enters Customize mode. Tile subtitles describe scope rather than item totals: Network shows its active source, window, sort, and repost filters; community-backed feeds name the selected communities. Each tile defaults to showing as many civic-priority preview items as fit its available height; members can instead save an exact item count per tile. Visible items share the available tile body evenly and reveal more title and descriptive context when sparse. Preview rows open their item, while tile headings and footers open the complete feed. Signed-in dashboard preferences follow the linked account across web and extension; signed-out profiles remain local.
 - **Focused feeds:** each tile opens its complete feed with the feed's existing controls and scrolling behavior.
 - **Community Digest:** shows recent links shared by selected communities.
 - **Network:** shows posts from the user's Bluesky network with feed, time-window, repost, and ranking controls.
 - **Participation:** combines community events, Harmonica sessions, call proposals, Avails polls, and live jam rooms.
 - **Community Input:** combines consent decisions and suggested wiki sources, prioritizing items awaiting the member's response. Members can suggest the current page to a selected community's wiki queue.
 - **Tab manager:** saves and closes tabs, organizes them into collections, supports search and reordering, imports browser bookmarks or compatible exports, exports data, and creates local backups. It is enabled by default and can be turned off for a dashboard-only layout without deleting local data. While it is off, saved-tab search and collections are hidden, save-and-close actions are blocked with a visible notice, and wiki suggestions remain available.
+- **Web companion boundary:** the web app provides dashboard and focused-feed parity with real browser routes, responsive navigation, optional PWA installation, and read-only offline snapshots. Tab management, browser bookmarks, extension commands, Chrome permissions, and extension backup controls never appear there.
 - **Local-first tab data:** saved tabs, collections, and tab-manager preferences stay on the user's device in browser storage and user-controlled JSON backups. Uninstalling the extension removes its browser-local data.
 - **Lazy feed loading:** selector-matched previews remain visible after their refresh TTL. Never-loaded enabled feeds populate sequentially after first paint; routine new tabs refresh only the most recently focused feed rather than fetching every feed. Increasing preview depth reveals already-loaded items and does not request additional pages.
 - **Authentication is additive:** account-specific feeds and actions may require sign-in, while unauthenticated and disconnected states remain understandable and usable.
@@ -53,6 +54,7 @@ The product is named **My Community**. Its voice is warm, civic, grounded, edito
 - The working extension and shipped feature copy live under `extension/` and in `README.md`.
 - The current product interface system is documented in `DESIGN.md`.
 - Chrome Web Store listing copy, permission rationale, privacy claims, and capture requirements live in `docs/store-listing.md` and `docs/privacy-policy.md`.
+- Web storage, synchronization, authentication, cache clearing, and deletion behavior are documented in `docs/web-privacy.md`.
 - Store screenshots and their provenance are maintained under `docs/screenshots/`.
 - Feature decisions and implementation briefs live under `docs/plans/`.
 - No user testimonials, adoption benchmarks, or outcome claims are established in this repository; future product work must not fabricate them.

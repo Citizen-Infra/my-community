@@ -1,19 +1,24 @@
 import { communitiesConfigured } from '../store/communities';
-import { activeTab, dashboardMode, showDashboardOverview } from '../store/panels';
+import { activeTab, activeWorkspace, dashboardMode, showDashboardOverview } from '../store/panels';
 import { DashboardOverview, DASHBOARD_FEED_LABELS } from './DashboardOverview';
 import { DigestFeed } from './DigestFeed';
 import { SessionsPanel } from './SessionsPanel';
 import { BlueskyFeed } from './BlueskyFeed';
 import { CommunityInputFeed } from './CommunityInputFeed';
+import { StewardshipWorkspace } from './StewardshipWorkspace';
 
-export function Dashboard() {
+export function Dashboard({ onOpenSettings }) {
   if (!communitiesConfigured.value) {
     return (
       <main class="dashboard">
         <div class="welcome-prompt">
           <h2>Welcome to My Community</h2>
           <p>Select your communities to start seeing digest links, sessions, and events.</p>
-          <p class="welcome-hint">Click the gear icon above to get started.</p>
+          {onOpenSettings ? (
+            <button type="button" class="welcome-action" onClick={onOpenSettings}>Choose communities</button>
+          ) : (
+            <p class="welcome-hint">Click the gear icon above to get started.</p>
+          )}
         </div>
       </main>
     );
@@ -21,6 +26,18 @@ export function Dashboard() {
 
   if (dashboardMode.value === 'overview') {
     return <DashboardOverview />;
+  }
+
+  if (dashboardMode.value === 'workspace' && activeWorkspace.value === 'stewardship') {
+    return (
+      <>
+        <header class="dashboard-feed-header">
+          <button type="button" class="dashboard-feed-back" onClick={showDashboardOverview}>← Overview</button>
+          <h2>Stewardship</h2>
+        </header>
+        <StewardshipWorkspace />
+      </>
+    );
   }
 
   return (

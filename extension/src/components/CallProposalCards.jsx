@@ -130,6 +130,7 @@ function CallProposalCard({ proposal: p }) {
 
           {gathering && isConnected.value && (
             <button
+              data-requires-network
               type="button"
               class={`call-support ${isIn ? 'is-in' : ''}`}
               onClick={onToggle}

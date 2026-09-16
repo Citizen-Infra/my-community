@@ -60,6 +60,7 @@ import {
   previewRowDensity,
 } from '../lib/dashboard-preview-depth';
 import '../styles/dashboard-overview.css';
+import { SupportingTiles } from './SupportingTiles';
 
 export const DASHBOARD_FEED_LABELS = {
   network: 'Network',
@@ -521,6 +522,7 @@ export function DashboardOverview() {
           />
         ))}
       </div>
+      <SupportingTiles />
       <p key={announcement.id} class="dashboard-order-announcement" role="status" aria-live="polite">{announcement.message}</p>
     </section>
   );
