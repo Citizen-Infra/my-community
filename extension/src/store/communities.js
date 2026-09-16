@@ -36,6 +36,7 @@ export async function loadCommunities() {
     const data = await res.json();
     // Transform { scenius: { name: ... }, cibc: { name: ... } } → array
     const groups = Object.entries(data.groups || data).map(([key, val]) => ({
+      ...val,
       id: key,
       name: val.name,
       topics: val.topics ? (Array.isArray(val.topics) ? val.topics : Object.keys(val.topics)) : [],

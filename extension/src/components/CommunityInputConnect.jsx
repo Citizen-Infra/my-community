@@ -40,7 +40,8 @@ export function CommunityInputConnect() {
       if (!isConnected.value) {
         const h = handle.trim();
         if (!h) { setError('Enter your Bluesky handle.'); setBskyBusy(false); return; }
-        await connectBluesky(h);
+        const connected = await connectBluesky(h, { communitySignIn: true });
+        if (!connected) return;
       }
       await requestBlueskySignIn();
       setHandle('');

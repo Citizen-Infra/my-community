@@ -1,0 +1,16 @@
+{
+  "name": "My Community",
+  "short_name": "My Community",
+  "description": "Your communities, their conversations, and ways to take part.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f6f1",
+  "theme_color": "#f8f6f1",
+  "icons": [
+    { "src": "/icons/icon-48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

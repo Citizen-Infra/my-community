@@ -1,6 +1,6 @@
 # My Community
 
-A Chrome extension that turns your new tab into a community dashboard and a tab manager. Stay connected to your communities, and keep your tabs in tidy collections, without endless scrolling.
+A community dashboard available as a Chrome new-tab extension and a responsive web companion. Stay connected to your communities across devices, and keep browser tabs in tidy local collections when the extension is installed.
 
 ## What you get
 
@@ -22,6 +22,28 @@ Toggle any feed on or off. Choose light, dark, or system theme. The extension wo
 4. Enable "Developer mode" (toggle in top-right)
 5. Click "Load unpacked" and select the extracted folder
 6. Open a new tab — you're in!
+
+The companion dashboard is also available at [my.citizeninfra.org](https://my.citizeninfra.org) without an extension. It includes the community dashboard, focused feeds, account settings, and cross-device layout preferences. Browser tab management remains extension-only.
+
+## Development
+
+The two entry points share the dashboard components, stores, feed lifecycle, normalization rules, and preference schema.
+
+```bash
+# Extension
+cd extension
+npm ci
+for f in scripts/*.test.mjs; do node "$f" || break; done
+npm run build
+
+# Web companion
+cd web
+npm ci
+npm test
+npm run dev
+```
+
+The repository root contains Railway configuration for the web service. Railway builds from the full repository because `web/` imports the shared dashboard source under `extension/src/`, then starts `web/server.mjs`. The legacy Supabase session source is an optional fallback: set both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at build time to include it, or omit both and use the primary events API alone. See `docs/web-privacy.md` for the browser storage and synchronization contract.
 
 ## Getting started
 

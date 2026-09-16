@@ -44,7 +44,13 @@ export function setJamVisible(visible) {
 
 export const activeTab = signal(localStorage.getItem('mc_active_tab') || 'digest');
 export const dashboardMode = signal('overview');
+export const activeWorkspace = signal(null);
 export const dashboardCustomizing = signal(false);
+let dashboardNavigator = null;
+
+export function setDashboardNavigator(navigator) {
+  dashboardNavigator = navigator;
+}
 
 export function setActiveTab(tab) {
   activeTab.value = tab;
@@ -54,15 +60,41 @@ export function setActiveTab(tab) {
 export function openDashboardFeed(tab) {
   setActiveTab(tab);
   dashboardMode.value = 'feed';
+  activeWorkspace.value = null;
+  dashboardNavigator?.({ mode: 'feed', tab });
 }
 
 export function showDashboardOverview() {
   dashboardMode.value = 'overview';
+  activeWorkspace.value = null;
+  dashboardNavigator?.({ mode: 'overview' });
+}
+
+export function openDashboardWorkspace(workspace) {
+  activeWorkspace.value = workspace;
+  dashboardMode.value = 'workspace';
+  dashboardNavigator?.({ mode: 'workspace', workspace });
+}
+
+export function applyDashboardRoute(route) {
+  if (route.mode === 'feed') {
+    setActiveTab(route.tab);
+    activeWorkspace.value = null;
+    dashboardMode.value = 'feed';
+  } else if (route.mode === 'workspace') {
+    activeWorkspace.value = route.workspace;
+    dashboardMode.value = 'workspace';
+  } else {
+    activeWorkspace.value = null;
+    dashboardMode.value = 'overview';
+  }
 }
 
 export function toggleDashboardCustomization() {
   dashboardMode.value = 'overview';
+  activeWorkspace.value = null;
   dashboardCustomizing.value = !dashboardCustomizing.value;
+  dashboardNavigator?.({ mode: 'overview' });
 }
 
 export function stopDashboardCustomization() {

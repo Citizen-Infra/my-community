@@ -1,0 +1,12 @@
+{
+  "client_id": "https://my.citizeninfra.org/oauth/client-metadata.json",
+  "client_name": "My Community",
+  "client_uri": "https://my.citizeninfra.org",
+  "redirect_uris": ["https://my.citizeninfra.org/auth/atproto/callback"],
+  "scope": "atproto transition:generic",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none",
+  "application_type": "web",
+  "dpop_bound_access_tokens": true
+}

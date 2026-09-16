@@ -4,7 +4,7 @@ import { support, syncSupport, toggleSupport } from '../store/callProposals';
 import { syncAvailability } from '../store/availability';
 import { AvailabilityStrip } from './AvailabilityStrip';
 import { isConnected } from '../store/auth';
-import { setActiveTab } from '../store/panels';
+import { openDashboardFeed } from '../store/panels';
 import { allCommunities } from '../store/communities';
 import { getCommunityColors } from '../lib/community-colors';
 
@@ -130,6 +130,7 @@ function CallProposalCard({ proposal: p }) {
 
           {gathering && isConnected.value && (
             <button
+              data-requires-network
               type="button"
               class={`call-support ${isIn ? 'is-in' : ''}`}
               onClick={onToggle}
@@ -141,7 +142,7 @@ function CallProposalCard({ proposal: p }) {
           )}
 
           {gathering && !isConnected.value && (
-            <button type="button" class="call-connect" onClick={() => setActiveTab('network')}>
+            <button type="button" class="call-connect" onClick={() => openDashboardFeed('network')}>
               Connect Bluesky to answer
             </button>
           )}

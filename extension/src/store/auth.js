@@ -1,6 +1,7 @@
 import { signal, computed } from '@preact/signals';
 import { loginWithBluesky, getStoredSession, logout, hasLegacyAppPasswordSession } from '../lib/oauth-atproto';
 import { clearBlueskyState } from './bluesky';
+import { platform } from '../lib/platform';
 
 export const blueskyUser = signal(null); // { did, handle }
 export const blueskySession = signal(null); // marker { did, handle, pdsUrl } (no tokens)
@@ -18,8 +19,18 @@ export async function initAuth() {
   authLoading.value = false;
 }
 
-export async function connectBluesky(handle) {
-  const id = await loginWithBluesky(handle);
+export async function connectBluesky(handle, { communitySignIn = false } = {}) {
+  const activePlatform = platform();
+  if (communitySignIn) activePlatform.prepareCommunityBlueskySignIn();
+  else activePlatform.clearCommunityBlueskySignIn();
+  let id;
+  try {
+    id = await loginWithBluesky(handle);
+  } catch (error) {
+    if (communitySignIn) activePlatform.clearCommunityBlueskySignIn();
+    throw error;
+  }
+  if (!id) return null;
   blueskyUser.value = { did: id.did, handle: id.handle };
   blueskySession.value = id;
   legacyBlueskySession.value = false;

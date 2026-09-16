@@ -478,4 +478,5 @@ export function clearBlueskyState() {
   localStorage.setItem('mc_bluesky_feed', DEFAULT_FEED_URI);
   blueskyPrefs.value = EMPTY_PREFS;
   localStorage.removeItem(PREFS_CACHE_KEY);
+  localStorage.removeItem(CACHE_KEY);
 }

@@ -2,10 +2,12 @@ import { signal, computed } from '@preact/signals';
 import { getServiceAuth, resolveHandleFromDid } from '../lib/oauth-atproto';
 import { getCached, setCached, clearCached } from '../lib/cache';
 import { CA_URL, CA_DID } from '../lib/config';
+import { platform } from '../lib/platform';
+import { validWebCallbackState } from '../lib/web-auth-state';
+import { clearPrivateCommunityCaches } from '../lib/private-data';
 
 const SESSION_KEY = 'mc_ca_session';
 const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
-const STASH_KEY = 'mc_ca_auth_redirect'; // written by background.js after the magic-link redirect
 const JWT_KEY = 'mc_ca_jwt';           // persisted { token, exp } so the 15-min JWT survives page loads
 const IDENTITY_KEY = 'mc_ca_identity'; // cached { subject, type } to skip /auth/me on warm reopens
 const IDENTITY_TTL = 5 * 60 * 1000;
@@ -15,6 +17,7 @@ export const caSubject = signal(null); // string | null
 export const caType = signal(null);    // 'email' | 'atproto' | null
 export const caHandle = signal(localStorage.getItem(HANDLE_KEY) || null); // friendly @handle for a DID identity
 export const caSignedIn = computed(() => !!caSubject.value);
+export const caMemberships = signal([]);
 
 let _jwt = null;   // cached 15-min JWT
 let _jwtExp = 0;   // epoch ms
@@ -29,16 +32,10 @@ function sessionToken() {
   return localStorage.getItem(SESSION_KEY);
 }
 
-// Mirror the CA session token into chrome.storage.local so the service worker
+// Mirror the CA session token through the extension adapter so the service worker
 // (which cannot read this page's localStorage) can authenticate wiki-suggest POSTs
 // for Sub-project C. Reads the live token, so it both sets and clears.
-function mirrorSessionToBg() {
-  try {
-    const t = sessionToken();
-    if (t) chrome.storage?.local?.set({ mc_ca_session_bg: t });
-    else chrome.storage?.local?.remove('mc_ca_session_bg');
-  } catch {}
-}
+function mirrorSessionToBg() { platform().mirrorCommunitySession(sessionToken()); }
 
 function decodeExp(jwt) {
   try {
@@ -51,11 +48,9 @@ function decodeExp(jwt) {
 // into localStorage, then resolve the signed-in identity. Call once on app start.
 export async function initCaAuth() {
   try {
-    const stash = await chrome.storage?.local?.get(STASH_KEY);
-    const stashed = stash?.[STASH_KEY];
+    const stashed = await platform().consumeCommunitySession();
     if (stashed) {
       localStorage.setItem(SESSION_KEY, stashed);
-      await chrome.storage.local.remove(STASH_KEY);
       _jwt = null; _jwtExp = 0;
       clearCached(JWT_KEY);
       clearCached(IDENTITY_KEY);
@@ -99,10 +94,16 @@ async function refreshIdentity() {
 }
 
 export async function requestSignIn(email) {
+  const activePlatform = platform();
+  const isWeb = activePlatform.kind === 'web';
+  const state = isWeb ? activePlatform.createOAuthState() : undefined;
+  if (isWeb) localStorage.setItem('mc_web_email_state', JSON.stringify({ value: state, createdAt: Date.now() }));
   const res = await fetch(`${CA_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, client: 'extension' }),
+    body: JSON.stringify(isWeb
+      ? { email, client: 'my-community-web', state, redirectUri: `${location.origin}/auth/callback` }
+      : { email, client: 'extension' }),
   });
   if (!res.ok && res.status !== 204) throw new Error('Could not send the magic link. Try again.');
 }
@@ -116,12 +117,41 @@ export async function requestBlueskySignIn() {
   const res = await fetch(`${CA_URL}/auth/atproto/assert`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: jwt }),
+    body: JSON.stringify({ token: jwt, ...(platform().kind === 'web' ? { client: 'my-community-web' } : {}) }),
   });
   if (!res.ok) throw new Error('Could not verify your Bluesky identity with the community server.');
   const { session } = await res.json();
   localStorage.setItem(SESSION_KEY, session);
   mirrorSessionToBg();
+  _jwt = null; _jwtExp = 0;
+  clearCached(JWT_KEY);
+  clearCached(IDENTITY_KEY);
+  await refreshIdentity();
+}
+
+function decodeClaims(jwt) {
+  try {
+    const part = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(part));
+  } catch { return {}; }
+}
+
+if (_jwt) caMemberships.value = decodeClaims(_jwt).memberships || [];
+
+export async function exchangeWebSignIn(code, state) {
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem('mc_web_email_state') || 'null'); } catch {}
+  const fresh = stored && Date.now() - stored.createdAt < 20 * 60 * 1000;
+  if (!fresh || !validWebCallbackState(stored.value, state)) throw new Error('This sign-in link does not match this browser.');
+  const res = await fetch(`${CA_URL}/auth/web/exchange`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ client: 'my-community-web', code, state }),
+  });
+  if (!res.ok) throw new Error('This sign-in link is invalid or has expired.');
+  const { session } = await res.json();
+  localStorage.setItem(SESSION_KEY, session);
+  localStorage.removeItem('mc_web_email_state');
   _jwt = null; _jwtExp = 0;
   clearCached(JWT_KEY);
   clearCached(IDENTITY_KEY);
@@ -138,6 +168,7 @@ export async function getToken() {
     if (!res.ok) return null;
     const { token } = await res.json();
     _jwt = token; _jwtExp = decodeExp(token);
+    caMemberships.value = decodeClaims(token).memberships || [];
     try { localStorage.setItem(JWT_KEY, JSON.stringify({ token, exp: _jwtExp })); } catch {}
     return token;
   } catch { return null; }
@@ -163,6 +194,7 @@ export function caSessionHeader() {
 }
 
 export function signOut() {
+  const previousSession = sessionToken();
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(HANDLE_KEY);
   localStorage.removeItem(JWT_KEY);
@@ -172,4 +204,13 @@ export function signOut() {
   caSubject.value = null;
   caType.value = null;
   caHandle.value = null;
+  caMemberships.value = [];
+  clearPrivateCommunityCaches();
+  if (previousSession) {
+    return fetch(`${CA_URL}/auth/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${previousSession}` },
+    }).catch(() => undefined);
+  }
+  return Promise.resolve();
 }

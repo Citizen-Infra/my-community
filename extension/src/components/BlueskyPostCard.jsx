@@ -43,6 +43,7 @@ export function BlueskyPostCard({ post }) {
         <span class="bsky-stat">{post.replyCount} replies</span>
         <span class="bsky-stat">{post.repostCount} reposts</span>
         <button
+          data-requires-network
           class={`bsky-like-btn bsky-child-link${isLiked ? ' liked' : ''}`}
           onClick={() => toggleLike(post)}
           title={isLiked ? 'Unlike' : 'Like'}
