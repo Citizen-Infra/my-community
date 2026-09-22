@@ -50,6 +50,7 @@ import {
   retryWikiQueue,
 } from '../store/knowledge';
 import { caSignedIn } from '../store/caAuth';
+import { deploymentConfig } from '../lib/deployment-config';
 import { allCommunities, selectedCommunityIds } from '../store/communities';
 import { communityInputStatus, mergeCommunityInputRows } from '../lib/community-input-order';
 import { communityScope, networkPostMeta, networkScope } from '../lib/dashboard-preview-meta';
@@ -127,6 +128,9 @@ function selectedCommunityScope() {
 
 function previewState(tab) {
   if (tab === 'digest') {
+    if (deploymentConfig.linksRequireSignIn && !caSignedIn.value) {
+      return { state: 'signed-out', message: 'Sign in to see links shared by your community.' };
+    }
     const links = digestLinks.value;
     if (digestLoading.value && links.length === 0) return { state: 'loading', message: 'Gathering this week’s links…' };
     if (digestError.value && links.length === 0) return { state: 'error', message: 'The digest could not refresh. Open it to try again.' };

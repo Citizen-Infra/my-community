@@ -6,6 +6,11 @@ import {
   SUPPORTING_TILE_KEYS,
 } from '../lib/dashboard-preferences';
 import { latestUnsavedPreference } from '../lib/preference-write-queue';
+import {
+  deploymentCommunityIds,
+  deploymentFeedVisible,
+  deploymentSyncPreferences,
+} from '../lib/deployment-config';
 import { selectedCommunityIds } from './communities';
 import {
   previewDepths,
@@ -47,8 +52,10 @@ function parseStored(key) {
 export function currentDashboardPreferences() {
   return normalizeDashboardPreferences({
     revision,
-    selectedCommunityIds: selectedCommunityIds.value,
-    visibleFeedKeys: Object.entries(visibleTabs.value).filter(([, visible]) => visible).map(([key]) => key),
+    selectedCommunityIds: deploymentCommunityIds(selectedCommunityIds.value),
+    visibleFeedKeys: Object.entries(visibleTabs.value)
+      .filter(([key, visible]) => deploymentFeedVisible(key, visible))
+      .map(([key]) => key),
     feedOrder: tabOrder.value,
     previewDepths: previewDepths.value,
     network: {
@@ -65,9 +72,12 @@ export function currentDashboardPreferences() {
 export function applyDashboardPreferences(value) {
   const next = normalizeDashboardPreferences(value);
   applying = true;
-  selectedCommunityIds.value = next.selectedCommunityIds;
-  localStorage.setItem('mc_communities', JSON.stringify(next.selectedCommunityIds));
-  visibleTabs.value = Object.fromEntries(Object.keys(visibleTabs.value).map((key) => [key, next.visibleFeedKeys.includes(key)]));
+  selectedCommunityIds.value = deploymentCommunityIds(next.selectedCommunityIds);
+  localStorage.setItem('mc_communities', JSON.stringify(selectedCommunityIds.value));
+  visibleTabs.value = Object.fromEntries(Object.keys(visibleTabs.value).map((key) => [
+    key,
+    deploymentFeedVisible(key, next.visibleFeedKeys.includes(key)),
+  ]));
   localStorage.setItem('mc_visible_tabs', JSON.stringify(visibleTabs.value));
   tabOrder.value = next.feedOrder;
   localStorage.setItem('mc_dashboard_tab_order', JSON.stringify(next.feedOrder));
@@ -116,8 +126,9 @@ function watchChanges() {
       return;
     }
     if (!['synced', 'error'].includes(preferenceStatus.peek())) return;
-    if (preferencesMatch(snapshot, lastSaved)) return;
-    queuedSnapshot = snapshot;
+    const syncable = deploymentSyncPreferences(snapshot, lastSaved);
+    if (preferencesMatch(syncable, lastSaved)) return;
+    queuedSnapshot = syncable;
     clearTimeout(writeTimer);
     writeTimer = setTimeout(() => void writePreferences(queuedSnapshot), 900);
   });
@@ -133,7 +144,8 @@ async function writePreferences(snapshot) {
   }
   preferenceStatus.value = 'saving';
   preferenceMessage.value = 'Saving layout…';
-  const preferences = normalizeDashboardPreferences({ ...snapshot, revision });
+  const syncable = deploymentSyncPreferences(snapshot, lastSaved);
+  const preferences = normalizeDashboardPreferences({ ...syncable, revision });
   try {
     const res = await fetch(`${CA_URL}/auth/preferences/my-community`, {
       method: 'PUT',
@@ -148,6 +160,7 @@ async function writePreferences(snapshot) {
     if (res.status === 409) {
       const remote = await fetchRemote(account);
       if (remote === STALE_ACCOUNT) return;
+      lastSaved = remote;
       preferenceStatus.value = 'conflict';
       preferenceMessage.value = 'A newer saved layout needs your review';
       preferencePrompt.value = { kind: 'conflict', local: currentDashboardPreferences(), remote };
@@ -209,9 +222,9 @@ export async function beginPreferenceContinuity(account) {
       preferencePrompt.value = { kind: 'save-local', local };
       return;
     }
-    if (preferencesMatch(local, remote)) {
+    lastSaved = remote;
+    if (preferencesMatch(deploymentSyncPreferences(local, remote), remote)) {
       const applied = applyDashboardPreferences(remote);
-      lastSaved = applied;
       cacheRemote(account, applied);
       preferenceStatus.value = 'synced';
       preferenceMessage.value = 'Layout saved across devices';

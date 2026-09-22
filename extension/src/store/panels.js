@@ -6,6 +6,7 @@ import {
   reorderDashboardTab,
 } from '../lib/dashboard-order';
 import { AUTO_PREVIEW_DEPTH, normalizePreviewDepth } from '../lib/dashboard-preview-depth';
+import { deploymentFeedVisible } from '../lib/deployment-config';
 
 function storedJson(key, fallback) {
   try {
@@ -17,7 +18,7 @@ function storedJson(key, fallback) {
 
 const stored = storedJson('mc_visible_tabs', {});
 export const visibleTabs = signal({
-  network: stored.network ?? true,
+  network: deploymentFeedVisible('network', stored.network ?? true),
   digest: stored.digest ?? true,
   participation: stored.participation ?? true,
   communityInput: stored.communityInput ?? true,
@@ -42,7 +43,8 @@ export function setJamVisible(visible) {
   localStorage.setItem('mc_jam_visible', String(visible));
 }
 
-export const activeTab = signal(localStorage.getItem('mc_active_tab') || 'digest');
+const storedActiveTab = localStorage.getItem('mc_active_tab') || 'digest';
+export const activeTab = signal(deploymentFeedVisible(storedActiveTab) ? storedActiveTab : 'digest');
 export const dashboardMode = signal('overview');
 export const activeWorkspace = signal(null);
 export const dashboardCustomizing = signal(false);
@@ -53,6 +55,7 @@ export function setDashboardNavigator(navigator) {
 }
 
 export function setActiveTab(tab) {
+  if (!deploymentFeedVisible(tab)) tab = 'digest';
   activeTab.value = tab;
   localStorage.setItem('mc_active_tab', tab);
 }
@@ -77,7 +80,7 @@ export function openDashboardWorkspace(workspace) {
 }
 
 export function applyDashboardRoute(route) {
-  if (route.mode === 'feed') {
+  if (route.mode === 'feed' && deploymentFeedVisible(route.tab)) {
     setActiveTab(route.tab);
     activeWorkspace.value = null;
     dashboardMode.value = 'feed';
@@ -132,6 +135,7 @@ export function resetPreviewDepths() {
 }
 
 export function setTabVisible(tab, visible) {
+  visible = deploymentFeedVisible(tab, visible);
   const next = { ...visibleTabs.value, [tab]: visible };
   visibleTabs.value = next;
   localStorage.setItem('mc_visible_tabs', JSON.stringify(next));
