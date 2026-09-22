@@ -9,7 +9,8 @@ import { clearPrivateCommunityCaches } from '../lib/private-data';
 const SESSION_KEY = 'mc_ca_session';
 const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
 const JWT_KEY = 'mc_ca_jwt';           // persisted { token, exp } so the 15-min JWT survives page loads
-const IDENTITY_KEY = 'mc_ca_identity'; // cached { subject, type } to skip /auth/me on warm reopens
+const IDENTITY_KEY = 'mc_ca_identity'; // cached { subject, type, identities } to skip auth reads on warm reopens
+const TELEGRAM_STATE_KEY = 'mc_web_telegram_state';
 const IDENTITY_TTL = 5 * 60 * 1000;
 
 // The signed-in community identity: an email or a Bluesky DID, plus which kind.
@@ -18,6 +19,8 @@ export const caType = signal(null);    // 'email' | 'atproto' | null
 export const caHandle = signal(localStorage.getItem(HANDLE_KEY) || null); // friendly @handle for a DID identity
 export const caSignedIn = computed(() => !!caSubject.value);
 export const caMemberships = signal([]);
+export const caIdentities = signal([]);
+export const caTelegramLinked = computed(() => caIdentities.value.some((identity) => identity.kind === 'telegram'));
 
 let _jwt = null;   // cached 15-min JWT
 let _jwtExp = 0;   // epoch ms
@@ -62,6 +65,7 @@ export async function initCaAuth() {
     if (cached) {
       caSubject.value = cached.subject;
       caType.value = cached.type;
+      caIdentities.value = cached.identities || [{ kind: cached.type, value: cached.subject, current: true }];
       refreshIdentity(); // background: self-corrects a server-side revocation (401 -> signOut)
     } else {
       await refreshIdentity();
@@ -79,7 +83,21 @@ async function refreshIdentity() {
       const me = await res.json();
       caSubject.value = me.subject ?? me.email ?? null;
       caType.value = me.type ?? (me.email ? 'email' : null);
-      setCached(IDENTITY_KEY, { subject: caSubject.value, type: caType.value });
+      caIdentities.value = [{ kind: caType.value, value: caSubject.value, current: true }];
+      try {
+        const identitiesResponse = await fetch(`${CA_URL}/auth/identities`, {
+          headers: { Authorization: `Bearer ${sessionToken()}` },
+        });
+        if (identitiesResponse.ok) {
+          const result = await identitiesResponse.json();
+          if (Array.isArray(result.identities)) caIdentities.value = result.identities;
+        }
+      } catch {}
+      setCached(IDENTITY_KEY, {
+        subject: caSubject.value,
+        type: caType.value,
+        identities: caIdentities.value,
+      });
       // Backfill a friendly @handle for a Bluesky (DID) identity so the UI never
       // shows a raw DID, even with no live feed session. Resolved from the DID doc.
       if (caType.value === 'atproto' && caSubject.value && !caHandle.value) {
@@ -143,6 +161,11 @@ export async function exchangeWebSignIn(code, state) {
   try { stored = JSON.parse(localStorage.getItem('mc_web_email_state') || 'null'); } catch {}
   const fresh = stored && Date.now() - stored.createdAt < 20 * 60 * 1000;
   if (!fresh || !validWebCallbackState(stored.value, state)) throw new Error('This sign-in link does not match this browser.');
+  await exchangeWebCode(code, state);
+  localStorage.removeItem('mc_web_email_state');
+}
+
+async function exchangeWebCode(code, state) {
   const res = await fetch(`${CA_URL}/auth/web/exchange`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -151,8 +174,35 @@ export async function exchangeWebSignIn(code, state) {
   if (!res.ok) throw new Error('This sign-in link is invalid or has expired.');
   const { session } = await res.json();
   localStorage.setItem(SESSION_KEY, session);
-  localStorage.removeItem('mc_web_email_state');
   _jwt = null; _jwtExp = 0;
+  clearCached(JWT_KEY);
+  clearCached(IDENTITY_KEY);
+  await refreshIdentity();
+}
+
+export function rememberTelegramSignInState(state) {
+  localStorage.setItem(TELEGRAM_STATE_KEY, JSON.stringify({ value: state, createdAt: Date.now() }));
+}
+
+export function clearTelegramSignInState() {
+  localStorage.removeItem(TELEGRAM_STATE_KEY);
+}
+
+export async function exchangeTelegramSignIn(code, state) {
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(TELEGRAM_STATE_KEY) || 'null'); } catch {}
+  const fresh = stored && Date.now() - stored.createdAt < 11 * 60 * 1000;
+  if (!fresh || !validWebCallbackState(stored.value, state)) {
+    throw new Error('This Telegram sign-in does not match this browser.');
+  }
+  await exchangeWebCode(code, state);
+  clearTelegramSignInState();
+}
+
+export async function refreshCommunityAccount() {
+  _jwt = null;
+  _jwtExp = 0;
+  caMemberships.value = [];
   clearCached(JWT_KEY);
   clearCached(IDENTITY_KEY);
   await refreshIdentity();
@@ -199,12 +249,14 @@ export function signOut() {
   localStorage.removeItem(HANDLE_KEY);
   localStorage.removeItem(JWT_KEY);
   localStorage.removeItem(IDENTITY_KEY);
+  localStorage.removeItem(TELEGRAM_STATE_KEY);
   mirrorSessionToBg(); // token gone -> clears the worker's copy
   _jwt = null; _jwtExp = 0;
   caSubject.value = null;
   caType.value = null;
   caHandle.value = null;
   caMemberships.value = [];
+  caIdentities.value = [];
   clearPrivateCommunityCaches();
   if (previousSession) {
     return fetch(`${CA_URL}/auth/logout`, {

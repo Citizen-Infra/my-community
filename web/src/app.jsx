@@ -15,6 +15,7 @@ import { WebTopBar } from './WebTopBar';
 import { WebSettings } from './WebSettings';
 import { canUseNetworkAction } from './offline-policy';
 import { clearCommunityBlueskySignIn, consumeCommunityBlueskySignIn } from './bluesky-signin-intent';
+import { deploymentConfig } from '../../extension/src/lib/deployment-config';
 import './web.css';
 
 export function App() {
@@ -56,7 +57,7 @@ export function App() {
           await exchangeWebSignIn(params.get('code'), params.get('state'));
           history.replaceState({}, '', '/');
           applyDashboardRoute({ mode: 'overview' });
-        } else if (initialRoute.callback === 'atproto') {
+        } else if (initialRoute.callback === 'atproto' && deploymentConfig.blueskyEnabled) {
           await completeBlueskyLogin(location.href);
           await initAuth();
           if (consumeCommunityBlueskySignIn()) {

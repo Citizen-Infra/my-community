@@ -43,7 +43,11 @@ npm test
 npm run dev
 ```
 
-The repository root contains Railway configuration for the web service. Railway builds from the full repository because `web/` imports the shared dashboard source under `extension/src/`, then starts `web/server.mjs`. The legacy Supabase session source is an optional fallback: set both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at build time to include it, or omit both and use the primary events API alone. See `docs/web-privacy.md` for the browser storage and synchronization contract.
+The repository root contains Railway configuration for the primary web service and `netlify.toml` for static secondary deployments. Both build from the full repository because `web/` imports shared dashboard source under `extension/src/`; Railway starts `web/server.mjs`, while Netlify publishes `web/dist` with the SPA redirects and matching cache/security headers in `web/public`.
+
+Secondary deployments can set `VITE_PINNED_COMMUNITY_ID` to preselect one community and hide the picker, `VITE_BLUESKY_ENABLED=false` to remove Network, Bluesky sign-in, and OAuth client metadata, and `VITE_LINKS_API_BASE` to read links from that community's private service. `VITE_WEB_ORIGIN` remains the deployment's exact public origin. `web/.env.philanthropic-xxi.example` records the PXXI shape without credentials; its Crapotkin hostname is intentionally a placeholder until that service has an approved public domain.
+
+The legacy Supabase session source is an optional fallback: set both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at build time to include it, or omit both and use the primary events API alone. See `docs/web-privacy.md` for the browser storage and synchronization contract.
 
 ## Getting started
 

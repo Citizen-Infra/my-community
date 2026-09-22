@@ -1,8 +1,9 @@
 import { signal } from '@preact/signals';
 import { authHeader, caSubject } from './caAuth';
 import { accountCommunityKey } from '../lib/cache';
+import { deploymentConfig } from '../lib/deployment-config';
 
-const LINKS_API = 'https://scenius-digest.vercel.app/api/links';
+const LINKS_API = `${deploymentConfig.linksApiBase}/api/links`;
 const CACHE_KEY = 'mc_digest_cache';
 const CACHE_TTL = 60 * 60 * 1000;
 
@@ -66,6 +67,13 @@ export async function loadDigest(communityIds) {
     return;
   }
 
+  if (deploymentConfig.linksRequireSignIn && !caSubject.value) {
+    digestLinks.value = [];
+    digestLoading.value = false;
+    digestLoaded.value = true;
+    return;
+  }
+
   const cached = cachedDigest(communityIds);
   if (cached) {
     digestLinks.value = cached;
@@ -82,6 +90,7 @@ export async function loadDigest(communityIds) {
     await Promise.all(
       communityIds.map(async (id) => {
         const res = await fetch(`${LINKS_API}?group=${id}&days=7&all=true`, { headers });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const links = (data.links || []).map((l) => ({ ...l, community_id: id }));
         allLinks.push(...links);

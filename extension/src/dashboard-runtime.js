@@ -3,7 +3,7 @@ import { blueskySession, isConnected } from './store/auth';
 import { selectedCommunityIds, selectedCommunities } from './store/communities';
 import { digestLoaded, digestLoading, hydrateDigest, loadDigest } from './store/digest';
 import { hydrateSessions, loadSessions, sessionsLoaded, sessionsLoading } from './store/sessions';
-import { caSignedIn } from './store/caAuth';
+import { caSignedIn, caSubject } from './store/caAuth';
 import { hydrateProposals, loadProposals } from './store/proposals';
 import { hydrateWikiQueue, loadWikiQueue } from './store/knowledge';
 import { startJamPolling, stopJamPolling } from './store/jam';
@@ -65,7 +65,7 @@ export function useDashboardFeeds(ready) {
       default:
         break;
     }
-  }, [ready, activeTab.value, selectedCommunityIds.value, isConnected.value]);
+  }, [ready, activeTab.value, selectedCommunityIds.value, isConnected.value, caSubject.value]);
 
   useEffect(() => {
     if (!ready) return undefined;

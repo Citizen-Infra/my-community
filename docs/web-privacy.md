@@ -11,7 +11,7 @@ The web app uses browser storage for:
 - the Community Admin session and short-lived identity token;
 - the Bluesky OAuth session, including DPoP-bound tokens stored in IndexedDB;
 - theme choice, which is never synchronized; and
-- temporary state that binds email and Bluesky sign-in callbacks to the browser that started them.
+- temporary state that binds email, Telegram, and Bluesky sign-in callbacks to the browser that started them.
 
 Private caches are keyed to the signed-in Community Admin or Bluesky identity. Signing out clears private community caches, ends both account sessions in the web app, and restores the separate signed-out dashboard profile. Deselecting a community makes prior cached responses inaccessible because cache selectors must exactly match the active account and community set.
 
@@ -30,10 +30,11 @@ It does **not** contain credentials, cached feed content, theme, browser history
 
 ## Authentication providers
 
-- **Email:** Community Admin sends a magic link. The link returns a short-lived, single-use authorization code to `my.citizeninfra.org`; the long-lived session is delivered only in a no-store code-exchange response.
+- **Email:** Community Admin sends a magic link. The link returns a short-lived, single-use authorization code to the deployment's allowlisted `/auth/callback`; the long-lived session is delivered only in a no-store code-exchange response.
 - **Bluesky / ATProto:** the browser signs in directly with the account's ATProto authorization server. My Community then asks the user's PDS for a service-auth assertion that Community Admin verifies. My Community never receives a Bluesky password.
+- **Telegram:** a community-specific deployment can open a short-lived deep link to that community's bot. The bot verifies the Telegram account and current group membership; the web app polls Community Admin with the original browser-bound state and receives a one-time code only after verification. Bot credentials never enter the browser. A signed-in email or Bluesky account can use the same flow to link Telegram without replacing its session.
 
-Community Admin links verified email and ATProto identities to one account where the member has chosen to link them.
+Community Admin links verified email, Telegram, and ATProto identities to one account where the member has chosen to link them.
 
 ## Outward actions
 
@@ -42,6 +43,6 @@ Votes, likes, availability publishing, sign-in, and external navigation require 
 ## Clearing and deleting data
 
 - **Sign out** removes local Community Admin credentials, disconnects the web app's Bluesky OAuth session, clears private feed caches, and restores the signed-out local dashboard.
-- Clearing site data for `my.citizeninfra.org` removes all browser-local preferences, sessions, and cached content for the web companion.
+- Clearing site data for the deployment's origin (for example, `my.citizeninfra.org` or `philanthropic-xxi.netlify.app`) removes all browser-local preferences, sessions, and cached content for that web companion.
 - Dashboard preferences and linked identities stored by Community Admin are account data. My Community Web does not offer a destructive account-deletion shortcut. Members manage linked identities through Community Admin and should contact the Community Admin operator when they want the account and its synchronized preference document deleted.
 - Extension tab collections and backups are separate, device-local data; using or clearing the web companion does not alter them.

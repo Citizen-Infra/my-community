@@ -6,7 +6,16 @@ import {
   toggleCommunity,
   loadCommunities,
 } from '../../extension/src/store/communities';
-import { caHandle, caSignedIn, caSubject, caType, requestBlueskySignIn, requestSignIn, signOut } from '../../extension/src/store/caAuth';
+import {
+  caHandle,
+  caSignedIn,
+  caSubject,
+  caTelegramLinked,
+  caType,
+  requestBlueskySignIn,
+  requestSignIn,
+  signOut,
+} from '../../extension/src/store/caAuth';
 import { blueskyUser, connectBluesky, disconnectBluesky, isConnected } from '../../extension/src/store/auth';
 import { theme, setTheme } from '../../extension/src/store/theme';
 import { visibleTabs, setTabVisible } from '../../extension/src/store/panels';
@@ -20,6 +29,8 @@ import {
 } from '../../extension/src/store/bluesky';
 import { visibleSupportingTileKeys, setSupportingTileVisible } from '../../extension/src/store/supporting';
 import { endPreferenceContinuity } from '../../extension/src/store/preferences';
+import { deploymentConfig } from '../../extension/src/lib/deployment-config';
+import { TelegramSignIn } from './TelegramSignIn';
 
 const FEEDS = [
   ['digest', 'Digest'],
@@ -91,7 +102,11 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
     location.reload();
   }
 
-  const accountLabel = caType.value === 'atproto' ? `@${caHandle.value || blueskyUser.value?.handle || caSubject.value}` : caSubject.value;
+  const accountLabel = caType.value === 'atproto'
+    ? `@${caHandle.value || blueskyUser.value?.handle || caSubject.value}`
+    : caType.value === 'telegram' ? 'Telegram account' : caSubject.value;
+  const telegramCommunity = deploymentConfig.pinnedCommunityId;
+  const signedOutDoors = 1 + Number(Boolean(telegramCommunity)) + Number(deploymentConfig.blueskyEnabled);
   return (
     <div class="web-settings-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section ref={dialogRef} tabindex="-1" class="web-settings" role="dialog" aria-modal="true" aria-labelledby="web-settings-title">
@@ -104,28 +119,37 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
           <section class="settings-section">
             <div class="settings-heading"><h3>Account</h3><p>Sign in to unlock private communities and carry your layout across devices.</p></div>
             {caSignedIn.value ? (
-              <div class="account-signed-in">
-                <div><span>Signed in as</span><strong>{accountLabel}</strong></div>
-                <button type="button" onClick={signOutEverywhere}>Sign out</button>
-              </div>
+              <>
+                <div class="account-signed-in">
+                  <div><span>Signed in as</span><strong>{accountLabel}</strong></div>
+                  <button type="button" onClick={signOutEverywhere}>Sign out</button>
+                </div>
+                {telegramCommunity && !caTelegramLinked.value && (
+                  <div class="telegram-link-card">
+                    <div><strong>Connect Telegram</strong><p>Confirm your Philanthropic XXI membership and receive member access on this account.</p></div>
+                    <TelegramSignIn community={telegramCommunity} intent="link" />
+                  </div>
+                )}
+                {telegramCommunity && caTelegramLinked.value && <p class="telegram-connected">Telegram connected</p>}
+              </>
             ) : (
-              <div class="account-doors">
+              <div class={`account-doors account-doors-${signedOutDoors}`}>
                 <form onSubmit={emailSignIn}>
                   <label for="web-email">Email</label>
                   <div><input id="web-email" type="email" value={email} onInput={(event) => setEmail(event.currentTarget.value)} placeholder="you@example.com" required /><button data-requires-network disabled={busy === 'email'}>{busy === 'email' ? 'Sending…' : 'Send link'}</button></div>
                 </form>
-                <span class="account-or">or</span>
-                <form onSubmit={blueskySignIn}>
+                {telegramCommunity && <><span class="account-or">or</span><div class="telegram-door"><span>Telegram</span><TelegramSignIn community={telegramCommunity} /></div></>}
+                {deploymentConfig.blueskyEnabled && <><span class="account-or">or</span><form onSubmit={blueskySignIn}>
                   <label for="web-handle">Bluesky</label>
                   {!isConnected.value && <input id="web-handle" value={handle} onInput={(event) => setHandle(event.currentTarget.value)} placeholder="name.bsky.social" required />}
                   <button data-requires-network disabled={busy === 'bluesky'}>{busy === 'bluesky' ? 'Opening…' : isConnected.value ? `Continue as @${blueskyUser.value?.handle}` : 'Continue with Bluesky'}</button>
-                </form>
+                </form></>}
               </div>
             )}
             {message && <p class="settings-message" role="status">{message}</p>}
           </section>
 
-          <section class="settings-section">
+          {!deploymentConfig.pinnedCommunityId && <section class="settings-section">
             <div class="settings-heading"><h3>Communities</h3><p>Public communities work without an account. Private communities appear after sign-in.</p></div>
             {communitiesStatus.value === 'error' ? <p>Communities could not be refreshed.</p> : (
               <div class="settings-check-grid">
@@ -137,24 +161,24 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
                 ))}
               </div>
             )}
-          </section>
+          </section>}
 
           <section class="settings-section">
             <div class="settings-heading"><h3>Dashboard</h3><p>Choose what belongs on your front page, then arrange it in context.</p></div>
             <div class="settings-toggle-list">
-              {FEEDS.map(([key, label]) => <Toggle key={key} label={label} checked={visibleTabs.value[key]} onChange={(value) => setTabVisible(key, value)} />)}
+              {FEEDS.filter(([key]) => key !== 'network' || deploymentConfig.blueskyEnabled).map(([key, label]) => <Toggle key={key} label={label} checked={visibleTabs.value[key]} onChange={(value) => setTabVisible(key, value)} />)}
             </div>
             <button type="button" class="settings-inline-action" onClick={onCustomize}>Arrange tiles and previews</button>
           </section>
 
-          <section class="settings-section">
+          {deploymentConfig.blueskyEnabled && <section class="settings-section">
             <div class="settings-heading"><h3>Network</h3><p>These choices follow your account; your Bluesky credentials do not.</p></div>
             <div class="settings-field-row">
               <label>Time window<select value={blueskyTimeWindow.value} onChange={(event) => setBlueskyTimeWindow(event.currentTarget.value)}><option value="24h">24 hours</option><option value="7d">7 days</option><option value="30d">30 days</option></select></label>
               <label>Ranking<select value={blueskyWeightedSort.value ? 'most-discussed' : 'most-liked'} onChange={(event) => setBlueskyWeightedSort(event.currentTarget.value === 'most-discussed')}><option value="most-liked">Most liked</option><option value="most-discussed">Most discussed</option></select></label>
             </div>
             <Toggle label="Show reposts" checked={blueskyShowReposts.value} onChange={setBlueskyShowReposts} />
-          </section>
+          </section>}
 
           <section class="settings-section">
             <div class="settings-heading"><h3>Supporting spaces</h3><p>Eligible connected and role-based tiles appear only when they have something useful to show.</p></div>

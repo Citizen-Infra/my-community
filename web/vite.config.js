@@ -1,6 +1,8 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
+import { rmSync } from 'node:fs';
 import preact from '@preact/preset-vite';
 import { resolve } from 'node:path';
+import { parseBooleanFlag } from '../extension/src/lib/deployment-config.js';
 
 function rejectExtensionOnlyCode() {
   const forbiddenModules = [
@@ -26,24 +28,38 @@ function rejectExtensionOnlyCode() {
   };
 }
 
-export default defineConfig({
-  plugins: [preact(), rejectExtensionOnlyCode()],
-  publicDir: 'public',
-  resolve: {
-    alias: {
-      preact: resolve(__dirname, 'node_modules/preact'),
-      '@preact/signals': resolve(__dirname, 'node_modules/@preact/signals'),
-      '@supabase/supabase-js': resolve(__dirname, 'node_modules/@supabase/supabase-js'),
-      idb: resolve(__dirname, 'node_modules/idb'),
-      jose: resolve(__dirname, 'node_modules/jose'),
+function omitDisabledBlueskyMetadata(enabled) {
+  return {
+    name: 'omit-disabled-bluesky-metadata',
+    closeBundle() {
+      if (!enabled) rmSync(resolve(__dirname, 'dist/oauth'), { recursive: true, force: true });
     },
-    dedupe: ['preact', '@preact/signals'],
-  },
-  server: {
-    fs: { allow: [resolve(__dirname, '..')] },
-  },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-  },
+  };
+}
+
+export default defineConfig(({ mode }) => {
+  const env = { ...loadEnv(mode, __dirname, 'VITE_'), ...process.env };
+  const blueskyEnabled = parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true);
+  return {
+    plugins: [preact(), rejectExtensionOnlyCode(), omitDisabledBlueskyMetadata(blueskyEnabled)],
+    publicDir: 'public',
+    resolve: {
+      alias: [
+        { find: 'preact/jsx-dev-runtime', replacement: resolve(__dirname, 'node_modules/preact/jsx-runtime') },
+        { find: 'preact', replacement: resolve(__dirname, 'node_modules/preact') },
+        { find: '@preact/signals', replacement: resolve(__dirname, 'node_modules/@preact/signals') },
+        { find: '@supabase/supabase-js', replacement: resolve(__dirname, 'node_modules/@supabase/supabase-js') },
+        { find: 'idb', replacement: resolve(__dirname, 'node_modules/idb') },
+        { find: 'jose', replacement: resolve(__dirname, 'node_modules/jose') },
+      ],
+      dedupe: ['preact', '@preact/signals'],
+    },
+    server: {
+      fs: { allow: [resolve(__dirname, '..')] },
+    },
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true,
+    },
+  };
 });
