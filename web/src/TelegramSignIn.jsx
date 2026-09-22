@@ -21,7 +21,7 @@ import {
 
 const POLL_INTERVAL_MS = 2_000;
 
-export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
+export function TelegramSignIn({ community, intent = 'signin', onComplete, buttonLabel, linkLabel }) {
   const [flow, setFlow] = useState(null);
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
@@ -105,7 +105,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
   if (status === 'waiting') {
     return (
       <div class="telegram-auth-progress">
-        <a class="telegram-auth-link" href={flow.link} target="_blank" rel="noreferrer">Open Telegram</a>
+        <a class="telegram-auth-link" href={flow.link} target="_blank" rel="noopener noreferrer">{linkLabel || 'Open Telegram'}</a>
         <p role="status">Open the bot, confirm your group membership, then return here. This page is waiting.</p>
         <button type="button" class="telegram-auth-reset" onClick={() => { clearTelegramSignInState(flow.state); setFlow(null); setStatus('idle'); }}>Start again</button>
       </div>
@@ -115,7 +115,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
   return (
     <div class="telegram-auth-action">
       <button type="button" data-requires-network onClick={start} disabled={status === 'starting' || status === 'complete'}>
-        {status === 'starting' ? 'Preparing…' : intent === 'signin' ? 'Continue with Telegram' : 'Connect Telegram'}
+        {status === 'starting' ? 'Preparing…' : buttonLabel || (intent === 'signin' ? 'Continue with Telegram' : 'Connect Telegram')}
       </button>
       {message && <p class={status === 'error' ? 'telegram-auth-error' : ''} role="status">{message}</p>}
       {status === 'error' && <button type="button" class="telegram-auth-reset" onClick={() => { setFlow(null); setStatus('idle'); setMessage(''); }}>Try again</button>}

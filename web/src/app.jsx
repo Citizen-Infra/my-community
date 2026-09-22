@@ -10,22 +10,25 @@ import { hydrateDashboard, useDashboardFeeds } from '../../extension/src/dashboa
 import { applyDashboardRoute, setDashboardNavigator, toggleDashboardCustomization } from '../../extension/src/store/panels';
 import { beginPreferenceContinuity, endPreferenceContinuity, startSignedOutPreferenceProfile } from '../../extension/src/store/preferences';
 import { completeBlueskyLogin } from '../../extension/src/lib/oauth-atproto';
-import { routeFromPath, pathForDashboardRoute } from './routing';
+import { pathForDashboardRoute, pathForDecisionRoute, routeFromPath } from './routing';
 import { WebTopBar } from './WebTopBar';
 import { WebSettings } from './WebSettings';
+import { DecisionPage } from './DecisionPage';
 import { canUseNetworkAction } from './offline-policy';
 import { clearCommunityBlueskySignIn, consumeCommunityBlueskySignIn } from './bluesky-signin-intent';
 import { deploymentConfig } from '../../extension/src/lib/deployment-config';
 import './web.css';
 
 export function App() {
+  const initialRoute = useRef(routeFromPath(location.pathname));
+  const [decisionRoute, setDecisionRoute] = useState(initialRoute.current.mode === 'decision' ? initialRoute.current : null);
   const [ready, setReady] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const [settingsOpen, setSettingsOpen] = useState(routeFromPath(location.pathname).settings === true);
   const [authError, setAuthError] = useState('');
   const [installPrompt, setInstallPrompt] = useState(null);
   const preferenceAccount = useRef(null);
-  useDashboardFeeds(ready);
+  useDashboardFeeds(ready && !decisionRoute);
 
   function applyRoute(route, { replace = false, push = false } = {}) {
     if (push || replace) history[replace ? 'replaceState' : 'pushState']({ mcRoute: true }, '', route.settings ? '/settings' : pathForDashboardRoute(route));
@@ -35,13 +38,24 @@ export function App() {
 
   useEffect(() => {
     initTheme();
-    const initialRoute = routeFromPath(location.pathname);
-    applyDashboardRoute(initialRoute);
-    setDashboardNavigator((route) => {
-      const nextPath = pathForDashboardRoute(route);
-      applyRoute(route, { push: location.pathname !== nextPath });
-    });
-    const onPopState = () => applyRoute(routeFromPath(location.pathname));
+    const routeAtBoot = initialRoute.current;
+    const decisionOnly = routeAtBoot.mode === 'decision';
+    if (!decisionOnly) {
+      applyDashboardRoute(routeAtBoot);
+      setDashboardNavigator((route) => {
+        const nextPath = pathForDashboardRoute(route);
+        applyRoute(route, { push: location.pathname !== nextPath });
+      });
+    }
+    const onPopState = () => {
+      const nextRoute = routeFromPath(location.pathname);
+      if (decisionOnly) {
+        if (nextRoute.mode === 'decision') setDecisionRoute(nextRoute);
+        else location.reload();
+      } else {
+        applyRoute(nextRoute);
+      }
+    };
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
     const onInstallable = (event) => { event.preventDefault(); setInstallPrompt(event); };
@@ -52,12 +66,17 @@ export function App() {
 
     (async () => {
       try {
-        if (initialRoute.callback === 'email') {
+        if (decisionOnly) {
+          await initCaAuth();
+          setReady(true);
+          return;
+        }
+        if (routeAtBoot.callback === 'email') {
           const params = new URLSearchParams(location.search);
           await exchangeWebSignIn(params.get('code'), params.get('state'));
           history.replaceState({}, '', '/');
           applyDashboardRoute({ mode: 'overview' });
-        } else if (initialRoute.callback === 'atproto' && deploymentConfig.blueskyEnabled) {
+        } else if (routeAtBoot.callback === 'atproto' && deploymentConfig.blueskyEnabled) {
           await completeBlueskyLogin(location.href);
           await initAuth();
           if (consumeCommunityBlueskySignIn()) {
@@ -71,6 +90,11 @@ export function App() {
         hydrateDashboard();
         setReady(true);
       } catch (error) {
+        if (decisionOnly) {
+          setAuthError('Member access could not be checked. Try again.');
+          setReady(true);
+          return;
+        }
         clearCommunityBlueskySignIn();
         setAuthError(error.message || 'Sign-in could not be completed.');
         history.replaceState({}, '', '/');
@@ -92,7 +116,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || decisionRoute) return;
     const account = caSubject.value;
     if (account && preferenceAccount.current !== account) {
       preferenceAccount.current = account;
@@ -104,7 +128,7 @@ export function App() {
     } else if (!account) {
       startSignedOutPreferenceProfile();
     }
-  }, [ready, caSubject.value]);
+  }, [ready, decisionRoute, caSubject.value]);
 
   function openSettings() { applyRoute({ mode: 'overview', settings: true }, { push: true }); }
   function openOverview() { applyRoute({ mode: 'overview' }, { push: true }); }
@@ -128,7 +152,18 @@ export function App() {
     }
   }
 
-  if (!ready) return <div class="loading-screen" role="status"><span class="loading-mark">My Community</span><span class="loading-rule" aria-hidden="true" /><span class="loading-line">Setting today’s page</span></div>;
+  function navigateToDecision(decisionPath) {
+    const nextPath = pathForDecisionRoute(decisionPath);
+    history.pushState({ mcRoute: true }, '', nextPath);
+    setDecisionRoute({ mode: 'decision', decisionPath });
+    scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  if (!ready) return <div class="loading-screen" role="status"><span class="loading-mark">{decisionRoute ? 'Philanthropic XXI' : 'My Community'}</span><span class="loading-rule" aria-hidden="true" /><span class="loading-line">{decisionRoute ? 'Opening member space' : 'Setting today’s page'}</span></div>;
+
+  if (decisionRoute) {
+    return <div class={`decision-shell ${online ? '' : 'is-offline'}`}><DecisionPage decisionPath={decisionRoute.decisionPath} online={online} onNavigate={navigateToDecision} /></div>;
+  }
 
   return (
     <div class={`web-shell ${online ? '' : 'is-offline'}`} onClickCapture={guardOffline} onSubmitCapture={guardOffline}>

@@ -13,6 +13,18 @@ for (const [path, tab] of [['/digest', 'digest'], ['/network', 'network'], ['/pa
 }
 assert(routeFromPath('/settings').settings === true, 'settings has a real history route');
 assert(routeFromPath('/stewardship').workspace === 'stewardship', 'stewardship has a real workspace route');
+for (const [url, decisionPath] of [
+  ['/decisions/2026-09-22-example.md', '2026-09-22-example.md'],
+  ['/decisions/working%20groups/next%20step.md', 'working groups/next step.md'],
+]) {
+  const route = routeFromPath(url);
+  assert(route.mode === 'decision' && route.decisionPath === decisionPath, `${url} resolves before dashboard routing`);
+  assert(pathForDashboardRoute(route) === '/', 'decision routes never enter a dashboard feed');
+}
+for (const path of ['/decisions', '/decisions/', '/decisions/../people/member.md', '/decisions/%2e%2e/people/member.md', '/decisions/file.txt', '/decisions/folder%2Ffile.md']) {
+  const route = routeFromPath(path);
+  assert(route.mode === 'decision' && route.decisionPath === null, `${path} stays in a content-free unavailable route`);
+}
 assert(routeFromPath('/unknown').mode === 'overview', 'unknown routes fail safely to the overview');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
