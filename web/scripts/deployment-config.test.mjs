@@ -47,6 +47,15 @@ assert(syncable.selectedCommunityIds === baseline.selectedCommunityIds, 'the pin
 assert(syncable.visibleFeedKeys.includes('network'), 'the Bluesky-off deployment preserves account-wide Network visibility');
 assert(syncable.network === baseline.network, 'hidden Network settings remain untouched during preference sync');
 
+const firstSync = deploymentSyncPreferences({
+  selectedCommunityIds: ['philanthropic-xxi'],
+  visibleFeedKeys: ['digest', 'participation', 'communityInput'],
+  network: { source: 'hidden-deployment-value', timeWindow: '7d', showReposts: false, ranking: 'most-discussed' },
+}, null, pxxi);
+assert(firstSync.selectedCommunityIds.length === 0, 'a first sync does not make the deployment pin an account-wide choice');
+assert(firstSync.visibleFeedKeys.includes('network'), 'a first sync preserves ordinary Network visibility');
+assert(firstSync.network.source === 'timeline', 'a first sync uses ordinary Network defaults instead of hidden deployment state');
+
 rejects(() => parseBooleanFlag('off'), 'ambiguous boolean values fail closed');
 rejects(() => createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'Philanthropic XXI' }), 'invalid community pins fail closed');
 rejects(() => createDeploymentConfig({ VITE_LINKS_API_BASE: '/api' }), 'relative links API bases fail closed');

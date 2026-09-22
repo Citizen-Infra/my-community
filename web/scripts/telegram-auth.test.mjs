@@ -1,4 +1,8 @@
-import { pollTelegramAuth, requestTelegramAuth } from '../src/telegram-auth.js';
+import {
+  pollTelegramAuth,
+  refreshTelegramLinkedData,
+  requestTelegramAuth,
+} from '../src/telegram-auth.js';
 
 let failures = 0;
 const assert = (condition, message) => {
@@ -50,6 +54,20 @@ for (const [status, text] of [[503, 'not available'], [409, 'saved layouts'], [4
     assert(error.message.includes(text), `${status} becomes a useful message`);
   }
 }
+
+const refreshCalls = [];
+await refreshTelegramLinkedData('philanthropic-xxi', {
+  invalidatePrivateData: () => refreshCalls.push('invalidate'),
+  refreshAccount: async () => refreshCalls.push('account'),
+  loadCommunityList: async (options) => refreshCalls.push(`communities:${options.force}`),
+  currentCommunities: () => [{ id: 'philanthropic-xxi' }],
+  loadDigestFeed: async (ids) => refreshCalls.push(`digest:${ids.join(',')}`),
+  loadSessionsFeed: async (communities) => refreshCalls.push(`sessions:${communities.map((c) => c.id).join(',')}`),
+  loadProposalsFeed: async (ids) => refreshCalls.push(`proposals:${ids.join(',')}`),
+  loadWikiFeed: async (ids) => refreshCalls.push(`wiki:${ids.join(',')}`),
+});
+assert(refreshCalls[0] === 'invalidate' && refreshCalls[1] === 'account' && refreshCalls[2] === 'communities:true', 'link refresh invalidates in-flight loads before updating authorization and community data');
+assert(['digest', 'sessions', 'proposals', 'wiki'].every((name) => refreshCalls.some((call) => call.startsWith(`${name}:philanthropic-xxi`))), 'link refresh reloads every private community feed');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

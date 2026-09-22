@@ -24,3 +24,24 @@ export function requestTelegramAuth({ community, intent, state }, options) {
 export function pollTelegramAuth({ nonce, state }, options) {
   return post('/auth/telegram/poll', { nonce, state }, options);
 }
+
+export async function refreshTelegramLinkedData(community, {
+  invalidatePrivateData,
+  refreshAccount,
+  loadCommunityList,
+  currentCommunities,
+  loadDigestFeed,
+  loadSessionsFeed,
+  loadProposalsFeed,
+  loadWikiFeed,
+}) {
+  invalidatePrivateData();
+  await refreshAccount();
+  await loadCommunityList({ force: true });
+  await Promise.all([
+    loadDigestFeed([community]),
+    loadSessionsFeed(currentCommunities()),
+    loadProposalsFeed([community]),
+    loadWikiFeed([community]),
+  ]);
+}

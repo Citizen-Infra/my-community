@@ -18,6 +18,14 @@ let lastSessionsArgs = [];
 let loadGeneration = 0;
 export function retrySessions() { return loadSessions(lastSessionsArgs); }
 
+export function clearSessions() {
+  loadGeneration += 1;
+  sessions.value = [];
+  sessionsLoading.value = false;
+  sessionsLoaded.value = false;
+  sessionsError.value = false;
+}
+
 export function hydrateSessions(communities, { allowStale = false } = {}) {
   loadGeneration += 1;
   sessionsLoading.value = false;

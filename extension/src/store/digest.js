@@ -18,6 +18,14 @@ let lastDigestArgs = [];
 let loadGeneration = 0;
 export function retryDigest() { return loadDigest(lastDigestArgs); }
 
+export function clearDigest() {
+  loadGeneration += 1;
+  digestLinks.value = [];
+  digestLoading.value = false;
+  digestLoaded.value = false;
+  digestError.value = false;
+}
+
 const TOPIC_EMOJI = {
   links: '\uD83D\uDCDA',
   memes: '\uD83C\uDFAD',

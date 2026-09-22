@@ -1,4 +1,10 @@
 const DEFAULT_CONTENT_API_BASE = 'https://scenius-digest.vercel.app';
+const DEFAULT_ACCOUNT_NETWORK = Object.freeze({
+  source: 'timeline',
+  timeWindow: '24h',
+  showReposts: true,
+  ranking: 'most-liked',
+});
 
 function optionalValue(value) {
   const normalized = String(value ?? '').trim();
@@ -65,20 +71,25 @@ export function deploymentFeedVisible(key, requested = true, config = deployment
 }
 
 export function deploymentSyncPreferences(snapshot, baseline, config = deploymentConfig) {
-  if (!baseline) return snapshot;
+  if (!baseline && !config.pinnedCommunityId && config.blueskyEnabled) return snapshot;
+  const accountBaseline = baseline || {
+    selectedCommunityIds: [],
+    visibleFeedKeys: [...new Set(['network', ...snapshot.visibleFeedKeys])],
+    network: DEFAULT_ACCOUNT_NETWORK,
+  };
   const next = { ...snapshot };
   // These flags describe this deployment, not the member's account-wide choice.
   // Preserve an existing server document so the PXXI site cannot silently pin
   // or hide feeds in the ordinary multi-community deployment.
   if (config.pinnedCommunityId) {
-    next.selectedCommunityIds = baseline.selectedCommunityIds;
+    next.selectedCommunityIds = accountBaseline.selectedCommunityIds;
   }
   if (!config.blueskyEnabled) {
     const visible = new Set(next.visibleFeedKeys);
-    if (baseline.visibleFeedKeys.includes('network')) visible.add('network');
+    if (accountBaseline.visibleFeedKeys.includes('network')) visible.add('network');
     else visible.delete('network');
     next.visibleFeedKeys = [...visible];
-    next.network = baseline.network;
+    next.network = accountBaseline.network;
   }
   return next;
 }

@@ -5,13 +5,19 @@ import { CA_URL, CA_DID } from '../lib/config';
 import { platform } from '../lib/platform';
 import { validWebCallbackState } from '../lib/web-auth-state';
 import { clearPrivateCommunityCaches } from '../lib/private-data';
+import {
+  clearTelegramSignInState,
+  readTelegramSignInState,
+  rememberTelegramSignInState,
+} from '../lib/telegram-auth-state';
 
 const SESSION_KEY = 'mc_ca_session';
 const HANDLE_KEY = 'mc_ca_bluesky_handle'; // cached friendly @handle for a Bluesky (DID) identity
 const JWT_KEY = 'mc_ca_jwt';           // persisted { token, exp } so the 15-min JWT survives page loads
 const IDENTITY_KEY = 'mc_ca_identity'; // cached { subject, type, identities } to skip auth reads on warm reopens
-const TELEGRAM_STATE_KEY = 'mc_web_telegram_state';
 const IDENTITY_TTL = 5 * 60 * 1000;
+
+export { clearTelegramSignInState, rememberTelegramSignInState };
 
 // The signed-in community identity: an email or a Bluesky DID, plus which kind.
 export const caSubject = signal(null); // string | null
@@ -180,23 +186,14 @@ async function exchangeWebCode(code, state) {
   await refreshIdentity();
 }
 
-export function rememberTelegramSignInState(state) {
-  localStorage.setItem(TELEGRAM_STATE_KEY, JSON.stringify({ value: state, createdAt: Date.now() }));
-}
-
-export function clearTelegramSignInState() {
-  localStorage.removeItem(TELEGRAM_STATE_KEY);
-}
-
 export async function exchangeTelegramSignIn(code, state) {
-  let stored = null;
-  try { stored = JSON.parse(localStorage.getItem(TELEGRAM_STATE_KEY) || 'null'); } catch {}
+  const stored = readTelegramSignInState(state);
   const fresh = stored && Date.now() - stored.createdAt < 11 * 60 * 1000;
   if (!fresh || !validWebCallbackState(stored.value, state)) {
     throw new Error('This Telegram sign-in does not match this browser.');
   }
   await exchangeWebCode(code, state);
-  clearTelegramSignInState();
+  clearTelegramSignInState(state);
 }
 
 export async function refreshCommunityAccount() {
@@ -205,6 +202,7 @@ export async function refreshCommunityAccount() {
   caMemberships.value = [];
   clearCached(JWT_KEY);
   clearCached(IDENTITY_KEY);
+  clearPrivateCommunityCaches();
   await refreshIdentity();
 }
 
@@ -249,7 +247,7 @@ export function signOut() {
   localStorage.removeItem(HANDLE_KEY);
   localStorage.removeItem(JWT_KEY);
   localStorage.removeItem(IDENTITY_KEY);
-  localStorage.removeItem(TELEGRAM_STATE_KEY);
+  clearTelegramSignInState();
   mirrorSessionToBg(); // token gone -> clears the worker's copy
   _jwt = null; _jwtExp = 0;
   caSubject.value = null;

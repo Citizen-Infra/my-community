@@ -8,8 +8,16 @@ import {
   rememberTelegramSignInState,
   refreshCommunityAccount,
 } from '../../extension/src/store/caAuth';
-import { loadCommunities } from '../../extension/src/store/communities';
-import { pollTelegramAuth, requestTelegramAuth } from './telegram-auth';
+import { loadCommunities, selectedCommunities } from '../../extension/src/store/communities';
+import { clearDigest, loadDigest } from '../../extension/src/store/digest';
+import { clearSessions, loadSessions } from '../../extension/src/store/sessions';
+import { clearProposals, loadProposals } from '../../extension/src/store/proposals';
+import { clearWikiQueue, loadWikiQueue } from '../../extension/src/store/knowledge';
+import {
+  pollTelegramAuth,
+  refreshTelegramLinkedData,
+  requestTelegramAuth,
+} from './telegram-auth';
 
 const POLL_INTERVAL_MS = 2_000;
 
@@ -36,11 +44,25 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
         }
         if (intent === 'signin') {
           await exchangeTelegramSignIn(result.code, flow.state);
+          await loadCommunities({ force: true });
         } else {
-          await refreshCommunityAccount();
-          clearTelegramSignInState();
+          await refreshTelegramLinkedData(community, {
+            invalidatePrivateData: () => {
+              clearDigest();
+              clearSessions();
+              clearProposals();
+              clearWikiQueue();
+            },
+            refreshAccount: refreshCommunityAccount,
+            loadCommunityList: loadCommunities,
+            currentCommunities: () => selectedCommunities.value,
+            loadDigestFeed: loadDigest,
+            loadSessionsFeed: loadSessions,
+            loadProposalsFeed: loadProposals,
+            loadWikiFeed: loadWikiQueue,
+          });
+          clearTelegramSignInState(flow.state);
         }
-        await loadCommunities({ force: true });
         if (cancelled) return;
         setStatus('complete');
         setMessage(intent === 'signin' ? 'Signed in with Telegram.' : 'Telegram is connected to your account.');
@@ -49,7 +71,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
         if (cancelled) return;
         setStatus('error');
         setMessage(error.message);
-        clearTelegramSignInState();
+        clearTelegramSignInState(flow.state);
       }
     }
 
@@ -63,8 +85,9 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
   async function start() {
     setStatus('starting');
     setMessage('');
+    let state;
     try {
-      const state = platform().createOAuthState();
+      state = platform().createOAuthState();
       rememberTelegramSignInState(state);
       const pending = await requestTelegramAuth(
         { community, intent, state },
@@ -73,7 +96,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
       setFlow({ ...pending, state });
       setStatus('waiting');
     } catch (error) {
-      clearTelegramSignInState();
+      if (state) clearTelegramSignInState(state);
       setStatus('error');
       setMessage(error.message);
     }
@@ -84,7 +107,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete }) {
       <div class="telegram-auth-progress">
         <a class="telegram-auth-link" href={flow.link} target="_blank" rel="noreferrer">Open Telegram</a>
         <p role="status">Open the bot, confirm your group membership, then return here. This page is waiting.</p>
-        <button type="button" class="telegram-auth-reset" onClick={() => { clearTelegramSignInState(); setFlow(null); setStatus('idle'); }}>Start again</button>
+        <button type="button" class="telegram-auth-reset" onClick={() => { clearTelegramSignInState(flow.state); setFlow(null); setStatus('idle'); }}>Start again</button>
       </div>
     );
   }
