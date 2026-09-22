@@ -9,6 +9,7 @@ const handlers = {};
 const writes = [];
 let matchResult = null;
 let fetchResult = null;
+let fetchCalls = 0;
 
 vm.runInNewContext(source, {
   URL,
@@ -28,6 +29,7 @@ vm.runInNewContext(source, {
     match: async () => matchResult,
   },
   fetch: async () => {
+    fetchCalls += 1;
     if (fetchResult instanceof Error) throw fetchResult;
     return fetchResult;
   },
@@ -73,6 +75,17 @@ assert(writes.length === 0, 'non-HTML navigation cannot replace the offline shel
 matchResult = { version: 'cached' };
 fetchResult = new Error('offline');
 assert((await dispatchFetch()) === matchResult, 'offline navigation falls back to the refreshed shell');
+
+const callsBeforeDecisionApi = fetchCalls;
+writes.length = 0;
+await dispatchFetch({
+  ...request,
+  url: 'https://my.citizeninfra.org/api/decisions?path=private.md',
+  mode: 'cors',
+  destination: '',
+  headers: { has: () => false },
+});
+assert(fetchCalls === callsBeforeDecisionApi && writes.length === 0, 'authorized decision responses bypass the service worker cache');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

@@ -15,7 +15,7 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
-  if (request.headers.has('authorization') || url.pathname.startsWith('/auth/')) return;
+  if (request.headers.has('authorization') || url.pathname.startsWith('/auth/') || url.pathname === '/api/decisions') return;
 
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).then(async (response) => {

@@ -27,21 +27,21 @@ function communityId(value) {
   return normalized;
 }
 
-function apiBase(value) {
+function apiBase(value, name = 'VITE_LINKS_API_BASE', fallback = DEFAULT_CONTENT_API_BASE) {
   const normalized = optionalValue(value);
-  if (normalized === null) return DEFAULT_CONTENT_API_BASE;
+  if (normalized === null) return fallback;
   let parsed;
   try {
     parsed = new URL(normalized);
   } catch {
-    throw new Error('VITE_LINKS_API_BASE must be an absolute HTTP(S) origin.');
+    throw new Error(`${name} must be an absolute HTTP(S) origin.`);
   }
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password
     || parsed.search || parsed.hash || (parsed.pathname !== '/' && parsed.pathname !== '')) {
-    throw new Error('VITE_LINKS_API_BASE must be an absolute HTTP(S) origin.');
+    throw new Error(`${name} must be an absolute HTTP(S) origin.`);
   }
   if (parsed.protocol === 'http:' && !['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname)) {
-    throw new Error('VITE_LINKS_API_BASE must use HTTPS outside local development.');
+    throw new Error(`${name} must use HTTPS outside local development.`);
   }
   return parsed.origin;
 }
@@ -49,9 +49,14 @@ function apiBase(value) {
 export function createDeploymentConfig(env = {}) {
   const pinnedCommunityId = communityId(env.VITE_PINNED_COMMUNITY_ID);
   const configuredLinksApiBase = optionalValue(env.VITE_LINKS_API_BASE);
+  const linksApiBase = apiBase(configuredLinksApiBase);
+  const configuredDecisionsApiBase = optionalValue(env.VITE_DECISIONS_API_BASE);
   return Object.freeze({
     blueskyEnabled: parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true),
-    linksApiBase: apiBase(configuredLinksApiBase),
+    decisionApiBase: configuredDecisionsApiBase === null
+      ? (pinnedCommunityId === 'philanthropic-xxi' && configuredLinksApiBase !== null ? linksApiBase : null)
+      : apiBase(configuredDecisionsApiBase, 'VITE_DECISIONS_API_BASE', null),
+    linksApiBase,
     linksRequireSignIn: configuredLinksApiBase !== null,
     pinnedCommunityId,
   });
