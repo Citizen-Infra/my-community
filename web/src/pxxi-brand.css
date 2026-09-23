@@ -93,6 +93,21 @@ html[data-deployment-brand="philanthropic-xxi"] .web-topbar {
   backdrop-filter: none;
 }
 
+html[data-deployment-brand="philanthropic-xxi"] .web-status-dot,
+html[data-deployment-brand="philanthropic-xxi"] .web-settings {
+  box-shadow: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-settings-backdrop,
+html[data-deployment-brand="philanthropic-xxi"] .preference-dialog-backdrop,
+html[data-deployment-brand="philanthropic-xxi"] .web-main .dashboard-feed-header {
+  backdrop-filter: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-main .dashboard-feed-header {
+  background: var(--color-bg);
+}
+
 html[data-deployment-brand="philanthropic-xxi"] .web-wordmark {
   display: inline-flex;
   align-items: center;
@@ -133,7 +148,7 @@ html[data-deployment-brand="philanthropic-xxi"] .session-card,
 html[data-deployment-brand="philanthropic-xxi"] .bsky-card,
 html[data-deployment-brand="philanthropic-xxi"] .community-input-card,
 html[data-deployment-brand="philanthropic-xxi"] .decision-card,
-html[data-deployment-brand="philanthropic-xxi"] .live-strip-card,
+html[data-deployment-brand="philanthropic-xxi"] .live-strip--inset,
 html[data-deployment-brand="philanthropic-xxi"] .decision-state {
   box-shadow: none;
 }
@@ -142,8 +157,12 @@ html[data-deployment-brand="philanthropic-xxi"] .dashboard-tile:hover,
 html[data-deployment-brand="philanthropic-xxi"] .digest-card:hover,
 html[data-deployment-brand="philanthropic-xxi"] .session-card:hover,
 html[data-deployment-brand="philanthropic-xxi"] .bsky-card:hover,
-html[data-deployment-brand="philanthropic-xxi"] .live-strip-card:hover {
+html[data-deployment-brand="philanthropic-xxi"] .live-strip--inset:hover {
   transform: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .decision-objection-submit:hover:not(:disabled) {
+  box-shadow: none;
 }
 
 html[data-deployment-brand="philanthropic-xxi"] .decision-state,

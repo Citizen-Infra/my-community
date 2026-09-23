@@ -41,6 +41,9 @@ assert.equal(manifest.icons[0].src, '/icons/philanthropic-xxi.svg', 'install met
 const brandCss = readFileSync(join(root, 'src', 'pxxi-brand.css'), 'utf8');
 assert.ok(brandCss.includes('html[data-deployment-brand="philanthropic-xxi"]'), 'PXXI tokens are deployment-scoped');
 assert.ok(brandCss.includes('[data-theme="dark"]'), 'PXXI has an explicit dark companion');
+assert.ok(brandCss.includes('.live-strip--inset:hover'), 'PXXI removes the shared live-strip hover lift');
+assert.ok(brandCss.includes('.decision-objection-submit:hover:not(:disabled)'), 'PXXI removes the shared amber action shadow');
+assert.ok(brandCss.includes('.preference-dialog-backdrop'), 'PXXI removes shared overlay blur');
 
 const fontCss = readFileSync(join(root, 'public', 'pxxi-fonts.css'), 'utf8');
 const fontPaths = [...fontCss.matchAll(/url\('\.\/fonts\/([^']+)'\)/g)].map((match) => match[1]);
