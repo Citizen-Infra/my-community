@@ -63,6 +63,88 @@
 
 .decision-card-body { min-width: 0; }
 
+.brain-decision-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.brain-decision-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 5px;
+}
+
+.brain-decision-card:hover .decision-card-title {
+  color: var(--color-primary);
+}
+
+.brain-decision-state {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.brain-decision-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.brain-decision-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.brain-decision-action svg {
+  transition: transform 0.2s var(--ease-out);
+}
+
+.brain-decision-card:hover .brain-decision-action svg {
+  transform: translateX(2px);
+}
+
+.ci-source-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.ci-source-warning button {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ci-source-warning button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
 /* --- Head: community chip + status pill --- */
 .decision-card-head {
   display: flex;

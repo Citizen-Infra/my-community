@@ -49,6 +49,12 @@ import {
   wikiLoading,
   retryWikiQueue,
 } from '../store/knowledge';
+import {
+  brainDecisions,
+  brainDecisionsError,
+  brainDecisionsLoading,
+  retryBrainDecisions,
+} from '../store/brain-decisions';
 import { caSignedIn } from '../store/caAuth';
 import { deploymentConfig } from '../lib/deployment-config';
 import { allCommunities, selectedCommunityIds } from '../store/communities';
@@ -124,6 +130,12 @@ function participationProvenance(item) {
 
 function selectedCommunityScope() {
   return communityScope(selectedCommunityIds.value, allCommunities.value);
+}
+
+function brainDecisionDate(value) {
+  return new Date(`${value}T00:00:00.000Z`).toLocaleDateString('en-US', {
+    day: 'numeric', month: 'short', timeZone: 'UTC', year: 'numeric',
+  });
 }
 
 function previewState(tab) {
@@ -206,25 +218,40 @@ function previewState(tab) {
     return { state: 'signed-out', message: 'Sign in to see decisions and sources awaiting community input.' };
   }
 
-  const items = mergeCommunityInputRows(decisionProposals.value, wikiItems.value).map((row) =>
-    row.kind === 'decision'
-      ? {
+  const items = mergeCommunityInputRows(
+    decisionProposals.value,
+    wikiItems.value,
+    brainDecisions.value,
+  ).map((row) => {
+    if (row.kind === 'decision') {
+      return {
           key: `decision-${row.p.community_id}-${row.p.id}`,
           title: row.p.title || row.p.question || 'Community decision',
           context: row.p.body || '',
           status: communityInputStatus(row.tier),
           anchor: communityInputAnchor('decision', row.p),
-        }
-      : {
+      };
+    }
+    if (row.kind === 'brain-decision') {
+      return {
+        key: `brain-decision-${row.d.path}`,
+        title: row.d.title,
+        status: communityInputStatus(row.tier),
+        provenance: brainDecisionDate(row.d.date),
+        href: row.d.href,
+        sameTab: true,
+      };
+    }
+    return {
           key: `knowledge-${row.k.community_id}-${row.k.id}`,
           title: row.k.title || row.k.url || 'Suggested source',
           context: row.k.summary || '',
           status: communityInputStatus(row.tier),
           anchor: communityInputAnchor('knowledge', row.k),
-        }
-  );
-  if ((proposalsLoading.value || wikiLoading.value) && items.length === 0) return { state: 'loading', message: 'Checking what needs your voice…' };
-  if ((proposalsError.value || wikiError.value) && items.length === 0) return { state: 'error', message: 'Community input could not refresh.' };
+    };
+  });
+  if ((proposalsLoading.value || wikiLoading.value || brainDecisionsLoading.value) && items.length === 0) return { state: 'loading', message: 'Checking what needs your voice…' };
+  if ((proposalsError.value || wikiError.value || brainDecisionsError.value) && items.length === 0) return { state: 'error', message: 'Community input could not refresh.' };
   if (items.length === 0) return { state: 'empty', message: 'Nothing needs your input right now.' };
   return {
     meta: selectedCommunityScope(),
@@ -308,7 +335,7 @@ function PreviewRow({ item, tab, customizing }) {
   if (customizing) return <span class="dashboard-preview-row is-static">{content}</span>;
   if (item.href) {
     return (
-      <a class="dashboard-preview-row" href={item.href} target="_blank" rel="noopener noreferrer">
+      <a class="dashboard-preview-row" href={item.href} target={item.sameTab ? undefined : '_blank'} rel={item.sameTab ? undefined : 'noopener noreferrer'}>
         {content}
       </a>
     );
@@ -418,6 +445,7 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
     if (preview.state === 'error' && tab === 'communityInput') {
       retryProposals();
       retryWikiQueue();
+      retryBrainDecisions();
     }
   };
 

@@ -34,6 +34,7 @@ export async function refreshTelegramLinkedData(community, {
   loadSessionsFeed,
   loadProposalsFeed,
   loadWikiFeed,
+  loadBrainDecisionsFeed,
 }) {
   invalidatePrivateData();
   await refreshAccount();
@@ -43,5 +44,6 @@ export async function refreshTelegramLinkedData(community, {
     loadSessionsFeed(currentCommunities()),
     loadProposalsFeed([community]),
     loadWikiFeed([community]),
+    loadBrainDecisionsFeed(),
   ]);
 }

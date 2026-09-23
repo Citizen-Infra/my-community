@@ -1,5 +1,6 @@
 import {
   createDeploymentConfig,
+  deploymentBrainDecisionsEnabled,
   deploymentCommunityIds,
   deploymentFeedVisible,
   deploymentSyncPreferences,
@@ -21,6 +22,7 @@ assert(defaults.pinnedCommunityId === null, 'ordinary deployments keep the commu
 assert(defaults.linksApiBase === 'https://scenius-digest.vercel.app', 'ordinary deployments keep the shared links API');
 assert(!defaults.linksRequireSignIn, 'ordinary links retain their existing public/private behavior');
 assert(defaults.decisionApiBase === null, 'ordinary deployments do not expose a decision reader');
+assert(!deploymentBrainDecisionsEnabled(defaults), 'ordinary deployments never load private brain decisions');
 assert(!deploymentFeedVisible('digest', false, defaults), 'Digest respects a request to hide it');
 assert(!deploymentFeedVisible('participation', false, defaults), 'Participation respects a request to hide it');
 assert(!deploymentFeedVisible('communityInput', false, defaults), 'Community Input respects a request to hide it');
@@ -37,6 +39,7 @@ assert(!pxxi.blueskyEnabled, 'a deployment can disable Bluesky');
 assert(pxxi.linksApiBase === 'https://crapotkin.example', 'the private links API is normalized to its origin');
 assert(pxxi.linksRequireSignIn, 'a configured links service is treated as private');
 assert(pxxi.decisionApiBase === 'https://crapotkin.example', 'PXXI reuses its Crapotkin origin for decisions by default');
+assert(deploymentBrainDecisionsEnabled(pxxi), 'only the pinned PXXI deployment adds brain decisions to Community Input');
 assert(JSON.stringify(deploymentCommunityIds(['cibc'], pxxi)) === '["philanthropic-xxi"]', 'the pin overrides stored community choices');
 assert(!deploymentFeedVisible('network', true, pxxi), 'Network cannot be restored from stored preferences');
 assert(!deploymentFeedVisible('digest', false, pxxi), 'non-Network tiles remain user-hideable in pinned deployments');
@@ -70,6 +73,7 @@ rejects(() => createDeploymentConfig({ VITE_LINKS_API_BASE: '/api' }), 'relative
 rejects(() => createDeploymentConfig({ VITE_LINKS_API_BASE: 'https://example.com/path' }), 'links API bases cannot smuggle a path');
 rejects(() => createDeploymentConfig({ VITE_LINKS_API_BASE: 'http://example.com' }), 'non-local links APIs require HTTPS');
 assert(createDeploymentConfig({ VITE_DECISIONS_API_BASE: 'https://decisions.example/' }).decisionApiBase === 'https://decisions.example', 'an explicit decisions API origin is normalized');
+assert(!deploymentBrainDecisionsEnabled(createDeploymentConfig({ VITE_DECISIONS_API_BASE: 'https://decisions.example/' })), 'a decision origin alone cannot enable brain decisions on another deployment');
 rejects(() => createDeploymentConfig({ VITE_DECISIONS_API_BASE: 'https://example.com/private' }), 'decision API bases cannot smuggle a path');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
