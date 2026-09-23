@@ -1,5 +1,15 @@
 import assert from 'node:assert/strict';
-import { availsParticipationPreview } from '../src/lib/avails-preview.js';
+import {
+  availsParticipationPreview,
+  visibleAvailsCommunityIds,
+} from '../src/lib/avails-preview.js';
+
+assert.deepEqual(
+  visibleAvailsCommunityIds([{ id: 'cibc' }, { id: 'philanthropic-xxi' }, null, { id: '' }]),
+  ['cibc', 'philanthropic-xxi'],
+  'Avails reads use only communities returned by visible community discovery',
+);
+assert.deepEqual(visibleAvailsCommunityIds(null), [], 'missing community discovery fails closed');
 
 const preview = availsParticipationPreview({
   community: 'philanthropic-xxi',
