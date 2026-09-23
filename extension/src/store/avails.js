@@ -7,8 +7,10 @@ const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
 export const availsPolls = signal([]);
 
 let pollTimer = null;
+let loadVersion = 0;
 
 export async function loadAvailsPolls(communityIds) {
+  const version = ++loadVersion;
   try {
     const promises = communityIds.map((id) =>
       fetch(`${AVAILS_API}?community=${encodeURIComponent(id)}&status=open&published=1`)
@@ -29,7 +31,7 @@ export async function loadAvailsPolls(communityIds) {
       }
     }
 
-    availsPolls.value = polls;
+    if (version === loadVersion) availsPolls.value = polls;
   } catch (err) {
     console.error('Failed to load avails polls:', err);
   }
@@ -43,6 +45,7 @@ export function startAvailsPolling(communityIds) {
 }
 
 export function stopAvailsPolling() {
+  loadVersion += 1;
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;

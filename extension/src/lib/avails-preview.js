@@ -5,14 +5,20 @@ function responseSummary(value) {
   return `${count} responses`;
 }
 
-// A pinned deployment keeps its community id selected before sign-in, but private
-// communities only enter this visible collection after authenticated discovery.
-// Avails' list endpoint is public, so callers must derive reads from that visible
-// collection rather than from locally pinned ids.
-export function visibleAvailsCommunityIds(communities) {
+// A pinned deployment keeps its community id selected before sign-in. Private
+// communities enter this collection after authenticated discovery, but may remain
+// in memory if that session is revoked. Avails' list endpoint is public, so reads
+// must use the visible collection and independently enforce its visibility marker.
+export function visibleAvailsCommunityIds(communities, {
+  signedIn = false,
+  requireSignIn = false,
+} = {}) {
   if (!Array.isArray(communities)) return [];
+  if (requireSignIn && !signedIn) return [];
   return communities
-    .map((community) => community?.id)
+    .filter(Boolean)
+    .filter((community) => community?.visibility !== 'private' || signedIn)
+    .map((community) => community.id)
     .filter((id) => typeof id === 'string' && id.length > 0);
 }
 

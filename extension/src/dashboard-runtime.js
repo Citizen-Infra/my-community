@@ -22,6 +22,7 @@ import {
 } from './store/bluesky';
 import { activeTab, availableTabs, dashboardMode } from './store/panels';
 import { refreshInactiveDashboardFeeds } from './lib/dashboard-feed-refresh';
+import { deploymentConfig } from './lib/deployment-config';
 
 export function hydrateDashboard() {
   const ids = selectedCommunityIds.value;
@@ -59,7 +60,10 @@ export function useDashboardFeeds(ready) {
   useEffect(() => {
     if (!ready) return;
     const ids = selectedCommunityIds.value;
-    const visibleIds = visibleAvailsCommunityIds(selectedCommunities.value);
+    const visibleIds = visibleAvailsCommunityIds(selectedCommunities.value, {
+      signedIn: caSignedIn.value,
+      requireSignIn: deploymentConfig.linksRequireSignIn,
+    });
     switch (activeTab.value) {
       case 'network':
         if (isConnected.value && !blueskyLoading.value) { loadSavedFeeds(); loadBlueskyFeed(); }
@@ -95,7 +99,10 @@ export function useDashboardFeeds(ready) {
         if (tab === 'participation') {
           return Promise.all([
             loadSessions(selectedCommunities.value),
-            loadAvailsPolls(visibleAvailsCommunityIds(selectedCommunities.value)),
+            loadAvailsPolls(visibleAvailsCommunityIds(selectedCommunities.value, {
+              signedIn: caSignedIn.value,
+              requireSignIn: deploymentConfig.linksRequireSignIn,
+            })),
           ]);
         }
         // Saved-feed metadata belongs to the focused Network experience. The
@@ -119,12 +126,15 @@ export function useDashboardFeeds(ready) {
 
   useEffect(() => {
     if (!ready) return undefined;
-    const ids = visibleAvailsCommunityIds(selectedCommunities.value);
+    const ids = visibleAvailsCommunityIds(selectedCommunities.value, {
+      signedIn: caSignedIn.value,
+      requireSignIn: deploymentConfig.linksRequireSignIn,
+    });
     if (dashboardMode.value === 'feed' && activeTab.value === 'participation' && ids.length > 0) {
       startAvailsPolling(ids);
     } else {
       stopAvailsPolling();
     }
     return () => stopAvailsPolling();
-  }, [ready, dashboardMode.value, activeTab.value, selectedCommunities.value]);
+  }, [ready, dashboardMode.value, activeTab.value, selectedCommunities.value, caSignedIn.value]);
 }

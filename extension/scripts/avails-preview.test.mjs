@@ -5,9 +5,27 @@ import {
 } from '../src/lib/avails-preview.js';
 
 assert.deepEqual(
-  visibleAvailsCommunityIds([{ id: 'cibc' }, { id: 'philanthropic-xxi' }, null, { id: '' }]),
+  visibleAvailsCommunityIds([
+    { id: 'cibc', visibility: 'public' },
+    { id: 'philanthropic-xxi', visibility: 'private' },
+    null,
+    { id: '' },
+  ]),
+  ['cibc'],
+  'signed-out Avails reads exclude private communities even if discovery remains in memory',
+);
+assert.deepEqual(
+  visibleAvailsCommunityIds(
+    [{ id: 'cibc', visibility: 'public' }, { id: 'philanthropic-xxi', visibility: 'private' }],
+    { signedIn: true },
+  ),
   ['cibc', 'philanthropic-xxi'],
-  'Avails reads use only communities returned by visible community discovery',
+  'signed-in Avails reads include private communities returned by authenticated discovery',
+);
+assert.deepEqual(
+  visibleAvailsCommunityIds([{ id: 'philanthropic-xxi' }], { requireSignIn: true }),
+  [],
+  'a private pinned deployment remains gated with a legacy visibility-less cache',
 );
 assert.deepEqual(visibleAvailsCommunityIds(null), [], 'missing community discovery fails closed');
 
