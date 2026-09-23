@@ -60,6 +60,9 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.25 — September 2026
+- **Dashboard tiles stay off when you turn them off.** Digest, Participation, and Community Input no longer switch themselves back on immediately after you hide them in Settings.
+
 ### 0.3.24 — September 2026
 - **Dashboard previews stay current even when you do not open their full feed.** Digest, Participation, and Network tiles now refresh expired snapshots quietly after the dashboard appears, while keeping their previous content visible during the update. This fixes community digest tiles that could otherwise remain frozen indefinitely.
 - **Your dashboard choices can follow you between the extension and the web companion.** Signed-in community accounts synchronize selected communities, visible feeds, tile order and depth, and Network preferences; if two devices change the layout at once, My Community asks which version to keep instead of overwriting one silently.
