@@ -31,6 +31,10 @@ Railway builds from the repository root using `railway.json`; do not set the ser
 
 After building, reload at `chrome://extensions` (Developer mode, Load unpacked -> `extension/dist/`).
 
+### Live unpacked extension
+
+`extension/dist/` is the active unpacked Chrome installation on the primary workspace. Treat it as live runtime state, not disposable build output: **never delete the directory during cleanup or worktree teardown**. For a release, build and validate in an isolated location, then mirror the validated published artifact into the existing `extension/dist/` directory and verify that its file set and hashes match. Reloading the extension in Chrome is the final user-only step.
+
 No linting or test *framework* is configured, but framework-free tests cover the
 stores, dashboard helpers, OAuth state, favicon handling, and background-worker
 save guards:

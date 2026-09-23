@@ -72,7 +72,7 @@ export function deploymentCommunityIds(ids, config = deploymentConfig) {
 }
 
 export function deploymentFeedVisible(key, requested = true, config = deploymentConfig) {
-  return key !== 'network' || (config.blueskyEnabled && requested);
+  return requested && (key !== 'network' || config.blueskyEnabled);
 }
 
 export function deploymentBrainDecisionsEnabled(config = deploymentConfig) {
