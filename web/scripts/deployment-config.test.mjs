@@ -21,6 +21,11 @@ assert(defaults.pinnedCommunityId === null, 'ordinary deployments keep the commu
 assert(defaults.linksApiBase === 'https://scenius-digest.vercel.app', 'ordinary deployments keep the shared links API');
 assert(!defaults.linksRequireSignIn, 'ordinary links retain their existing public/private behavior');
 assert(defaults.decisionApiBase === null, 'ordinary deployments do not expose a decision reader');
+assert(!deploymentFeedVisible('digest', false, defaults), 'Digest respects a request to hide it');
+assert(!deploymentFeedVisible('participation', false, defaults), 'Participation respects a request to hide it');
+assert(!deploymentFeedVisible('communityInput', false, defaults), 'Community Input respects a request to hide it');
+assert(!deploymentFeedVisible('network', false, defaults), 'Network respects a request to hide it');
+assert(deploymentFeedVisible('network', true, defaults), 'Network remains available in ordinary deployments');
 
 const pxxi = createDeploymentConfig({
   VITE_PINNED_COMMUNITY_ID: 'philanthropic-xxi',
@@ -34,6 +39,7 @@ assert(pxxi.linksRequireSignIn, 'a configured links service is treated as privat
 assert(pxxi.decisionApiBase === 'https://crapotkin.example', 'PXXI reuses its Crapotkin origin for decisions by default');
 assert(JSON.stringify(deploymentCommunityIds(['cibc'], pxxi)) === '["philanthropic-xxi"]', 'the pin overrides stored community choices');
 assert(!deploymentFeedVisible('network', true, pxxi), 'Network cannot be restored from stored preferences');
+assert(!deploymentFeedVisible('digest', false, pxxi), 'non-Network tiles remain user-hideable in pinned deployments');
 
 const baseline = {
   selectedCommunityIds: ['cibc'],
