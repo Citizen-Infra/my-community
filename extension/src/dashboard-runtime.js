@@ -1,21 +1,21 @@
 import { useEffect, useLayoutEffect } from 'preact/hooks';
 import { blueskySession, isConnected } from './store/auth';
 import { selectedCommunityIds, selectedCommunities } from './store/communities';
-import { digestLoaded, digestLoading, hydrateDigest, loadDigest } from './store/digest';
-import { hydrateSessions, loadSessions, sessionsLoaded, sessionsLoading } from './store/sessions';
+import { digestLoading, hydrateDigest, loadDigest } from './store/digest';
+import { hydrateSessions, loadSessions, sessionsLoading } from './store/sessions';
 import { caSignedIn, caSubject } from './store/caAuth';
 import { hydrateProposals, loadProposals } from './store/proposals';
 import { hydrateWikiQueue, loadWikiQueue } from './store/knowledge';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import {
-  blueskyLoaded,
   blueskyLoading,
   hydrateBlueskyFeed,
   loadBlueskyFeed,
   loadSavedFeeds,
 } from './store/bluesky';
 import { activeTab, availableTabs, dashboardMode } from './store/panels';
+import { refreshInactiveDashboardFeeds } from './lib/dashboard-feed-refresh';
 
 export function hydrateDashboard() {
   const ids = selectedCommunityIds.value;
@@ -27,8 +27,8 @@ export function hydrateDashboard() {
 }
 
 // Shared extension/web feed lifecycle. It preserves selector-matched stale
-// previews, refreshes the focused source first, and fills never-seen tiles one
-// at a time after first paint.
+// previews, refreshes the focused source first, and revalidates inactive tiles
+// one at a time after first paint.
 export function useDashboardFeeds(ready) {
   useEffect(() => {
     if (!ready) return undefined;
@@ -71,22 +71,27 @@ export function useDashboardFeeds(ready) {
     if (!ready) return undefined;
     let cancelled = false;
 
-    const populateMissingPreviews = async () => {
-      for (const tab of availableTabs.value) {
-        if (cancelled) return;
-        if (tab === activeTab.value || tab === 'communityInput') continue;
-        if (tab === 'digest' && !digestLoaded.value && !digestLoading.value) {
-          await loadDigest(selectedCommunityIds.value);
-        } else if (tab === 'participation' && !sessionsLoaded.value && !sessionsLoading.value) {
-          await loadSessions(selectedCommunities.value);
-        } else if (tab === 'network' && isConnected.value && !blueskyLoaded.value && !blueskyLoading.value) {
-          await loadSavedFeeds();
-          await loadBlueskyFeed();
-        }
-      }
-    };
+    const refreshInactivePreviews = () => refreshInactiveDashboardFeeds({
+      tabs: availableTabs.value,
+      activeTab: activeTab.value,
+      isCancelled: () => cancelled,
+      isConnected: () => isConnected.value,
+      isLoading: (tab) => (
+        (tab === 'digest' && digestLoading.value)
+        || (tab === 'participation' && sessionsLoading.value)
+        || (tab === 'network' && blueskyLoading.value)
+      ),
+      refresh: (tab) => {
+        if (tab === 'digest') return loadDigest(selectedCommunityIds.value);
+        if (tab === 'participation') return loadSessions(selectedCommunities.value);
+        // Saved-feed metadata belongs to the focused Network experience. The
+        // post loader is independently TTL-gated and is enough to refresh its tile.
+        if (tab === 'network') return loadBlueskyFeed();
+        return undefined;
+      },
+    });
 
-    const run = () => { if (!cancelled) void populateMissingPreviews(); };
+    const run = () => { if (!cancelled) void refreshInactivePreviews(); };
     const idleHandle = globalThis.requestIdleCallback
       ? globalThis.requestIdleCallback(run, { timeout: 1500 })
       : globalThis.setTimeout(run, 300);
