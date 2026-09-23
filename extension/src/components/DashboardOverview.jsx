@@ -56,6 +56,9 @@ import {
   retryBrainDecisions,
 } from '../store/brain-decisions';
 import { caSignedIn } from '../store/caAuth';
+import { availsPolls } from '../store/avails';
+import { AVAILS_URL } from '../lib/config';
+import { availsParticipationPreview } from '../lib/avails-preview';
 import { deploymentConfig } from '../lib/deployment-config';
 import { allCommunities, selectedCommunityIds } from '../store/communities';
 import { communityInputStatus, mergeCommunityInputRows } from '../lib/community-input-order';
@@ -194,6 +197,10 @@ function previewState(tab) {
         previewStatus: 'Proposed call',
         previewAnchor: callProposalAnchor(proposal),
       })),
+      ...availsPolls.value.map((poll) => availsParticipationPreview(poll, {
+        availsUrl: AVAILS_URL,
+        communityName: communityName(poll.community),
+      })),
       ...upcomingSessions.value,
     ];
     if (sessionsLoading.value && current.length === 0) return { state: 'loading', message: 'Finding ways to take part…' };
@@ -207,8 +214,8 @@ function previewState(tab) {
         title: item.title,
         context: item.description || item.body || '',
         status: item.previewStatus || (item.status === 'active' ? 'Happening now' : item.status === 'open' ? 'Open to join' : 'Coming up'),
-        provenance: participationProvenance(item),
-        href: item.previewAnchor ? '' : sessionUrl(item),
+        provenance: item.previewProvenance || participationProvenance(item),
+        href: item.previewAnchor ? '' : (item.previewHref || sessionUrl(item)),
         anchor: item.previewAnchor,
       })),
     };
