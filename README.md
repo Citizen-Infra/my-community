@@ -60,6 +60,12 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.24 — September 2026
+- **Dashboard previews stay current even when you do not open their full feed.** Digest, Participation, and Network tiles now refresh expired snapshots quietly after the dashboard appears, while keeping their previous content visible during the update. This fixes community digest tiles that could otherwise remain frozen indefinitely.
+- **Your dashboard choices can follow you between the extension and the web companion.** Signed-in community accounts synchronize selected communities, visible feeds, tile order and depth, and Network preferences; if two devices change the layout at once, My Community asks which version to keep instead of overwriting one silently.
+- **The extension can work as a dashboard without managing tabs.** Turn Tab Manager off in Settings to hide collections and disable toolbar or Alt+S tab-saving actions, so a hidden collection cannot silently capture and close a tab. Community wiki suggestions remain available.
+- **Connected community spaces can appear alongside the main feeds.** Communities may surface featured work, contribution links, stewardship tasks for administrators, and active shared-listening rooms without crowding the core dashboard tiles.
+
 ### 0.3.23 — September 2026
 - **The dashboard is now a community overview rather than a row of feed tabs.** Enabled feeds appear as rearrangeable tiles, with civic priorities such as decisions needing your response and events happening now brought forward. Each tile automatically fits complete preview rows into the available space, can remember an exact item limit, and links each preview directly to its underlying post, source, session, or decision. The full feed remains available from the tile heading or its quiet hover action.
 - **New tabs keep useful previews without reloading every source.** Previously loaded, account-matched previews remain visible while the most recently focused feed refreshes; feeds with no saved preview populate one at a time after first paint. Community and Bluesky caches are separated by account so private content cannot cross identities.
