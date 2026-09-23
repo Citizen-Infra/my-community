@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Philanthropic XXI">
+  <rect width="192" height="192" rx="20" fill="#EFF1EC"/>
+  <g fill="#AEB6AD">
+    <rect x="32" y="43" width="128" height="16"/>
+    <rect x="32" y="73" width="128" height="16"/>
+    <rect x="32" y="103" width="128" height="16"/>
+    <rect x="32" y="133" width="128" height="16"/>
+  </g>
+  <g fill="#1A1F1B">
+    <rect x="32" y="43" width="113" height="16"/>
+    <rect x="32" y="73" width="82" height="16"/>
+    <rect x="32" y="103" width="59" height="16"/>
+    <rect x="32" y="133" width="15" height="16"/>
+  </g>
+</svg>

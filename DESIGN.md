@@ -87,6 +87,18 @@ It explicitly rejects the **generic tech-dark tool** (neon on black), the **ster
 - Focused feeds use one narrow reading column (~720px); the overview uses an adaptive 2×2 editorial mosaic.
 - Near-flat cards that lift gently on hover; warm, diffuse shadows.
 
+### Fixed deployment identity: Philanthropic XXI
+
+`philanthropic-xxi.netlify.app` is a dedicated single-community deployment and inherits the visual system recorded in the private brain repo's `DESIGN.md`: **a geological survey sheet**. It changes identity and material, not product structure or behavior. Other deployments remain in the Community Almanac system above.
+
+- **Light:** buff-grey ground `#E4E7E0`, sheet `#EFF1EC`, green-black ink `#1A1F1B`, cobalt action `#23508C`, and oxblood emphasis `#6E2639`.
+- **Dark companion:** green-black ground `#121713`, sheet `#1A211C`, mineral-pale ink `#EFF1EC`, light cobalt `#8FB7EC`, and muted rose `#D28AA0`. It is a night survey, never the default green dark theme and never neon or glowing.
+- **Type:** Archivo for headings and controls, Archivo Narrow for tracked labels and metadata, and Literata for reading text. The files are self-hosted; Literata includes Cyrillic coverage.
+- **Mark:** four horizontal confidence bars at 88, 64, 46, and 12 percent. The mark appears beside the wordmark and supplies the deployment favicon/install icon.
+- **Material:** flat ruled surfaces and hairline borders. Card shadows and hover lift are removed; no gradients, glass, or decorative blur enter this deployment.
+
+The PXXI identity is selected only by the pinned deployment configuration. It is not arbitrary CSS, an administrator-forced account preference, or the user-selectable community-skin system tracked separately in `community-admin#153` and `my-community#18`.
+
 ## 2. Colors
 
 A warm, low-chroma neutral field with one confident green and one rationed amber.

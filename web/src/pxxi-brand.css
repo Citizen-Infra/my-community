@@ -1,0 +1,188 @@
+html[data-deployment-brand="philanthropic-xxi"] {
+  color-scheme: light;
+  --color-bg: #e4e7e0;
+  --color-surface: #eff1ec;
+  --color-surface-hover: #e8ebe5;
+  --color-surface-raised: #f5f6f2;
+  --color-control-knob: #f5f6f2;
+  --color-border: #aeb7ad;
+  --color-border-light: #c2c9c0;
+  --color-text: #1a1f1b;
+  --color-text-secondary: #48524a;
+  --color-text-muted: #5f6a61;
+  --color-primary: #23508c;
+  --color-primary-hover: #173d70;
+  --color-primary-light: #d8e2ef;
+  --color-primary-subtle: rgba(35, 80, 140, 0.1);
+  --color-on-primary: #f7f8f4;
+  --color-accent: #6e2639;
+  --color-accent-hover: #531b2b;
+  --color-accent-light: #eadde1;
+  --color-accent-subtle: rgba(110, 38, 57, 0.1);
+  --color-on-accent: #f7f8f4;
+  --color-session-active: #23508c;
+  --color-session-upcoming: #48524a;
+  --color-session-open: #6e2639;
+  --color-session-completed: #5f6a61;
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-body: 'Literata', Georgia, serif;
+  --pxxi-font-ui: 'Archivo', system-ui, sans-serif;
+  --pxxi-font-label: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+  --pxxi-mark-rest: #aeb6ad;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"][data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #121713;
+  --color-surface: #1a211c;
+  --color-surface-hover: #232b25;
+  --color-surface-raised: #202821;
+  --color-control-knob: #eff1ec;
+  --color-border: #657067;
+  --color-border-light: #39433b;
+  --color-text: #eff1ec;
+  --color-text-secondary: #c2c9c0;
+  --color-text-muted: #9aa59b;
+  --color-primary: #8fb7ec;
+  --color-primary-hover: #b8d0f2;
+  --color-primary-light: #1d3048;
+  --color-primary-subtle: rgba(143, 183, 236, 0.13);
+  --color-on-primary: #111820;
+  --color-accent: #d28aa0;
+  --color-accent-hover: #e5afbf;
+  --color-accent-light: #39232b;
+  --color-accent-subtle: rgba(210, 138, 160, 0.13);
+  --color-on-accent: #1b1115;
+  --color-session-active: #8fb7ec;
+  --color-session-upcoming: #c2c9c0;
+  --color-session-open: #d28aa0;
+  --color-session-completed: #9aa59b;
+  --color-danger-text: #f2a7a7;
+  --pxxi-mark-rest: #657067;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] body,
+html[data-deployment-brand="philanthropic-xxi"] #app,
+html[data-deployment-brand="philanthropic-xxi"] .web-shell,
+html[data-deployment-brand="philanthropic-xxi"] .decision-shell {
+  background: var(--color-bg);
+}
+
+html[data-deployment-brand="philanthropic-xxi"] button,
+html[data-deployment-brand="philanthropic-xxi"] input,
+html[data-deployment-brand="philanthropic-xxi"] select,
+html[data-deployment-brand="philanthropic-xxi"] textarea,
+html[data-deployment-brand="philanthropic-xxi"] .web-community-context,
+html[data-deployment-brand="philanthropic-xxi"] .web-sync-status,
+html[data-deployment-brand="philanthropic-xxi"] .decision-reader-nav,
+html[data-deployment-brand="philanthropic-xxi"] .decision-footer {
+  font-family: var(--pxxi-font-ui);
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-topbar {
+  border-bottom-color: var(--color-border);
+  background: var(--color-bg);
+  backdrop-filter: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-status-dot,
+html[data-deployment-brand="philanthropic-xxi"] .web-settings {
+  box-shadow: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-settings-backdrop,
+html[data-deployment-brand="philanthropic-xxi"] .preference-dialog-backdrop,
+html[data-deployment-brand="philanthropic-xxi"] .web-main .dashboard-feed-header {
+  backdrop-filter: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-main .dashboard-feed-header {
+  background: var(--color-bg);
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .web-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .deployment-mark {
+  width: 31px;
+  height: 23px;
+  flex: 0 0 auto;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .deployment-mark-track { fill: var(--pxxi-mark-rest); }
+html[data-deployment-brand="philanthropic-xxi"] .deployment-mark-fill { fill: var(--color-text); }
+
+html[data-deployment-brand="philanthropic-xxi"] .web-community-context span,
+html[data-deployment-brand="philanthropic-xxi"] .decision-eyebrow,
+html[data-deployment-brand="philanthropic-xxi"] [class$="-badge"],
+html[data-deployment-brand="philanthropic-xxi"] [class$="-meta"],
+html[data-deployment-brand="philanthropic-xxi"] [class$="-status"] {
+  font-family: var(--pxxi-font-label);
+  letter-spacing: 0.07em;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .loading-line {
+  font-family: var(--pxxi-font-label);
+  font-style: normal;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .dashboard-tile,
+html[data-deployment-brand="philanthropic-xxi"] .digest-card,
+html[data-deployment-brand="philanthropic-xxi"] .session-card,
+html[data-deployment-brand="philanthropic-xxi"] .bsky-card,
+html[data-deployment-brand="philanthropic-xxi"] .community-input-card,
+html[data-deployment-brand="philanthropic-xxi"] .decision-card,
+html[data-deployment-brand="philanthropic-xxi"] .live-strip--inset,
+html[data-deployment-brand="philanthropic-xxi"] .decision-state {
+  box-shadow: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .dashboard-tile:hover,
+html[data-deployment-brand="philanthropic-xxi"] .digest-card:hover,
+html[data-deployment-brand="philanthropic-xxi"] .session-card:hover,
+html[data-deployment-brand="philanthropic-xxi"] .bsky-card:hover,
+html[data-deployment-brand="philanthropic-xxi"] .live-strip--inset:hover {
+  transform: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .decision-objection-submit:hover:not(:disabled) {
+  box-shadow: none;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .decision-state,
+html[data-deployment-brand="philanthropic-xxi"] .decision-document {
+  background: var(--color-surface);
+}
+
+html[data-deployment-brand="philanthropic-xxi"] a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+@media (max-width: 560px) {
+  html[data-deployment-brand="philanthropic-xxi"] .web-wordmark {
+    gap: 7px;
+    font-size: 18px;
+  }
+
+  html[data-deployment-brand="philanthropic-xxi"] .deployment-mark {
+    width: 25px;
+    height: 19px;
+  }
+}

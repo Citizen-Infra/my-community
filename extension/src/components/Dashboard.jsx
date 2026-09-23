@@ -6,13 +6,14 @@ import { SessionsPanel } from './SessionsPanel';
 import { BlueskyFeed } from './BlueskyFeed';
 import { CommunityInputFeed } from './CommunityInputFeed';
 import { StewardshipWorkspace } from './StewardshipWorkspace';
+import { deploymentConfig } from '../lib/deployment-config';
 
 export function Dashboard({ onOpenSettings }) {
   if (!communitiesConfigured.value) {
     return (
       <main class="dashboard">
         <div class="welcome-prompt">
-          <h2>Welcome to My Community</h2>
+          <h2>Welcome to {deploymentConfig.brand.name}</h2>
           <p>Select your communities to start seeing digest links, sessions, and events.</p>
           {onOpenSettings ? (
             <button type="button" class="welcome-action" onClick={onOpenSettings}>Choose communities</button>

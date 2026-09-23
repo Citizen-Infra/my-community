@@ -3,6 +3,7 @@ import { topicEmoji } from '../store/digest';
 import { allCommunities } from '../store/communities';
 import { isConnected } from '../store/auth';
 import { getCommunityColors } from '../lib/community-colors';
+import { deploymentConfig } from '../lib/deployment-config';
 
 export function DigestCard({ link }) {
   const [imgError, setImgError] = useState(false);
@@ -23,7 +24,7 @@ export function DigestCard({ link }) {
   function handleShare(e) {
     e.preventDefault();
     e.stopPropagation();
-    const text = `${title}\n\n${link.url}\n\n— shared via My Community`;
+    const text = `${title}\n\n${link.url}\n\n— shared via ${deploymentConfig.brand.name}`;
     const intentUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`;
     window.open(intentUrl, '_blank', 'noopener,noreferrer');
   }

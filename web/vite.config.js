@@ -2,7 +2,8 @@ import { defineConfig, loadEnv } from 'vite';
 import { rmSync } from 'node:fs';
 import preact from '@preact/preset-vite';
 import { resolve } from 'node:path';
-import { parseBooleanFlag } from '../extension/src/lib/deployment-config.js';
+import { createDeploymentConfig, parseBooleanFlag } from '../extension/src/lib/deployment-config.js';
+import { transformDeploymentHtml } from './deployment-branding.js';
 
 function rejectExtensionOnlyCode() {
   const forbiddenModules = [
@@ -37,11 +38,21 @@ function omitDisabledBlueskyMetadata(enabled) {
   };
 }
 
+function applyDeploymentBranding(config) {
+  return {
+    name: 'apply-deployment-branding',
+    transformIndexHtml(html) {
+      return transformDeploymentHtml(html, config);
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = { ...loadEnv(mode, __dirname, 'VITE_'), ...process.env };
   const blueskyEnabled = parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true);
+  const deploymentConfig = createDeploymentConfig(env);
   return {
-    plugins: [preact(), rejectExtensionOnlyCode(), omitDisabledBlueskyMetadata(blueskyEnabled)],
+    plugins: [preact(), applyDeploymentBranding(deploymentConfig), rejectExtensionOnlyCode(), omitDisabledBlueskyMetadata(blueskyEnabled)],
     publicDir: 'public',
     resolve: {
       alias: [
