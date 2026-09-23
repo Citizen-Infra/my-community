@@ -1,6 +1,7 @@
 import { activeTab, setActiveTab, availableTabs } from '../store/panels';
 import { openUnvotedCount } from '../store/proposals';
 import { openUnvotedKnowledgeCount } from '../store/knowledge';
+import { openBrainDecisionCount } from '../store/brain-decisions';
 import '../styles/tabs.css';
 
 const TAB_LABELS = {
@@ -16,7 +17,7 @@ export function TabBar() {
 
   // Things awaiting the member's input across both kinds: open decisions and
   // sources still gathering support.
-  const inputBadge = openUnvotedCount.value + openUnvotedKnowledgeCount.value;
+  const inputBadge = openUnvotedCount.value + openUnvotedKnowledgeCount.value + openBrainDecisionCount.value;
 
   return (
     <nav class="tab-bar">

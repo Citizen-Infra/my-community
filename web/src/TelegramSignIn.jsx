@@ -13,6 +13,7 @@ import { clearDigest, loadDigest } from '../../extension/src/store/digest';
 import { clearSessions, loadSessions } from '../../extension/src/store/sessions';
 import { clearProposals, loadProposals } from '../../extension/src/store/proposals';
 import { clearWikiQueue, loadWikiQueue } from '../../extension/src/store/knowledge';
+import { clearBrainDecisions, loadBrainDecisions } from '../../extension/src/store/brain-decisions';
 import {
   pollTelegramAuth,
   refreshTelegramLinkedData,
@@ -52,6 +53,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete, butto
               clearSessions();
               clearProposals();
               clearWikiQueue();
+              clearBrainDecisions();
             },
             refreshAccount: refreshCommunityAccount,
             loadCommunityList: loadCommunities,
@@ -60,6 +62,7 @@ export function TelegramSignIn({ community, intent = 'signin', onComplete, butto
             loadSessionsFeed: loadSessions,
             loadProposalsFeed: loadProposals,
             loadWikiFeed: loadWikiQueue,
+            loadBrainDecisionsFeed: loadBrainDecisions,
           });
           clearTelegramSignInState(flow.state);
         }

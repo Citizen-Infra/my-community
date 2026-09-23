@@ -75,6 +75,10 @@ export function deploymentFeedVisible(key, requested = true, config = deployment
   return key !== 'network' || (config.blueskyEnabled && requested);
 }
 
+export function deploymentBrainDecisionsEnabled(config = deploymentConfig) {
+  return config.pinnedCommunityId === 'philanthropic-xxi' && Boolean(config.decisionApiBase);
+}
+
 export function deploymentSyncPreferences(snapshot, baseline, config = deploymentConfig) {
   if (!baseline && !config.pinnedCommunityId && config.blueskyEnabled) return snapshot;
   const accountBaseline = baseline || {

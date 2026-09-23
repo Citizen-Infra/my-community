@@ -6,6 +6,7 @@ import { hydrateSessions, loadSessions, sessionsLoading } from './store/sessions
 import { caSignedIn, caSubject } from './store/caAuth';
 import { hydrateProposals, loadProposals } from './store/proposals';
 import { hydrateWikiQueue, loadWikiQueue } from './store/knowledge';
+import { loadBrainDecisions } from './store/brain-decisions';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import { startAvailsPolling, stopAvailsPolling } from './store/avails';
 import {
@@ -35,6 +36,7 @@ export function useDashboardFeeds(ready) {
     const ids = selectedCommunityIds.value;
     loadProposals(caSignedIn.value ? ids : []);
     loadWikiQueue(caSignedIn.value ? ids : []);
+    loadBrainDecisions();
     if (ids.length > 0) startJamPolling(ids);
     else stopJamPolling();
     return () => stopJamPolling();

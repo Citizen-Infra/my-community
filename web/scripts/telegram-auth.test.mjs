@@ -65,9 +65,10 @@ await refreshTelegramLinkedData('philanthropic-xxi', {
   loadSessionsFeed: async (communities) => refreshCalls.push(`sessions:${communities.map((c) => c.id).join(',')}`),
   loadProposalsFeed: async (ids) => refreshCalls.push(`proposals:${ids.join(',')}`),
   loadWikiFeed: async (ids) => refreshCalls.push(`wiki:${ids.join(',')}`),
+  loadBrainDecisionsFeed: async () => refreshCalls.push('brain-decisions:philanthropic-xxi'),
 });
 assert(refreshCalls[0] === 'invalidate' && refreshCalls[1] === 'account' && refreshCalls[2] === 'communities:true', 'link refresh invalidates in-flight loads before updating authorization and community data');
-assert(['digest', 'sessions', 'proposals', 'wiki'].every((name) => refreshCalls.some((call) => call.startsWith(`${name}:philanthropic-xxi`))), 'link refresh reloads every private community feed');
+assert(['digest', 'sessions', 'proposals', 'wiki', 'brain-decisions'].every((name) => refreshCalls.some((call) => call.startsWith(`${name}:philanthropic-xxi`))), 'link refresh reloads every private community feed');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);
