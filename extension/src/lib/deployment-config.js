@@ -6,6 +6,18 @@ const DEFAULT_ACCOUNT_NETWORK = Object.freeze({
   ranking: 'most-liked',
 });
 
+const DEFAULT_BRAND = Object.freeze({
+  id: 'my-community',
+  name: 'My Community',
+  loadingLine: 'Setting today’s page',
+});
+
+const PXXI_BRAND = Object.freeze({
+  id: 'philanthropic-xxi',
+  name: 'Philanthropic XXI',
+  loadingLine: 'Opening member space',
+});
+
 function optionalValue(value) {
   const normalized = String(value ?? '').trim();
   return normalized || null;
@@ -46,6 +58,10 @@ function apiBase(value, name = 'VITE_LINKS_API_BASE', fallback = DEFAULT_CONTENT
   return parsed.origin;
 }
 
+function deploymentBrand(pinnedCommunityId) {
+  return pinnedCommunityId === 'philanthropic-xxi' ? PXXI_BRAND : DEFAULT_BRAND;
+}
+
 export function createDeploymentConfig(env = {}) {
   const pinnedCommunityId = communityId(env.VITE_PINNED_COMMUNITY_ID);
   const configuredLinksApiBase = optionalValue(env.VITE_LINKS_API_BASE);
@@ -53,6 +69,7 @@ export function createDeploymentConfig(env = {}) {
   const configuredDecisionsApiBase = optionalValue(env.VITE_DECISIONS_API_BASE);
   return Object.freeze({
     blueskyEnabled: parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true),
+    brand: deploymentBrand(pinnedCommunityId),
     decisionApiBase: configuredDecisionsApiBase === null
       ? (pinnedCommunityId === 'philanthropic-xxi' && configuredLinksApiBase !== null ? linksApiBase : null)
       : apiBase(configuredDecisionsApiBase, 'VITE_DECISIONS_API_BASE', null),

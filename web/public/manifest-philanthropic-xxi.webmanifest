@@ -1,0 +1,14 @@
+{
+  "name": "Philanthropic XXI",
+  "short_name": "PXXI",
+  "description": "Community activity, participation, and shared decisions for Philanthropic XXI members.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#E4E7E0",
+  "theme_color": "#E4E7E0",
+  "icons": [
+    { "src": "/icons/philanthropic-xxi.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

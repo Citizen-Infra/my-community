@@ -1,4 +1,4 @@
-const CACHE = 'my-community-static-v1';
+const CACHE = 'my-community-static-v2';
 const PRECACHE = ['/', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-48.png', '/icons/icon-128.png', '/fonts.css'];
 
 self.addEventListener('install', (event) => {

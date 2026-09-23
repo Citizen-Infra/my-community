@@ -18,6 +18,7 @@ const rejects = (fn, message) => {
 
 const defaults = createDeploymentConfig();
 assert(defaults.blueskyEnabled, 'ordinary deployments keep Bluesky enabled');
+assert(defaults.brand.id === 'my-community' && defaults.brand.name === 'My Community', 'ordinary deployments keep the My Community identity');
 assert(defaults.pinnedCommunityId === null, 'ordinary deployments keep the community picker');
 assert(defaults.linksApiBase === 'https://scenius-digest.vercel.app', 'ordinary deployments keep the shared links API');
 assert(!defaults.linksRequireSignIn, 'ordinary links retain their existing public/private behavior');
@@ -35,6 +36,7 @@ const pxxi = createDeploymentConfig({
   VITE_LINKS_API_BASE: 'https://crapotkin.example/',
 });
 assert(pxxi.pinnedCommunityId === 'philanthropic-xxi', 'a deployment can pin one community');
+assert(pxxi.brand.id === 'philanthropic-xxi' && pxxi.brand.name === 'Philanthropic XXI', 'the PXXI deployment receives its fixed identity');
 assert(!pxxi.blueskyEnabled, 'a deployment can disable Bluesky');
 assert(pxxi.linksApiBase === 'https://crapotkin.example', 'the private links API is normalized to its origin');
 assert(pxxi.linksRequireSignIn, 'a configured links service is treated as private');

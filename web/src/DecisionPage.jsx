@@ -26,7 +26,7 @@ export function DecisionPage({ decisionPath, online, onNavigate }) {
 
   useEffect(() => {
     document.title = 'Decision — Philanthropic XXI';
-    return () => { document.title = 'My Community'; };
+    return () => { document.title = deploymentConfig.brand.name; };
   }, []);
 
   useEffect(() => {

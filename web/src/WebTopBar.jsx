@@ -2,6 +2,8 @@ import { selectedCommunities } from '../../extension/src/store/communities';
 import { dashboardCustomizing, toggleDashboardCustomization } from '../../extension/src/store/panels';
 import { preferenceMessage, preferenceStatus, retryPreferenceSync } from '../../extension/src/store/preferences';
 import { caSignedIn } from '../../extension/src/store/caAuth';
+import { deploymentConfig } from '../../extension/src/lib/deployment-config';
+import { DeploymentMark } from './DeploymentMark';
 
 function SettingsIcon() {
   return (
@@ -16,10 +18,13 @@ export function WebTopBar({ online, onOpenSettings, onOpenOverview }) {
   return (
     <header class="web-topbar">
       <div class="web-topbar-inner">
-        <a class="web-wordmark" href="/" onClick={(event) => { event.preventDefault(); onOpenOverview(); }} aria-label="My Community overview">My Community</a>
+        <a class="web-wordmark" href="/" onClick={(event) => { event.preventDefault(); onOpenOverview(); }} aria-label={`${deploymentConfig.brand.name} overview`}>
+          {deploymentConfig.brand.id === 'philanthropic-xxi' && <DeploymentMark />}
+          <span>{deploymentConfig.brand.name}</span>
+        </a>
         <div class="web-community-context" aria-label="Selected communities">
-          {communities.slice(0, 2).map((community) => <span key={community.id}>{community.name}</span>)}
-          {communities.length > 2 && <span>+{communities.length - 2}</span>}
+          {!deploymentConfig.pinnedCommunityId && communities.slice(0, 2).map((community) => <span key={community.id}>{community.name}</span>)}
+          {!deploymentConfig.pinnedCommunityId && communities.length > 2 && <span>+{communities.length - 2}</span>}
         </div>
         <div class="web-topbar-actions">
           <button

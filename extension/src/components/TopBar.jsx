@@ -8,6 +8,7 @@ import {
   toggleDashboardCustomization,
 } from '../store/panels';
 import '../styles/topbar.css';
+import { deploymentConfig } from '../lib/deployment-config';
 
 export function TopBar() {
   const [showSettings, setShowSettings] = useState(false);
@@ -16,7 +17,7 @@ export function TopBar() {
     <header class="topbar">
       <div class={`topbar-inner ${tabManagerEnabled.value ? '' : 'dashboard-only'}`}>
         <div class="topbar-brand">
-          <h1 class="topbar-title">My Community</h1>
+          <h1 class="topbar-title">{deploymentConfig.brand.name}</h1>
         </div>
 
         {tabManagerEnabled.value && <SearchBar />}

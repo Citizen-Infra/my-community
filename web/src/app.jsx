@@ -18,6 +18,7 @@ import { canUseNetworkAction } from './offline-policy';
 import { clearCommunityBlueskySignIn, consumeCommunityBlueskySignIn } from './bluesky-signin-intent';
 import { deploymentConfig } from '../../extension/src/lib/deployment-config';
 import './web.css';
+import './pxxi-brand.css';
 
 export function App() {
   const initialRoute = useRef(routeFromPath(location.pathname));
@@ -159,7 +160,7 @@ export function App() {
     scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  if (!ready) return <div class="loading-screen" role="status"><span class="loading-mark">{decisionRoute ? 'Philanthropic XXI' : 'My Community'}</span><span class="loading-rule" aria-hidden="true" /><span class="loading-line">{decisionRoute ? 'Opening member space' : 'Setting today’s page'}</span></div>;
+  if (!ready) return <div class="loading-screen" role="status"><span class="loading-mark">{deploymentConfig.brand.name}</span><span class="loading-rule" aria-hidden="true" /><span class="loading-line">{deploymentConfig.brand.loadingLine}</span></div>;
 
   if (decisionRoute) {
     return <div class={`decision-shell ${online ? '' : 'is-offline'}`}><DecisionPage decisionPath={decisionRoute.decisionPath} online={online} onNavigate={navigateToDecision} /></div>;

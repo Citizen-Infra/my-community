@@ -47,7 +47,7 @@ My Community turns a high-frequency, otherwise empty browser moment into a commu
 
 ## Brand Commitments
 
-The product is named **My Community**. Its voice is warm, civic, grounded, editorial, and human rather than corporate or technical. It should feel calm and considered, never urgent or attention-extracting. The durable visual system and anti-references are maintained separately in `DESIGN.md`.
+The product is named **My Community**. Its voice is warm, civic, grounded, editorial, and human rather than corporate or technical. It should feel calm and considered, never urgent or attention-extracting. A dedicated, pinned single-community deployment may carry that community's fixed identity when explicitly configured; this is deployment identity, not a community administrator changing a member's ordinary My Community interface. The Philanthropic XXI deployment is the first such case. The durable visual systems and anti-references are maintained separately in `DESIGN.md`.
 
 ## Evidence on Hand
 
