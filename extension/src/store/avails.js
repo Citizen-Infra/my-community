@@ -1,5 +1,6 @@
 import { signal } from '@preact/signals';
 import { AVAILS_URL } from '../lib/config';
+import { authHeader, caSubject } from './caAuth';
 
 const AVAILS_API = `${AVAILS_URL}/api/polls`;
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -11,9 +12,12 @@ let loadVersion = 0;
 
 export async function loadAvailsPolls(communityIds) {
   const version = ++loadVersion;
+  const subject = caSubject.value;
   try {
+    const headers = await authHeader();
+    if (version !== loadVersion || subject !== caSubject.value) return;
     const promises = communityIds.map((id) =>
-      fetch(`${AVAILS_API}?community=${encodeURIComponent(id)}&status=open&published=1`)
+      fetch(`${AVAILS_API}?community=${encodeURIComponent(id)}&status=open&published=1`, { headers })
         .then((r) => (r.ok ? r.json() : { polls: [] }))
         .catch(() => ({ polls: [] }))
     );
@@ -31,7 +35,7 @@ export async function loadAvailsPolls(communityIds) {
       }
     }
 
-    if (version === loadVersion) availsPolls.value = polls;
+    if (version === loadVersion && subject === caSubject.value) availsPolls.value = polls;
   } catch (err) {
     console.error('Failed to load avails polls:', err);
   }
