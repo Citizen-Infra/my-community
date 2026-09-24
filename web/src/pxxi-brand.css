@@ -175,6 +175,21 @@ html[data-deployment-brand="philanthropic-xxi"] a {
   text-decoration-thickness: 1px;
 }
 
+html[data-deployment-brand="philanthropic-xxi"] .account-doors {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .account-doors form > div,
+html[data-deployment-brand="philanthropic-xxi"] .account-doors input { min-width: 0; }
+
+@media (max-width: 440px) {
+  html[data-deployment-brand="philanthropic-xxi"] .account-doors form > div { flex-wrap: wrap; }
+  html[data-deployment-brand="philanthropic-xxi"] .account-doors form > div button { width: 100%; }
+}
+
+html[data-deployment-brand="philanthropic-xxi"] .account-or { justify-self: start; }
+
 @media (max-width: 560px) {
   html[data-deployment-brand="philanthropic-xxi"] .web-wordmark {
     gap: 7px;

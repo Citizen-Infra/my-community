@@ -3,7 +3,6 @@ import { caMemberships } from '../store/caAuth';
 import { jamRooms } from '../store/jam';
 import { visibleSupportingTileKeys } from '../store/supporting';
 import { openDashboardWorkspace } from '../store/panels';
-import { deploymentConfig } from '../lib/deployment-config';
 
 function externalTile(key, eyebrow, title, detail, href) {
   return { key, eyebrow, title, detail, href };
@@ -13,15 +12,6 @@ function availableTiles() {
   const communities = selectedCommunities.value;
   const visible = new Set(visibleSupportingTileKeys.value);
   const tiles = [];
-  if (deploymentConfig.landscapeUrl) {
-    tiles.push(externalTile(
-      'landscape',
-      deploymentConfig.brand.name,
-      'Explore the landscape',
-      'A public map of the philanthropic field.',
-      deploymentConfig.landscapeUrl,
-    ));
-  }
   const featured = communities.find((community) => community.featured?.url || community.featured_url);
   if (visible.has('featured') && featured) {
     tiles.push(externalTile(

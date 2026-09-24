@@ -44,6 +44,22 @@ assert.ok(brandCss.includes('[data-theme="dark"]'), 'PXXI has an explicit dark c
 assert.ok(brandCss.includes('.live-strip--inset:hover'), 'PXXI removes the shared live-strip hover lift');
 assert.ok(brandCss.includes('.decision-objection-submit:hover:not(:disabled)'), 'PXXI removes the shared amber action shadow');
 assert.ok(brandCss.includes('.preference-dialog-backdrop'), 'PXXI removes shared overlay blur');
+assert.ok(brandCss.includes('.account-doors {'), 'PXXI stacks Telegram and linked email instead of forcing narrow columns');
+
+const settings = readFileSync(join(root, 'src', 'WebSettings.jsx'), 'utf8');
+assert.ok(settings.indexOf('class="telegram-door"') < settings.indexOf('<form onSubmit={emailSignIn}>'), 'PXXI offers Telegram before linked email');
+assert.ok(settings.includes('!telegramCommunity && deploymentConfig.blueskyEnabled'), 'PXXI settings omit the Bluesky sign-in door');
+
+const connect = readFileSync(join(root, '..', 'extension', 'src', 'components', 'CommunityInputConnect.jsx'), 'utf8');
+assert.ok(connect.includes("deploymentConfig.pinnedCommunityId === 'philanthropic-xxi'"), 'PXXI Community Input has its own sign-in prompt');
+assert.ok(connect.includes('onOpenSettings') && connect.includes('href="/settings"'), 'PXXI Community Input reaches Telegram-first account settings');
+
+const overview = readFileSync(join(root, '..', 'extension', 'src', 'components', 'DashboardOverview.jsx'), 'utf8');
+assert.ok(overview.indexOf('class="dashboard-landscape-link"') < overview.indexOf('class="dashboard-tile-grid"'), 'PXXI landscape is findable above the feed mosaic');
+
+const webCss = readFileSync(join(root, 'src', 'web.css'), 'utf8');
+assert.ok(webCss.includes('.web-wordmark span { min-width: 0; overflow: hidden;'), 'PXXI wordmark can shrink on phones without scrolling sideways');
+assert.ok(webCss.includes('.web-sync-status { width: 36px; min-width: 36px;'), 'PXXI mobile status stops crowding the top bar');
 
 const fontCss = readFileSync(join(root, 'public', 'pxxi-fonts.css'), 'utf8');
 const fontPaths = [...fontCss.matchAll(/url\('\.\/fonts\/([^']+)'\)/g)].map((match) => match[1]);

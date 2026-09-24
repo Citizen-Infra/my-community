@@ -38,6 +38,8 @@ const pxxi = createDeploymentConfig({
 assert(pxxi.pinnedCommunityId === 'philanthropic-xxi', 'a deployment can pin one community');
 assert(pxxi.brand.id === 'philanthropic-xxi' && pxxi.brand.name === 'Philanthropic XXI', 'the PXXI deployment receives its fixed identity');
 assert(!pxxi.blueskyEnabled, 'a deployment can disable Bluesky');
+assert(!createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'philanthropic-xxi' }).blueskyEnabled, 'PXXI defaults to Bluesky off');
+assert(!createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'philanthropic-xxi', VITE_BLUESKY_ENABLED: 'true' }).blueskyEnabled, 'PXXI cannot expose Bluesky through a mistaken flag');
 assert(pxxi.linksApiBase === 'https://crapotkin.example', 'the private links API is normalized to its origin');
 assert(pxxi.linksRequireSignIn, 'a configured links service is treated as private');
 assert(pxxi.decisionApiBase === 'https://crapotkin.example', 'PXXI reuses its Crapotkin origin for decisions by default');

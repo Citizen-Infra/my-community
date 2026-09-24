@@ -35,9 +35,9 @@ function sourceFailureMessage() {
   return `Some Community Input sources could not refresh: ${sources.join(', ')}.`;
 }
 
-export function CommunityInputFeed() {
+export function CommunityInputFeed({ onOpenSettings }) {
   if (!caSignedIn.value) {
-    return <CommunityInputConnect />;
+    return <CommunityInputConnect onOpenSettings={onOpenSettings} />;
   }
 
   if (selectedCommunityIds.value.length === 0) {

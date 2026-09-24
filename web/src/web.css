@@ -88,7 +88,7 @@ body { overflow-x: hidden; }
 .web-sync-status.state-saving .web-status-dot, .web-sync-status.state-loading .web-status-dot { background: var(--color-accent); }
 .web-sync-status.state-error .web-status-dot, .web-sync-status.state-conflict .web-status-dot, .is-offline .web-status-dot { background: var(--color-danger-text); }
 
-.web-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.web-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .web-main .dashboard-overview { min-height: calc(100dvh - 68px); height: auto; padding-block: clamp(16px, 3vw, 32px); }
 .web-main > .dashboard { flex: 1; }
 
@@ -404,6 +404,11 @@ body { overflow-x: hidden; }
   .web-community-context { display: none; }
   .web-topbar-actions { margin-left: auto; }
   .web-sync-status { max-width: 112px; overflow: hidden; text-overflow: ellipsis; }
+  html[data-deployment-brand="philanthropic-xxi"] .web-wordmark { min-width: 0; flex: 1 1 auto; }
+  html[data-deployment-brand="philanthropic-xxi"] .web-wordmark span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html[data-deployment-brand="philanthropic-xxi"] .web-topbar-actions { flex: 0 0 auto; }
+  html[data-deployment-brand="philanthropic-xxi"] .web-sync-status { width: 36px; min-width: 36px; max-width: 36px; padding: 0; justify-content: center; font-size: 0; }
+  html[data-deployment-brand="philanthropic-xxi"] .web-icon-button { width: 38px; height: 38px; }
   .web-main .dashboard-overview { min-height: auto; padding: 14px 12px 90px; overflow: visible; }
   .web-main .dashboard-tile-grid { display: flex; flex-direction: column; }
   .web-main .dashboard-tile { min-height: 260px; }

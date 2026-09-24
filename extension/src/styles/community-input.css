@@ -458,6 +458,7 @@
   color: var(--color-text-secondary);
 }
 .ci-connect .auth-or { margin: var(--space-md) 0; }
+.ci-connect-settings-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 
 /* Pre-auth teaser: an illustrative glimpse of the tab's content, so the signed-out
    state shows what Community Input is rather than a bare form. Not live data (decisions

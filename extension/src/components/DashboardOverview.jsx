@@ -486,6 +486,16 @@ function DashboardTile({ tab, index, count, customizing, dragging, onDragStart, 
   );
 }
 
+function LandscapeLink() {
+  return (
+    <a class="dashboard-landscape-link" href={deploymentConfig.landscapeUrl} target="_blank" rel="noopener noreferrer" aria-label="Explore the Philanthropic XXI landscape (opens in a new tab)">
+      <strong>Explore the landscape</strong>
+      <span>A public map of the philanthropic field</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9" /><path d="M19 13v6H5V5h6" /></svg>
+    </a>
+  );
+}
+
 export function DashboardOverview() {
   const [draggedTab, setDraggedTab] = useState(null);
   const [announcement, setAnnouncement] = useState({ id: 0, message: '' });
@@ -534,6 +544,7 @@ export function DashboardOverview() {
       <section class="dashboard-overview dashboard-overview-empty">
         <h2>Your community front page</h2>
         <p>Turn on at least one dashboard feed in Settings.</p>
+        {deploymentConfig.landscapeUrl && <LandscapeLink />}
       </section>
     );
   }
@@ -546,6 +557,7 @@ export function DashboardOverview() {
           <button type="button" class="dashboard-reset" onClick={handleReset}>Reset layout</button>
         </div>
       )}
+      {deploymentConfig.landscapeUrl && <LandscapeLink />}
       <div class="dashboard-tile-grid" data-count={tabs.length}>
         {tabs.map((tab, index) => (
           <DashboardTile

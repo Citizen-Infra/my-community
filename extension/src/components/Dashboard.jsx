@@ -56,7 +56,7 @@ export function Dashboard({ onOpenSettings }) {
         {activeTab.value === 'digest' && <DigestFeed />}
         {activeTab.value === 'participation' && <SessionsPanel />}
         {activeTab.value === 'network' && <BlueskyFeed />}
-        {activeTab.value === 'communityInput' && <CommunityInputFeed />}
+        {activeTab.value === 'communityInput' && <CommunityInputFeed onOpenSettings={onOpenSettings} />}
       </main>
     </>
   );

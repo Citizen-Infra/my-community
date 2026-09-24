@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import { rmSync } from 'node:fs';
 import preact from '@preact/preset-vite';
 import { resolve } from 'node:path';
-import { createDeploymentConfig, parseBooleanFlag } from '../extension/src/lib/deployment-config.js';
+import { createDeploymentConfig } from '../extension/src/lib/deployment-config.js';
 import { transformDeploymentHtml } from './deployment-branding.js';
 
 function rejectExtensionOnlyCode() {
@@ -49,10 +49,9 @@ function applyDeploymentBranding(config) {
 
 export default defineConfig(({ mode }) => {
   const env = { ...loadEnv(mode, __dirname, 'VITE_'), ...process.env };
-  const blueskyEnabled = parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true);
   const deploymentConfig = createDeploymentConfig(env);
   return {
-    plugins: [preact(), applyDeploymentBranding(deploymentConfig), rejectExtensionOnlyCode(), omitDisabledBlueskyMetadata(blueskyEnabled)],
+    plugins: [preact(), applyDeploymentBranding(deploymentConfig), rejectExtensionOnlyCode(), omitDisabledBlueskyMetadata(deploymentConfig.blueskyEnabled)],
     publicDir: 'public',
     resolve: {
       alias: [
