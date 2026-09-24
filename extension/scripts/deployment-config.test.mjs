@@ -6,6 +6,7 @@ import {
 
 const defaults = createDeploymentConfig();
 assert.equal(defaults.brand.name, 'My Community', 'ordinary builds keep the default brand');
+assert.equal(defaults.landscapeUrl, null, 'ordinary builds do not link to the PXXI landscape');
 for (const feed of ['network', 'digest', 'participation', 'communityInput']) {
   assert.equal(deploymentFeedVisible(feed, false, defaults), false, `${feed} can be hidden`);
 }
@@ -16,5 +17,7 @@ assert.equal(deploymentFeedVisible('digest', true, withoutNetwork), true, 'disab
 
 const pxxi = createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'philanthropic-xxi' });
 assert.equal(pxxi.brand.name, 'Philanthropic XXI', 'the pinned PXXI build uses its fixed brand');
+assert.equal(pxxi.landscapeUrl, 'https://philanthropy-landscape.netlify.app/', 'only the pinned PXXI build links to the public landscape');
+assert.equal(createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'other-community' }).landscapeUrl, null);
 
 console.log('deployment config tests passed');
