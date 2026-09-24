@@ -1,8 +1,18 @@
 import assert from 'node:assert/strict';
 import {
   availsParticipationPreview,
+  availsFeedNeedsAuth,
+  pollsForAccount,
   visibleAvailsCommunityIds,
 } from '../src/lib/avails-preview.js';
+
+assert.equal(availsFeedNeedsAuth({ visibility: 'public' }), false, 'public poll reads remain anonymous');
+assert.equal(availsFeedNeedsAuth({ visibility: 'private' }), true, 'private poll reads carry member identity');
+assert.equal(availsFeedNeedsAuth({ id: 'philanthropic-xxi' }, true), true, 'a legacy pinned private group still authenticates');
+const accountPolls = [{ title: 'Private meeting' }];
+assert.deepEqual(pollsForAccount(accountPolls, 'account-a', 'account-b'), [], 'account switches hide prior private polls');
+assert.deepEqual(pollsForAccount(accountPolls, 'account-a', 'account-a'), accountPolls);
+assert.deepEqual(pollsForAccount(accountPolls, null, null), accountPolls, 'public signed-out polls remain visible');
 
 assert.deepEqual(
   visibleAvailsCommunityIds([

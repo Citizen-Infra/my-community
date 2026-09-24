@@ -26,7 +26,7 @@ Your browsing history is not collected, stored, or transmitted. The extension re
 
 **Scenius Digest**, which supplies community links and events. When you are signed in, requests for events carry a short-lived identity token so that private communities can show you their events. Requests for public content carry no identity.
 
-**Other community services** — the scheduling tool (`avails.citizeninfra.org`), the listening-room service, and a database that stores community sessions. These are read-only requests for content to display. They do not receive your identity.
+**Other community services** — the scheduling tool (`avails.citizeninfra.org`), the listening-room service, and a database that stores community sessions. Requests for public scheduling polls, listening rooms, and sessions are read-only and do not carry your identity. When you are signed in and request private-community polls, the scheduling tool receives a short-lived Community Admin identity token to verify your membership.
 
 That is the complete list. The extension makes no other outbound request during normal use — the typefaces and site icons it displays are served from the extension itself and from your browser's own cache.
 
