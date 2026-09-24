@@ -136,5 +136,5 @@ export function useDashboardFeeds(ready) {
       stopAvailsPolling();
     }
     return () => stopAvailsPolling();
-  }, [ready, dashboardMode.value, activeTab.value, selectedCommunities.value, caSignedIn.value]);
+  }, [ready, dashboardMode.value, activeTab.value, selectedCommunities.value, caSignedIn.value, caSubject.value]);
 }

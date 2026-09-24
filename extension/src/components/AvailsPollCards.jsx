@@ -1,4 +1,4 @@
-import { availsPolls } from '../store/avails';
+import { visibleAvailsPolls } from '../store/avails';
 import { getCommunityColors } from '../lib/community-colors';
 import { AVAILS_URL } from '../lib/config';
 
@@ -59,7 +59,7 @@ function PollCard({ poll }) {
 }
 
 export function AvailsPollCards() {
-  const polls = availsPolls.value;
+  const polls = visibleAvailsPolls.value;
   if (polls.length === 0) return null;
 
   return (

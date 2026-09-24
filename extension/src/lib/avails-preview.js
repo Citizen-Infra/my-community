@@ -7,8 +7,8 @@ function responseSummary(value) {
 
 // A pinned deployment keeps its community id selected before sign-in. Private
 // communities enter this collection after authenticated discovery, but may remain
-// in memory if that session is revoked. Avails' list endpoint is public, so reads
-// must use the visible collection and independently enforce its visibility marker.
+// in memory if that session is revoked. Reads must use the visible collection;
+// Avails also checks membership before returning private poll lists.
 export function visibleAvailsCommunityIds(communities, {
   signedIn = false,
   requireSignIn = false,
@@ -20,6 +20,14 @@ export function visibleAvailsCommunityIds(communities, {
     .filter((community) => community?.visibility !== 'private' || signedIn)
     .map((community) => community.id)
     .filter((id) => typeof id === 'string' && id.length > 0);
+}
+
+export function availsFeedNeedsAuth(community, requireSignIn = false) {
+  return requireSignIn || community?.visibility === 'private';
+}
+
+export function pollsForAccount(polls, loadedSubject, currentSubject) {
+  return loadedSubject === currentSubject ? polls : [];
 }
 
 export function availsParticipationPreview(poll, { availsUrl, communityName } = {}) {

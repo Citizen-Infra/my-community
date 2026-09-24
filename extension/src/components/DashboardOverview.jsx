@@ -56,7 +56,7 @@ import {
   retryBrainDecisions,
 } from '../store/brain-decisions';
 import { caSignedIn } from '../store/caAuth';
-import { availsPolls } from '../store/avails';
+import { visibleAvailsPolls } from '../store/avails';
 import { AVAILS_URL } from '../lib/config';
 import { availsParticipationPreview } from '../lib/avails-preview';
 import { deploymentConfig } from '../lib/deployment-config';
@@ -197,7 +197,7 @@ function previewState(tab) {
         previewStatus: 'Proposed call',
         previewAnchor: callProposalAnchor(proposal),
       })),
-      ...availsPolls.value.map((poll) => availsParticipationPreview(poll, {
+      ...visibleAvailsPolls.value.map((poll) => availsParticipationPreview(poll, {
         availsUrl: AVAILS_URL,
         communityName: communityName(poll.community),
       })),
