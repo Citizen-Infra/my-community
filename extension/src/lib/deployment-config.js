@@ -68,7 +68,8 @@ export function createDeploymentConfig(env = {}) {
   const linksApiBase = apiBase(configuredLinksApiBase);
   const configuredDecisionsApiBase = optionalValue(env.VITE_DECISIONS_API_BASE);
   return Object.freeze({
-    blueskyEnabled: parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true),
+    blueskyEnabled: pinnedCommunityId !== 'philanthropic-xxi'
+      && parseBooleanFlag(env.VITE_BLUESKY_ENABLED, true),
     brand: deploymentBrand(pinnedCommunityId),
     landscapeUrl: pinnedCommunityId === 'philanthropic-xxi'
       ? 'https://philanthropy-landscape.netlify.app/'

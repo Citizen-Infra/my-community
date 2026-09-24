@@ -5,6 +5,7 @@ import { syncAvailability } from '../store/availability';
 import { AvailabilityStrip } from './AvailabilityStrip';
 import { isConnected } from '../store/auth';
 import { openDashboardFeed } from '../store/panels';
+import { deploymentConfig } from '../lib/deployment-config';
 import { allCommunities } from '../store/communities';
 import { getCommunityColors } from '../lib/community-colors';
 
@@ -128,7 +129,7 @@ function CallProposalCard({ proposal: p }) {
         <div class="call-card-footer">
           <span class="call-count" aria-live="polite">{supportText(count, gathering)}</span>
 
-          {gathering && isConnected.value && (
+          {gathering && deploymentConfig.blueskyEnabled && isConnected.value && (
             <button
               data-requires-network
               type="button"
@@ -141,10 +142,13 @@ function CallProposalCard({ proposal: p }) {
             </button>
           )}
 
-          {gathering && !isConnected.value && (
+          {gathering && deploymentConfig.blueskyEnabled && !isConnected.value && (
             <button type="button" class="call-connect" onClick={() => openDashboardFeed('network')}>
               Connect Bluesky to answer
             </button>
+          )}
+          {gathering && !deploymentConfig.blueskyEnabled && (
+            <span class="call-count">Responses to call proposals aren’t available in this member space yet.</span>
           )}
         </div>
 
@@ -155,7 +159,7 @@ function CallProposalCard({ proposal: p }) {
             an unanswered question is two decisions where the card had one.
             After the like it is the same decision continued: they want the
             call, so the useful next thing is making it bookable. */}
-        {gathering && isConnected.value && isIn && <AvailabilityStrip proposal={p} />}
+        {gathering && deploymentConfig.blueskyEnabled && isConnected.value && isIn && <AvailabilityStrip proposal={p} />}
       </div>
     </article>
   );

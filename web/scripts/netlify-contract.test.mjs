@@ -18,7 +18,7 @@ assert(redirects.trim() === '/* /index.html 200', 'Netlify serves client routes 
 assert(headers.includes('X-Content-Type-Options: nosniff'), 'Netlify preserves the server security headers');
 assert(headers.includes('/assets/*') && headers.includes('immutable'), 'fingerprinted assets keep immutable caching');
 assert(config.includes('base = "web"') && config.includes('publish = "dist"'), 'Netlify builds and publishes the web workspace');
-assert(vite.includes("dist/oauth") && vite.includes('VITE_BLUESKY_ENABLED'), 'Bluesky-off builds remove OAuth client metadata');
+assert(vite.includes('dist/oauth') && vite.includes('omitDisabledBlueskyMetadata(deploymentConfig.blueskyEnabled)'), 'Bluesky-off builds remove OAuth client metadata using the same deployment policy as the UI');
 
 console.log(failures === 0 ? '\nall passed' : `\n${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

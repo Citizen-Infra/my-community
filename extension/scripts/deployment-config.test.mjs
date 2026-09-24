@@ -17,6 +17,8 @@ assert.equal(deploymentFeedVisible('digest', true, withoutNetwork), true, 'disab
 
 const pxxi = createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'philanthropic-xxi' });
 assert.equal(pxxi.brand.name, 'Philanthropic XXI', 'the pinned PXXI build uses its fixed brand');
+assert.equal(pxxi.blueskyEnabled, false, 'the PXXI pin cannot expose Bluesky when its flag is missing');
+assert.equal(createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'philanthropic-xxi', VITE_BLUESKY_ENABLED: 'true' }).blueskyEnabled, false, 'the PXXI pin cannot enable Bluesky');
 assert.equal(pxxi.landscapeUrl, 'https://philanthropy-landscape.netlify.app/', 'only the pinned PXXI build links to the public landscape');
 assert.equal(createDeploymentConfig({ VITE_PINNED_COMMUNITY_ID: 'other-community' }).landscapeUrl, null);
 

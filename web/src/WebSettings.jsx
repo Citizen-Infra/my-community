@@ -106,7 +106,7 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
     ? `@${caHandle.value || blueskyUser.value?.handle || caSubject.value}`
     : caType.value === 'telegram' ? 'Telegram account' : caSubject.value;
   const telegramCommunity = deploymentConfig.pinnedCommunityId;
-  const signedOutDoors = 1 + Number(Boolean(telegramCommunity)) + Number(deploymentConfig.blueskyEnabled);
+  const signedOutDoors = 1 + Number(Boolean(telegramCommunity)) + Number(!telegramCommunity && deploymentConfig.blueskyEnabled);
   return (
     <div class="web-settings-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section ref={dialogRef} tabindex="-1" class="web-settings" role="dialog" aria-modal="true" aria-labelledby="web-settings-title">
@@ -117,7 +117,9 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
 
         <div class="web-settings-content">
           <section class="settings-section">
-            <div class="settings-heading"><h3>Account</h3><p>Sign in to unlock private communities and carry your layout across devices.</p></div>
+            <div class="settings-heading"><h3>Account</h3><p>{telegramCommunity
+              ? 'Continue with Telegram to confirm your group membership. If you already linked an email account to Telegram, you can use that too.'
+              : 'Sign in to unlock private communities and carry your layout across devices.'}</p></div>
             {caSignedIn.value ? (
               <>
                 <div class="account-signed-in">
@@ -134,12 +136,12 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
               </>
             ) : (
               <div class={`account-doors account-doors-${signedOutDoors}`}>
+                {telegramCommunity && <><div class="telegram-door"><span>Telegram</span><TelegramSignIn community={telegramCommunity} /></div><span class="account-or">or</span></>}
                 <form onSubmit={emailSignIn}>
-                  <label for="web-email">Email</label>
+                  <label for="web-email">{telegramCommunity ? 'Linked email account' : 'Email'}</label>
                   <div><input id="web-email" type="email" value={email} onInput={(event) => setEmail(event.currentTarget.value)} placeholder="you@example.com" required /><button data-requires-network disabled={busy === 'email'}>{busy === 'email' ? 'Sending…' : 'Send link'}</button></div>
                 </form>
-                {telegramCommunity && <><span class="account-or">or</span><div class="telegram-door"><span>Telegram</span><TelegramSignIn community={telegramCommunity} /></div></>}
-                {deploymentConfig.blueskyEnabled && <><span class="account-or">or</span><form onSubmit={blueskySignIn}>
+                {!telegramCommunity && deploymentConfig.blueskyEnabled && <><span class="account-or">or</span><form onSubmit={blueskySignIn}>
                   <label for="web-handle">Bluesky</label>
                   {!isConnected.value && <input id="web-handle" value={handle} onInput={(event) => setHandle(event.currentTarget.value)} placeholder="name.bsky.social" required />}
                   <button data-requires-network disabled={busy === 'bluesky'}>{busy === 'bluesky' ? 'Opening…' : isConnected.value ? `Continue as @${blueskyUser.value?.handle}` : 'Continue with Bluesky'}</button>

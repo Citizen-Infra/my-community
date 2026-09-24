@@ -3,19 +3,31 @@ import { requestSignIn, requestBlueskySignIn } from '../store/caAuth';
 import { isConnected, blueskyUser, connectBluesky } from '../store/auth';
 import { loadCommunities, selectedCommunityIds } from '../store/communities';
 import { loadProposals } from '../store/proposals';
+import { deploymentConfig } from '../lib/deployment-config';
 import '../styles/auth-modal.css';
 
 // Signed-out state for the Community Input feed: consent needs a verified member, so
-// the feed itself owns a connect prompt (the same two-door affordance as Settings —
-// email magic link or Bluesky). Kept self-contained so the live Settings sign-in is
-// untouched, matching how the Network feed owns its own connect state.
-export function CommunityInputConnect() {
+// the ordinary feed owns email/Bluesky sign-in. The pinned PXXI deployment instead
+// routes members to its Telegram-first settings without changing the shared sign-in flow.
+export function CommunityInputConnect({ onOpenSettings }) {
   const [email, setEmail] = useState('');
   const [handle, setHandle] = useState('');
   const [emailBusy, setEmailBusy] = useState(false);
   const [bskyBusy, setBskyBusy] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
   const [error, setError] = useState(null);
+
+  if (deploymentConfig.pinnedCommunityId === 'philanthropic-xxi') {
+    return (
+      <div class="ci-connect">
+        <h2 class="ci-connect-title">What Philanthropic XXI decides, together</h2>
+        <p class="ci-connect-desc">Sign in through Crapotkin to see your community’s decisions and sources. Already use a linked email account? You can sign in with it in Settings.</p>
+        {onOpenSettings
+          ? <button type="button" class="auth-submit" onClick={onOpenSettings}>Open sign-in options</button>
+          : <a class="auth-submit ci-connect-settings-link" href="/settings">Open sign-in options</a>}
+      </div>
+    );
+  }
 
   async function submitEmail(e) {
     e.preventDefault();
