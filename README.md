@@ -60,6 +60,10 @@ Open the Network tab and connect Bluesky to see popular posts from people you fo
 
 ## Changelog
 
+### 0.3.26 — September 2026
+- **You can dress your dashboard in a community's own look.** When a community you follow publishes an official skin, it appears under Settings → Appearance → Skin. Preview it first; nothing changes until you choose "Use this skin", and you can return to the My Community default at any time. A skin changes colours, type and corners only. If a community later updates its skin, you are offered the new version rather than switched to it.
+- **Avails polls show up in Participation previews.** Open scheduling polls from your communities now appear in the Participation tile alongside events, and polls from private communities are only requested with your community account.
+
 ### 0.3.25 — September 2026
 - **Dashboard tiles stay off when you turn them off.** Digest, Participation, and Community Input no longer switch themselves back on immediately after you hide them in Settings.
 
