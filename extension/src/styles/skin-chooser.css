@@ -1,0 +1,368 @@
+/* Appearance > Skin (#18). Chrome uses the live tokens, so the chooser itself
+   follows whichever skin is active. The preview frame below receives a skin's
+   variables inline and reads ONLY those plus product-controlled values
+   (provenance, danger, spacing), never a hard-coded colour a skin may change. */
+
+.skin-chooser {
+  container-type: inline-size;
+  margin-top: var(--space-lg);
+  display: grid;
+  gap: var(--space-md);
+}
+
+.settings-section > .skin-chooser:first-child {
+  margin-top: 0;
+}
+
+/* The Label role, as .settings-section-title uses it: the web companion does
+   not load settings-modal.css, so the values are repeated rather than shared. */
+.skin-chooser-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-text-muted);
+}
+
+/* Focus lands here programmatically after Use / Restore / Cancel remove the
+   button that held it; the heading is not a control, so it draws no ring. */
+.skin-chooser-title:focus {
+  outline: none;
+}
+
+.skin-chooser-hint {
+  margin-top: 4px;
+  max-width: 60ch;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.skin-notice {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-subtle);
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.skin-error {
+  font-size: 12px;
+  color: var(--color-danger-text);
+}
+
+.skin-options {
+  list-style: none;
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.skin-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.skin-option.is-current {
+  border-color: var(--color-primary);
+}
+
+.skin-option-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.skin-option-text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.skin-option-text small {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.skin-option-text .skin-update {
+  color: var(--color-text);
+}
+
+.skin-option-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.skin-option-state {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+/* Three-band swatch: page, primary, accent. */
+.skin-swatch {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    135deg,
+    var(--swatch-page, var(--color-surface-hover)) 0 45%,
+    var(--swatch-primary, var(--color-border)) 45% 75%,
+    var(--swatch-accent, var(--color-border-light)) 75%
+  );
+}
+
+/* The built-in Community Almanac identity (DESIGN.md), shown as itself. */
+.skin-swatch-default {
+  --swatch-page: #f8f6f1;
+  --swatch-primary: #2d6a4f;
+  --swatch-accent: #d97706;
+}
+
+.skin-action,
+.skin-link {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.skin-action:hover,
+.skin-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.skin-action:disabled {
+  color: var(--color-text-secondary);
+  cursor: default;
+  text-decoration: none;
+}
+
+.skin-action:focus-visible,
+.skin-link:focus-visible,
+.skin-use:focus-visible,
+.skin-preview-modes button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.skin-use {
+  min-height: 34px;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.skin-use:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Preview panel */
+.skin-preview-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-hover);
+}
+
+.skin-preview-bar,
+.skin-preview-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.skin-preview-bar strong {
+  color: var(--color-text);
+}
+
+.skin-preview-footer {
+  justify-content: flex-start;
+}
+
+.skin-preview-modes {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+}
+
+.skin-preview-modes button {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--color-text-secondary);
+}
+
+.skin-preview-modes button.active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Everything inside .skin-preview resolves against the inline variables. */
+.skin-preview {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.skin-preview-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.skin-preview-brand {
+  margin-right: auto;
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--color-text);
+}
+
+.skin-preview-chip {
+  padding: 3px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.skin-preview-chip.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.skin-preview-card {
+  display: grid;
+  gap: 6px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid var(--color-border-light);
+  border-left: 4px solid var(--provenance);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.skin-preview-meta {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.skin-preview-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.skin-preview-body {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.skin-preview-body a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.skin-preview-muted {
+  color: var(--color-text-muted);
+}
+
+.skin-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.skin-preview-button {
+  padding: 5px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.skin-preview-button.is-primary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.skin-preview-button.is-accent {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.skin-preview-button.is-focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.skin-preview-input {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.skin-preview-loading {
+  display: block;
+  height: 8px;
+  width: 60%;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-hover);
+}
+
+/* Keyed to the chooser's own width: the extension's Settings modal is narrow
+   even on a wide screen. */
+@container (max-width: 460px) {
+  .skin-option {
+    grid-template-columns: auto 1fr;
+  }
+
+  .skin-option-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}

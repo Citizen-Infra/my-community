@@ -23,6 +23,7 @@ import {
 import { activeTab, availableTabs, dashboardMode } from './store/panels';
 import { refreshInactiveDashboardFeeds } from './lib/dashboard-feed-refresh';
 import { deploymentConfig } from './lib/deployment-config';
+import { refreshSkins } from './store/skin';
 
 export function hydrateDashboard() {
   const ids = selectedCommunityIds.value;
@@ -47,6 +48,14 @@ export function useDashboardFeeds(ready) {
     else stopJamPolling();
     return () => stopJamPolling();
   }, [ready, caSignedIn.value, selectedCommunityIds.value]);
+
+  // Skin pointer refresh (#18): discovers official skins for the dashboard's
+  // communities and re-checks the pinned revision. Cheap (no-cache + ETag), and
+  // re-run when the account changes because private skins depend on it.
+  useEffect(() => {
+    if (!ready) return;
+    void refreshSkins(selectedCommunityIds.value);
+  }, [ready, caSubject.value, selectedCommunityIds.value]);
 
   useLayoutEffect(() => {
     if (!ready) return;

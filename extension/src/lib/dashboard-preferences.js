@@ -1,3 +1,5 @@
+import { normalizeSkinRef } from './skin-runtime.js';
+
 export const DASHBOARD_PREFERENCE_SCHEMA_VERSION = 1;
 export const DASHBOARD_FEED_KEYS = ['network', 'digest', 'participation', 'communityInput'];
 export const SUPPORTING_TILE_KEYS = ['featured', 'openCollective', 'stewardship', 'jam'];
@@ -47,7 +49,7 @@ export function normalizeDashboardPreferences(value = {}) {
       value.visibleSupportingTileKeys ?? SUPPORTING_TILE_KEYS,
       SUPPORTING_TILE_KEYS,
     ),
-    activeSkin: value.activeSkin ?? null,
+    activeSkin: normalizeSkinRef(value.activeSkin),
   };
 }
 

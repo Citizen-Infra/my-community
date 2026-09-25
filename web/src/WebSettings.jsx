@@ -18,6 +18,8 @@ import {
 } from '../../extension/src/store/caAuth';
 import { blueskyUser, connectBluesky, disconnectBluesky, isConnected } from '../../extension/src/store/auth';
 import { theme, setTheme } from '../../extension/src/store/theme';
+import { SkinChooser } from '../../extension/src/components/SkinChooser';
+import { skinsEnabled } from '../../extension/src/store/skin';
 import { visibleTabs, setTabVisible } from '../../extension/src/store/panels';
 import {
   blueskyShowReposts,
@@ -194,6 +196,10 @@ export function WebSettings({ onClose, onCustomize, onInstall, canInstall }) {
             <div class="settings-segmented" aria-label="Theme">{['system', 'light', 'dark'].map((value) => <button type="button" class={theme.value === value ? 'active' : ''} aria-pressed={theme.value === value} onClick={() => setTheme(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div>
             {canInstall && <button type="button" class="settings-install" onClick={onInstall}>Install this dashboard</button>}
           </section>
+
+          {skinsEnabled && <section class="settings-section">
+            <SkinChooser />
+          </section>}
         </div>
       </section>
     </div>
