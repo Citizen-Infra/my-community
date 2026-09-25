@@ -14,10 +14,20 @@
   margin-top: 0;
 }
 
+/* The Label role, as .settings-section-title uses it: the web companion does
+   not load settings-modal.css, so the values are repeated rather than shared. */
 .skin-chooser-title {
-  font-size: 13px;
-  font-weight: 650;
-  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-text-muted);
+}
+
+/* Focus lands here programmatically after Use / Restore / Cancel remove the
+   button that held it; the heading is not a control, so it draws no ring. */
+.skin-chooser-title:focus {
+  outline: none;
 }
 
 .skin-chooser-hint {
@@ -30,7 +40,6 @@
 
 .skin-notice {
   padding: 10px 12px;
-  border-left: 3px solid var(--color-accent);
   border-radius: var(--radius-sm);
   background: var(--color-accent-subtle);
   color: var(--color-text);

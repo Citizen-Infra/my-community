@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   previewSkin,
   refreshSkins,
@@ -32,6 +32,14 @@ export function SkinChooser() {
   const [preview, setPreview] = useState(null); // { option, entry, mode }
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState('');
+  const titleRef = useRef(null);
+
+  // Use, Restore and Cancel each remove the button that was pressed. Hand focus
+  // to the Skin heading so a keyboard or screen-reader user is not dropped to
+  // the top of the page.
+  function returnFocus() {
+    requestAnimationFrame(() => titleRef.current?.focus());
+  }
 
   useEffect(() => { void refreshSkins(); }, []);
 
@@ -72,12 +80,13 @@ export function SkinChooser() {
     setBusy(null);
     if (!result.entry) { setError(PREVIEW_ERRORS[result.error] || PREVIEW_ERRORS.unavailable); return; }
     setPreview(null);
+    returnFocus();
   }
 
   return (
     <div class="skin-chooser">
       <div class="skin-chooser-head">
-        <h5 class="skin-chooser-title" id="mc-skin-label">Skin</h5>
+        <h5 class="skin-chooser-title" id="mc-skin-label" tabIndex={-1} ref={titleRef}>Skin</h5>
         <p class="skin-chooser-hint">
           A community skin changes colours, type and corners across your whole dashboard. Your layout and feeds stay the same, and nothing changes until you choose it.
         </p>
@@ -98,7 +107,7 @@ export function SkinChooser() {
             {!selection ? (
               <span class="skin-option-state">In use</span>
             ) : (
-              <button type="button" class="skin-action" onClick={() => { setPreview(null); restoreDefaultSkin(); }}>
+              <button type="button" class="skin-action" onClick={() => { setPreview(null); restoreDefaultSkin(); returnFocus(); }}>
                 Restore My Community default
               </button>
             )}
@@ -156,7 +165,7 @@ export function SkinChooser() {
           inUse={sameRef(preview.option, selection) && !!applied}
           onMode={(mode) => setPreview({ ...preview, mode })}
           onUse={() => useSkin(preview.option)}
-          onCancel={() => setPreview(null)}
+          onCancel={() => { setPreview(null); returnFocus(); }}
         />
       )}
     </div>
