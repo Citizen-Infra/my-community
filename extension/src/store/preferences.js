@@ -25,6 +25,7 @@ import {
 } from './bluesky';
 import { caSessionHeader, signOut } from './caAuth';
 import { replaceSupportingTileKeys, visibleSupportingTileKeys } from './supporting';
+import { applySyncedSkinSelection, skinSelection } from './skin';
 
 const ACCOUNT_KEY = 'mc_preferences_account';
 const SIGNED_OUT_KEY = 'mc_signed_out_preferences';
@@ -65,7 +66,9 @@ export function currentDashboardPreferences() {
       ranking: blueskyWeightedSort.value ? 'most-discussed' : 'most-liked',
     },
     visibleSupportingTileKeys: visibleSupportingTileKeys.value,
-    activeSkin: null,
+    // Only the pin syncs, never skin content (#18). Choosing the pin is the
+    // member's explicit action; publishing never changes it.
+    activeSkin: skinSelection.value,
   });
 }
 
@@ -92,6 +95,7 @@ export function applyDashboardPreferences(value) {
   localStorage.setItem('mc_bluesky_reposts', String(next.network.showReposts));
   localStorage.setItem('mc_bluesky_weighted', String(next.network.ranking === 'most-discussed'));
   replaceSupportingTileKeys(next.visibleSupportingTileKeys);
+  applySyncedSkinSelection(next.activeSkin);
   revision = next.revision;
   queueMicrotask(() => { applying = false; });
   return next;

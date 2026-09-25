@@ -121,12 +121,15 @@ Signals-based stores in `src/store/`:
 - `panels.js` -- dashboard feed visibility, persisted ordering, active feed, and overview/focused mode
 - `tab-manager.js` -- dashboard-only preference, persisted to `chrome.storage.local` so both the new-tab shell and background save actions enforce it
 - `theme.js` -- light/dark/system theme
+- `skin.js` -- community skins (#18): binds `lib/skin-runtime.js` to signals and the page. Hydrates the pinned revision from this device's cache at import (before first render, so no flash), refreshes the pointer batch via `refreshSkins` from `useDashboardFeeds`, and exposes `previewSkin`/`selectSkin`/`restoreDefaultSkin`. Only the `{ communityId, skinId, revision }` pin syncs, as `activeSkin` in the preference document (#152)
 
 ### Libraries
 
 - `lib/oauth-atproto.js` -- in-extension ATProto OAuth client (PKCE + DPoP + PAR via `launchWebAuthFlow`); persists the DPoP key + tokens in IndexedDB (`mc-atproto-oauth`); exports `loginWithBluesky`/`dpopFetch`/`getServiceAuth`/`logout`/`getStoredSession`/`resolveHandleFromDid`. Ported from the validated `../atproto-oauth-poc/` spike.
 - `lib/atproto.js` -- thin `bskyFetch`/`bskyPost` that delegate to `dpopFetch` (the OAuth session owns the tokens; app-password functions are gone)
 - `lib/supabase.js` -- Supabase client
+- `lib/community-skin.js` -- **vendored byte-for-byte** from community-admin's `shared/community-skin.js` (the skin schema, publication gate and CSS-variable interpreter, community-admin#153). Never edit it here: `scripts/community-skin.test.mjs` pins its sha256, and one interpreter is what keeps the organizer's preview identical to what members see. To take a new version, copy the file unchanged and update the hash in the same commit
+- `lib/skin-runtime.js` -- member-side skin logic, DOM-free and testable: pin normalization, re-validation of every revision (including cached ones) with the publication gate, the closed stylesheet (`:root[data-mc-skin]` + a dark rule, only `SKIN_CSS_VARIABLES`), the revision cache, and the controller (discovery, preview, explicit select, restore, sync, sign-out, fallbacks with explanations). Nothing in it selects or updates a skin without a member action
 
 ### Components
 
@@ -138,6 +141,7 @@ Signals-based stores in `src/store/`:
 - `DigestFeed.jsx` + `DigestCard.jsx` -- community digest links (OG thumbnail support)
 - `JamBanner.jsx` + `jam.css` -- live jam room banners with animated equalizer bars, shown atop SessionsPanel
 - `SessionsPanel.jsx` -- participation opportunities (events from /api/events + Supabase sessions, with source badges)
+- `SkinChooser.jsx` + `skin-chooser.css` -- Appearance > Skin, shared by `SettingsModal` and the web companion's `WebSettings`. Lists the default (Community Almanac) plus one official skin per eligible community, previews inside a scoped frame (never the page), applies only on "Use this skin", offers newer revisions as updates, and explains every fallback. Hidden when `deploymentConfig.skinsEnabled` is false (the PXXI deployment has its own fixed identity)
 - `SettingsModal.jsx` -- two-door community account (email + Bluesky, equal), Network (Bluesky connect status + Disconnect; the feed's filters live at the feed, not here), communities, tab toggles, theme, tab-manager save/backup + a local/private note
 
 ### Design system
@@ -166,6 +170,8 @@ All keys prefixed with `mc_`:
 | `mc_dashboard_preview_depths` | `store/panels.js` | Per-feed preview depth (`auto` or an exact item count) |
 | `mc_active_tab` | `store/panels.js` | Most recently focused dashboard feed (default: `digest`) |
 | `mc_theme` | `store/theme.js` | Theme preference: `light`, `dark`, or `system` |
+| `mc_skin_selection` | `store/skin.js` | Pinned community skin `{ communityId, skinId, revision }`, or absent for the default. Survives sign-out (it is a preference) |
+| `mc_skin_revisions` | `store/skin.js` | Validated skin revisions keyed `<community>/<skin>/v<schema>/r<revision>`, plus withdrawal tombstones. Private-community entries are removed at sign-out by `clearPrivateCommunityCaches` |
 
 The dashboard-only preference uses `chrome.storage.local` rather than page
 `localStorage`: `mc_tab_manager_enabled` must also be readable by the service

@@ -80,6 +80,9 @@ export function createDeploymentConfig(env = {}) {
     linksApiBase,
     linksRequireSignIn: configuredLinksApiBase !== null,
     pinnedCommunityId,
+    // PXXI carries its own fixed identity (DESIGN.md), which is not the
+    // member-selectable community skin system (#18). Skins stay off there.
+    skinsEnabled: pinnedCommunityId !== 'philanthropic-xxi',
   });
 }
 
@@ -101,7 +104,7 @@ export function deploymentBrainDecisionsEnabled(config = deploymentConfig) {
 }
 
 export function deploymentSyncPreferences(snapshot, baseline, config = deploymentConfig) {
-  if (!baseline && !config.pinnedCommunityId && config.blueskyEnabled) return snapshot;
+  if (!baseline && !config.pinnedCommunityId && config.blueskyEnabled && config.skinsEnabled !== false) return snapshot;
   const accountBaseline = baseline || {
     selectedCommunityIds: [],
     visibleFeedKeys: [...new Set(['network', ...snapshot.visibleFeedKeys])],
@@ -120,6 +123,11 @@ export function deploymentSyncPreferences(snapshot, baseline, config = deploymen
     else visible.delete('network');
     next.visibleFeedKeys = [...visible];
     next.network = accountBaseline.network;
+  }
+  // A deployment without skins must not clear the skin a member picked in the
+  // ordinary deployment; it keeps whatever the account already holds.
+  if (config.skinsEnabled === false) {
+    next.activeSkin = accountBaseline.activeSkin ?? null;
   }
   return next;
 }

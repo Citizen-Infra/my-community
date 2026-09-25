@@ -4,6 +4,7 @@ import { loadDigest } from '../store/digest';
 import { loadSessions } from '../store/sessions';
 import { caSubject, caType, caHandle, caSignedIn, requestSignIn, requestBlueskySignIn, signOut } from '../store/caAuth';
 import { theme, setTheme } from '../store/theme';
+import { SkinChooser } from './SkinChooser';
 import { blueskyUser, isConnected, connectBluesky, disconnectBluesky } from '../store/auth';
 import { visibleTabs, setTabVisible, jamVisible, setJamVisible } from '../store/panels';
 import { exportData } from '../lib/export';
@@ -472,6 +473,7 @@ export function SettingsModal({ onClose }) {
                     </button>
                   ))}
                 </div>
+                <SkinChooser />
               </section>
             </>
           )}

@@ -99,6 +99,10 @@ It explicitly rejects the **generic tech-dark tool** (neon on black), the **ster
 
 The PXXI identity is selected only by the pinned deployment configuration. It is not arbitrary CSS, an administrator-forced account preference, or the user-selectable community-skin system tracked separately in `community-admin#153` and `my-community#18`.
 
+### Community skins
+
+Community Almanac is the default and the fallback. A member may explicitly choose one community's official skin (community-admin#153, my-community#18), which replaces only the palette roles, the typography preset (`editorial`, `sans`, `system`, all fonts this product already ships or the OS provides) and the corner-radius preset for the whole dashboard. Spacing, layout, density, status and danger colours, focus geometry and the per-community provenance bar stay product-controlled, and a skin is applied whole or not at all. Skins are off in the PXXI deployment, whose identity is fixed above.
+
 ## 2. Colors
 
 A warm, low-chroma neutral field with one confident green and one rationed amber.
