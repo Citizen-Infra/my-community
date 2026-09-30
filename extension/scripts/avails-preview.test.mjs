@@ -13,6 +13,16 @@ const accountPolls = [{ title: 'Private meeting' }];
 assert.deepEqual(pollsForAccount(accountPolls, 'account-a', 'account-b'), [], 'account switches hide prior private polls');
 assert.deepEqual(pollsForAccount(accountPolls, 'account-a', 'account-a'), accountPolls);
 assert.deepEqual(pollsForAccount(accountPolls, null, null), accountPolls, 'public signed-out polls remain visible');
+const scopedPolls = [
+  { title: 'Private meeting', community: 'philanthropic-xxi' },
+  { title: 'Public meeting', community: 'cibc' },
+];
+assert.deepEqual(
+  pollsForAccount(scopedPolls, 'account-a', 'account-a', ['cibc']),
+  [scopedPolls[1]],
+  'a cached preview cannot show a poll from a deselected or no-longer-visible community',
+);
+assert.deepEqual(pollsForAccount(scopedPolls, 'account-a', 'account-a', []), []);
 
 assert.deepEqual(
   visibleAvailsCommunityIds([

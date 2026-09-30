@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { blueskySession, isConnected } from './store/auth';
 import { selectedCommunityIds, selectedCommunities } from './store/communities';
 import { digestLoading, hydrateDigest, loadDigest } from './store/digest';
@@ -38,6 +38,15 @@ export function hydrateDashboard() {
 // previews, refreshes the focused source first, and revalidates inactive tiles
 // one at a time after first paint.
 export function useDashboardFeeds(ready) {
+  const previousAvailsSubject = useRef(caSubject.value);
+  useLayoutEffect(() => {
+    if (previousAvailsSubject.current === caSubject.value) return;
+    // Clear before the passive loaders start for the new account. Clearing in
+    // the poller's cleanup would cancel that fresh request instead.
+    stopAvailsPolling();
+    previousAvailsSubject.current = caSubject.value;
+  }, [caSubject.value]);
+
   useEffect(() => {
     if (!ready) return undefined;
     const ids = selectedCommunityIds.value;
@@ -142,8 +151,8 @@ export function useDashboardFeeds(ready) {
     if (dashboardMode.value === 'feed' && activeTab.value === 'participation' && ids.length > 0) {
       startAvailsPolling(ids);
     } else {
-      stopAvailsPolling();
+      stopAvailsPolling({ preserve: true });
     }
-    return () => stopAvailsPolling();
+    return () => stopAvailsPolling({ preserve: true });
   }, [ready, dashboardMode.value, activeTab.value, selectedCommunities.value, caSignedIn.value, caSubject.value]);
 }
