@@ -58,6 +58,10 @@ caSignedIn.value = true;
 caSubject.value = 'member-b';
 assert.equal(visibleAvailsPolls.value.length, 0, 'switching accounts hides the retained poll');
 caSubject.value = 'member-a';
+caSubject.value = null;
+stopAvailsPolling({ preserve: caSubject.value === 'member-a' });
+caSubject.value = 'member-a';
+assert.equal(visibleAvailsPolls.value.length, 0, 'sign-out cannot resurface a stale poll after reauthorizing the same account');
 
 startAvailsPolling(['philanthropic-xxi']);
 await waitForFetch();
