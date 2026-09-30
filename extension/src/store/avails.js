@@ -1,16 +1,24 @@
 import { computed, signal } from '@preact/signals';
 import { AVAILS_URL } from '../lib/config';
-import { authHeader, caSubject } from './caAuth';
+import { authHeader, caSignedIn, caSubject } from './caAuth';
 import { selectedCommunities } from './communities';
 import { deploymentConfig } from '../lib/deployment-config';
-import { availsFeedNeedsAuth, pollsForAccount } from '../lib/avails-preview';
+import { availsFeedNeedsAuth, pollsForAccount, visibleAvailsCommunityIds } from '../lib/avails-preview';
 
 const AVAILS_API = `${AVAILS_URL}/api/polls`;
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export const availsPolls = signal([]);
 const loadedSubject = signal(null);
-export const visibleAvailsPolls = computed(() => pollsForAccount(availsPolls.value, loadedSubject.value, caSubject.value));
+export const visibleAvailsPolls = computed(() => pollsForAccount(
+  availsPolls.value,
+  loadedSubject.value,
+  caSubject.value,
+  visibleAvailsCommunityIds(selectedCommunities.value, {
+    signedIn: caSignedIn.value,
+    requireSignIn: deploymentConfig.linksRequireSignIn,
+  }),
+));
 
 let pollTimer = null;
 let loadVersion = 0;
@@ -61,12 +69,16 @@ export function startAvailsPolling(communityIds) {
   pollTimer = setInterval(() => loadAvailsPolls(communityIds), POLL_INTERVAL);
 }
 
-export function stopAvailsPolling() {
-  loadVersion += 1;
+export function stopAvailsPolling({ preserve = false } = {}) {
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
   }
+  // The overview still uses the last response (and may be fetching a newer
+  // one). Stopping its five-minute feed timer must not erase or cancel that
+  // preview. Full teardown still invalidates pending requests.
+  if (preserve) return;
+  loadVersion += 1;
   loadedSubject.value = null;
   availsPolls.value = [];
 }

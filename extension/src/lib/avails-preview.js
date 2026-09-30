@@ -26,8 +26,11 @@ export function availsFeedNeedsAuth(community, requireSignIn = false) {
   return requireSignIn || community?.visibility === 'private';
 }
 
-export function pollsForAccount(polls, loadedSubject, currentSubject) {
-  return loadedSubject === currentSubject ? polls : [];
+export function pollsForAccount(polls, loadedSubject, currentSubject, visibleCommunityIds) {
+  if (loadedSubject !== currentSubject) return [];
+  if (!visibleCommunityIds) return polls;
+  const visible = new Set(visibleCommunityIds);
+  return polls.filter((poll) => visible.has(poll.community));
 }
 
 export function availsParticipationPreview(poll, { availsUrl, communityName } = {}) {

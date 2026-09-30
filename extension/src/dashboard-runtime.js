@@ -142,8 +142,8 @@ export function useDashboardFeeds(ready) {
     if (dashboardMode.value === 'feed' && activeTab.value === 'participation' && ids.length > 0) {
       startAvailsPolling(ids);
     } else {
-      stopAvailsPolling();
+      stopAvailsPolling({ preserve: true });
     }
-    return () => stopAvailsPolling();
+    return () => stopAvailsPolling({ preserve: true });
   }, [ready, dashboardMode.value, activeTab.value, selectedCommunities.value, caSignedIn.value, caSubject.value]);
 }
