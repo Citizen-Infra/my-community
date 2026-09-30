@@ -10,6 +10,7 @@ import { loadBrainDecisions } from './store/brain-decisions';
 import { startJamPolling, stopJamPolling } from './store/jam';
 import {
   loadAvailsPolls,
+  hydrateAvailsPolls,
   startAvailsPolling,
   stopAvailsPolling,
 } from './store/avails';
@@ -29,6 +30,10 @@ export function hydrateDashboard() {
   const ids = selectedCommunityIds.value;
   hydrateDigest(ids, { allowStale: true });
   hydrateSessions(selectedCommunities.value, { allowStale: true });
+  hydrateAvailsPolls(visibleAvailsCommunityIds(selectedCommunities.value, {
+    signedIn: caSignedIn.value,
+    requireSignIn: deploymentConfig.linksRequireSignIn,
+  }), { allowStale: true });
   hydrateProposals(caSignedIn.value ? ids : []);
   hydrateWikiQueue(caSignedIn.value ? ids : []);
   if (isConnected.value) hydrateBlueskyFeed({ allowStale: true });
@@ -71,6 +76,10 @@ export function useDashboardFeeds(ready) {
     const ids = selectedCommunityIds.value;
     hydrateDigest(ids, { allowStale: true });
     hydrateSessions(selectedCommunities.value, { allowStale: true });
+    hydrateAvailsPolls(visibleAvailsCommunityIds(selectedCommunities.value, {
+      signedIn: caSignedIn.value,
+      requireSignIn: deploymentConfig.linksRequireSignIn,
+    }), { allowStale: true });
     hydrateProposals(caSignedIn.value ? ids : []);
     hydrateWikiQueue(caSignedIn.value ? ids : []);
   }, [ready, caSignedIn.value, selectedCommunityIds.value, selectedCommunities.value]);
